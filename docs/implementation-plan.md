@@ -26,7 +26,7 @@ Phase 7 ──▶ End-to-End Testing, Golden Dataset Evals & Production Readines
 | **1** | **Corpus & Ingestion Pipeline** | `corpus_manifest.yaml`, Playwright/httpx fetchers, table chunker, ChromaDB, SQLite facts | 2.0 hr |
 | **2** | **Guardrails & Compliance Firewall** | PII regex/Verhoeff detector, intent classifier, templated refusal engine | 1.5 hr |
 | **3** | **Hybrid Retrieval & Entity Engine** | Scheme entity extraction, BM25 + dense search, RRF fusion, priority weighting | 1.5 hr |
-| **4** | **Constrained LLM & Validator** | PromptBuilder, Gemini/Groq LLM client, sentence counter, grounding check, footer | 1.5 hr |
+| **4** | **Constrained LLM & Validator** | PromptBuilder, Groq LLM client (Llama 3.3 70B), sentence counter, grounding check, footer | 1.5 hr |
 | **5** | **Session Store & FastAPI Layer** | `/api/v1/threads` & `/messages`, Pydantic schemas, session lock, audit tracer | 1.5 hr |
 | **6** | **Frontend UI & Groww Experience** | Disclaimer banner, thread sidebar, starter chips, citation pill, dark/light theme | 2.5 hr |
 | **7** | **Evals, Testing & Delivery** | Pytest suite, golden eval runner (accuracy, refusals, PII), Docker Compose | 1.5 hr |
@@ -138,9 +138,7 @@ PORT=8000
 HOST=0.0.0.0
 CORS_ORIGINS=["http://localhost:5173"]
 
-# LLM Providers
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-3.8-flash
+# Primary LLM Provider: Groq
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
 
@@ -168,8 +166,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
     
-    GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.8-flash"
+    # Primary LLM Provider: Groq
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
     
@@ -486,7 +483,7 @@ For procedural or descriptive queries:
 
 ## Phase 4 — Constrained LLM Synthesis & Output Contract Validator
 
-**Goal**: Implement the synthesis module using Gemini 3.8 Flash / Groq Llama 3.3 with strict system instructions, paired with an automated post-generation Contract Validator enforcing the **Rule of Three** ($\le 3$ sentences, 1 URL, date footer).
+**Goal**: Implement the synthesis module using Groq (Llama 3.3 70B Versatile) with strict system instructions, paired with an automated post-generation Contract Validator enforcing the **Rule of Three** ($\le 3$ sentences, 1 URL, date footer).
 
 ### 4.1 Constrained Prompt Builder (`backend/app/rag/prompts.py` & `synthesizer.py`)
 - Model Configuration: `temperature=0`, `max_tokens=120`.
@@ -707,8 +704,8 @@ services:
       - "8000:8000"
     environment:
       - PORT=8000
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
     volumes:
       - ./data:/app/data
 

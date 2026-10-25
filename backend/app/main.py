@@ -22,6 +22,8 @@ def health_check():
     return {
         "status": "healthy",
         "environment": settings.ENVIRONMENT,
+        "llm_provider": "groq",
+        "llm_model": settings.GROQ_MODEL,
         "amc": "HDFC Mutual Fund",
         "schemes_count": 5
     }
