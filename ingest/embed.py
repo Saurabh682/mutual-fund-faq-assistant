@@ -53,3 +53,39 @@ def index_chunks(chunks: list[dict], chroma_dir: str, bm25_path: str, model_name
 
     with open(bm25_path, "wb") as f:
         pickle.dump(bm25_data, f)
+
+
+def index_pinecone_chunks(
+    chunks: list[dict],
+    api_key: str,
+    index_name: str,
+    model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+):
+    """Upserts chunk embeddings and metadata into Pinecone."""
+    if not chunks or not api_key:
+        return
+    try:
+        from pinecone import Pinecone
+        pc = Pinecone(api_key=api_key)
+        index = pc.Index(index_name)
+
+        embedder = get_embedder(model_name)
+        texts = [c["text"] for c in chunks]
+        embeddings = embedder.encode(texts, show_progress_bar=False).tolist()
+
+        vectors = []
+        for i, c in enumerate(chunks):
+            meta = dict(c["metadata"])
+            meta["text"] = c["text"]
+            vectors.append({
+                "id": c["chunk_id"],
+                "values": embeddings[i],
+                "metadata": meta,
+            })
+
+        batch_size = 50
+        for i in range(0, len(vectors), batch_size):
+            index.upsert(vectors=vectors[i:i + batch_size])
+    except Exception as e:
+        print(f"Pinecone indexing error: {e}")
+

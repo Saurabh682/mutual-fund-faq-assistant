@@ -49,15 +49,32 @@ class RetrievalResult:
 
 
 class HybridRetriever:
-    """Orchestrates dense ChromaDB search, lexical BM25 search, and RRF fusion."""
+    """Orchestrates dense ChromaDB / Pinecone search, lexical BM25 search, and RRF fusion."""
 
     def __init__(
         self,
         chroma_dir: str = settings.CHROMA_DIR,
         data_dir: str = settings.DATA_DIR,
         tau: float = settings.RETRIEVAL_TAU,
+        vector_db_type: str = settings.VECTOR_DB_TYPE,
+        pinecone_api_key: str = settings.PINECONE_API_KEY,
+        pinecone_index_name: str = settings.PINECONE_INDEX_NAME,
     ):
         self.tau = tau
+        self.vector_db_type = vector_db_type.lower()
+        self.pinecone_index = None
+
+        if self.vector_db_type == "pinecone":
+            if pinecone_api_key:
+                try:
+                    from pinecone import Pinecone
+                    pc = Pinecone(api_key=pinecone_api_key)
+                    self.pinecone_index = pc.Index(pinecone_index_name)
+                except Exception:
+                    self.vector_db_type = "chroma"
+            else:
+                self.vector_db_type = "chroma"
+
         self.chroma_client = chromadb.PersistentClient(path=chroma_dir)
         self.collection = self.chroma_client.get_collection("mutual_fund_facts")
 
@@ -107,31 +124,49 @@ class HybridRetriever:
                 max_similarity=0.0,
             )
 
-        # 2. Dense ChromaDB Search
-        dense_res = self.collection.query(
-            query_embeddings=query_embedding,
-            where=dense_where,
-            n_results=fetch_k,
-        )
-
+        # 2. Dense Vector Search (Pinecone or ChromaDB)
         dense_ranks: Dict[str, int] = {}
         dense_sims: Dict[str, float] = {}
         dense_docs: Dict[str, Dict[str, Any]] = {}
 
-        if dense_res and dense_res["ids"] and len(dense_res["ids"][0]) > 0:
-            for rank, cid in enumerate(dense_res["ids"][0]):
-                dist = (
-                    dense_res["distances"][0][rank]
-                    if dense_res.get("distances")
-                    else 0.0
-                )
-                sim = max(0.0, 1.0 - dist)
+        if self.vector_db_type == "pinecone" and self.pinecone_index is not None:
+            filter_dict = {"scheme_id": {"$eq": scheme_id}} if scheme_id else None
+            pine_res = self.pinecone_index.query(
+                vector=query_embedding[0],
+                filter=filter_dict,
+                top_k=fetch_k,
+                include_metadata=True,
+            )
+            for rank, match in enumerate(getattr(pine_res, "matches", []) or []):
+                cid = match.id
+                sim = max(0.0, float(getattr(match, "score", 0.0)))
                 dense_ranks[cid] = rank
                 dense_sims[cid] = sim
+                meta = getattr(match, "metadata", {}) or {}
                 dense_docs[cid] = {
-                    "text": dense_res["documents"][0][rank],
-                    "metadata": dense_res["metadatas"][0][rank],
+                    "text": meta.get("text", ""),
+                    "metadata": meta,
                 }
+        else:
+            dense_res = self.collection.query(
+                query_embeddings=query_embedding,
+                where=dense_where,
+                n_results=fetch_k,
+            )
+            if dense_res and dense_res["ids"] and len(dense_res["ids"][0]) > 0:
+                for rank, cid in enumerate(dense_res["ids"][0]):
+                    dist = (
+                        dense_res["distances"][0][rank]
+                        if dense_res.get("distances")
+                        else 0.0
+                    )
+                    sim = max(0.0, 1.0 - dist)
+                    dense_ranks[cid] = rank
+                    dense_sims[cid] = sim
+                    dense_docs[cid] = {
+                        "text": dense_res["documents"][0][rank],
+                        "metadata": dense_res["metadatas"][0][rank],
+                    }
 
         max_dense_sim = max(dense_sims.values()) if dense_sims else 0.0
 

@@ -195,3 +195,23 @@ class TestProceduralFAQRetrieval:
         assert "invest" in text_lower
         assert "kyc" in text_lower
         assert top_chunk.metadata["scheme_id"] == "hdfc_largecap_dg"
+
+
+class TestVectorDBConfiguration:
+    """Verifies vector database runtime configuration and fallback behavior."""
+
+    def test_default_chroma_initialization(self):
+        r = HybridRetriever()
+        assert r.vector_db_type == "chroma"
+        assert r.collection is not None
+        assert r.collection.count() > 0
+
+    def test_pinecone_unconfigured_fallback_to_chroma(self):
+        r = HybridRetriever(vector_db_type="pinecone", pinecone_api_key="")
+        assert r.vector_db_type == "chroma"
+        assert r.collection is not None
+
+    def test_top_k_chunk_limit_enforced(self):
+        res = retriever.search("What is the exit load?", scheme_id="hdfc_smallcap_dg", top_k=2)
+        assert len(res.chunks) <= 2
+
