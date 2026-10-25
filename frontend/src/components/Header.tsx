@@ -77,7 +77,7 @@ export const Header: React.FC<Props> = ({ onOpenCompare }) => {
         </a>
 
         <a
-          href="http://localhost:8000/docs"
+          href={import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/api\/v1\/?$/, '')}/docs` : "http://localhost:8000/docs"}
           target="_blank"
           rel="noopener noreferrer"
           className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#1A2027] border border-transparent hover:border-[#28323E] transition"
