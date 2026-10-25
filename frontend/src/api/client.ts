@@ -1,6 +1,6 @@
 import type { Message, MetaData, Thread, ThreadSummary } from '../types/chat';
 
-const API_BASE = '/api/v1';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
 
 export async function fetchMetadata(): Promise<MetaData> {
   const res = await fetch(`${API_BASE}/meta`);

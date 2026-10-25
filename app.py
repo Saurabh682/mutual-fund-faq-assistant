@@ -42,6 +42,8 @@ except ImportError:
             return func
 
 import gradio as gr
+from fastapi.middleware.cors import CORSMiddleware
+from app.main import app as fastapi_app
 from app.api.rag import ask_query
 from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
@@ -294,13 +296,21 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
                     interactive=True,
                 )
 
-        chatbot = gr.Chatbot(
-            label="Verified Groww Assistant",
-            elem_classes=["chatbot-container"],
-            height=420,
-            type="messages",
-            avatar_images=(None, "https://groww.in/groww-logo-270.png"),
-        )
+        try:
+            chatbot = gr.Chatbot(
+                label="Verified Groww Assistant",
+                elem_classes=["chatbot-container"],
+                height=420,
+                type="messages",
+                avatar_images=(None, "https://groww.in/groww-logo-270.png"),
+            )
+        except TypeError:
+            chatbot = gr.Chatbot(
+                label="Verified Groww Assistant",
+                elem_classes=["chatbot-container"],
+                height=420,
+                avatar_images=(None, "https://groww.in/groww-logo-270.png"),
+            )
 
         with gr.Row():
             msg_input = gr.Textbox(
@@ -353,15 +363,27 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
         respond,
         inputs=[msg_input, chatbot, scheme_dropdown],
         outputs=[chatbot],
-        show_api=False,
-    ).then(lambda: "", None, [msg_input], show_api=False)
+        api_name=False,
+    ).then(lambda: "", None, [msg_input], api_name=False)
 
     submit_btn.click(
         respond,
         inputs=[msg_input, chatbot, scheme_dropdown],
         outputs=[chatbot],
-        show_api=False,
-    ).then(lambda: "", None, [msg_input], show_api=False)
+        api_name=False,
+    ).then(lambda: "", None, [msg_input], api_name=False)
+
+# Enable CORS for external frontends (e.g. Vercel, Netlify, localhost)
+demo.app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Expose full FastAPI backend REST API (/api/v1/meta, /api/v1/threads, /api/v1/rag, /health)
+demo.app.include_router(fastapi_app.router)
 
 
 if __name__ == "__main__":
