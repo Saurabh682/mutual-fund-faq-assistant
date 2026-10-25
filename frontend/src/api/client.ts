@@ -59,7 +59,14 @@ export async function sendMessage(
   });
 
   if (!res.ok && res.status !== 400) {
-    throw new Error(`Failed to send message: ${res.statusText}`);
+    let errMsg = res.statusText;
+    try {
+      const errBody = await res.json();
+      errMsg = errBody.detail || errBody.message || errMsg;
+    } catch {
+      // ignore
+    }
+    throw new Error(`Failed to send message: ${errMsg || `Status ${res.status}`}`);
   }
   return res.json();
 }

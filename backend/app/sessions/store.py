@@ -91,24 +91,27 @@ class SessionStore:
         return conn
 
     def create_thread(
-        self, client_id: str = "default_client", title: str = "New Conversation"
+        self,
+        client_id: str = "default_client",
+        title: str = "New Conversation",
+        thread_id: Optional[str] = None,
     ) -> ThreadDTO:
-        thread_id = f"th_{uuid.uuid4().hex[:12]}"
+        t_id = thread_id or f"th_{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc).isoformat()
 
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO threads (id, client_id, title, last_scheme_id, created_at, updated_at)
+                INSERT OR IGNORE INTO threads (id, client_id, title, last_scheme_id, created_at, updated_at)
                 VALUES (?, ?, ?, NULL, ?, ?);
                 """,
-                (thread_id, client_id, title, now, now),
+                (t_id, client_id, title, now, now),
             )
             conn.commit()
 
         return ThreadDTO(
-            id=thread_id,
+            id=t_id,
             client_id=client_id,
             title=title,
             last_scheme_id=None,

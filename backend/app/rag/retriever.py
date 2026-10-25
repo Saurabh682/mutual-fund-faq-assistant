@@ -25,7 +25,7 @@ def get_embedder() -> SentenceTransformer:
     """Singleton getter for SentenceTransformer embedding model."""
     global _EMBEDDER_INSTANCE
     if _EMBEDDER_INSTANCE is None:
-        _EMBEDDER_INSTANCE = SentenceTransformer(settings.EMBEDDING_MODEL)
+        _EMBEDDER_INSTANCE = SentenceTransformer(settings.EMBEDDING_MODEL, device="cpu")
     return _EMBEDDER_INSTANCE
 
 

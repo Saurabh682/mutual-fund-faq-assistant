@@ -98,13 +98,16 @@ async def post_message(
     async with lock:
         t0 = time.perf_counter()
         thread = _store.get_thread(thread_id)
+        effective_cid = (x_client_id if isinstance(x_client_id, str) else None) or "default_client"
         if not thread:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Thread '{thread_id}' not found.",
+            # Self-heal missing thread ID (e.g. across server restarts or client cache)
+            thread = _store.create_thread(
+                client_id=effective_cid,
+                title="Conversation",
+                thread_id=thread_id,
             )
 
-        client_id = x_client_id or thread.client_id
+        client_id = (x_client_id if isinstance(x_client_id, str) else None) or thread.client_id
         user_query = req.text.strip()
 
         # 1. PII Scan (Firewall Stage)
