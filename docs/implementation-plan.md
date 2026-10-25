@@ -464,12 +464,19 @@ Based on deep static and DOM inspection of the 5 ingested Groww HDFC scheme docu
    - **Model**: `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions, ~90MB footprint, 22M parameters).
    - **Performance Profile**: Sub-15ms CPU inference, zero external API latency, zero rate limits, and zero dollar cost.
    - **Confidence Threshold**: Calibrated $\tau = 0.65$ to prevent out-of-corpus hallucinations while accommodating phrasing variations.
-4. **Vector Database & Hybrid Storage Strategy**:
-   - **Vector Store**: **ChromaDB** (`PersistentClient` stored at `data/index/chroma`).
+4. **Vector Database & Hybrid Storage Strategy (ChromaDB or Pinecone)**:
+   - **Vector Store Option A: ChromaDB (Local / Default)**:
+     - In-process, embedded `PersistentClient` stored at `data/index/chroma`.
      - Persistent HNSW index with SQLite metadata storage.
+     - Zero external dependencies, zero API costs, zero network latency, sub-10ms query execution.
      - Enforces **hard boolean metadata pre-filtering** on `scheme_id` (`where={"scheme_id": resolved_scheme_id}`) to mathematically eliminate cross-scheme numerical contamination (`EC-RET-01`).
+   - **Vector Store Option B: Pinecone (Cloud-Managed Alternative)**:
+     - Serverless managed vector index (dimension: 384, metric: `cosine`).
+     - Recommended for horizontally scaled, multi-replica cloud deployments where persistent local disk volumes are not shared across stateless containers.
+     - Enforces metadata pre-filtering via Pinecone filter expressions: `filter={"scheme_id": {"$eq": resolved_scheme_id}}`.
+     - Requires `PINECONE_API_KEY` and `PINECONE_INDEX_NAME` in `.env`.
    - **Lexical Store**: Serialized in-memory `rank_bm25.BM25Okapi` (`data/index/bm25.pkl`) for exact token matching of financial acronyms (TER, ISIN, CAMS, NAV, TRI).
-   - **Fusion**: Reciprocal Rank Fusion ($k=60$) combining dense cosine similarity and BM25 rank scores.
+   - **Fusion**: Reciprocal Rank Fusion ($k=60$) combining dense cosine similarity (from ChromaDB or Pinecone) and BM25 rank scores.
 
 ### 3.1 Entity Resolver (`backend/app/rag/entities.py`)
 Extract scheme and field entities from user text:
@@ -499,8 +506,8 @@ Extract scheme and field entities from user text:
 
 ### 3.3 Hybrid Retriever (`backend/app/rag/retriever.py`)
 For procedural or descriptive queries:
-- **Metadata Pre-Filter**: Restricts search space to `scheme_id` if resolved (`where={"scheme_id": scheme_id}`).
-- **Dense Search**: Queries ChromaDB with query embedding $\rightarrow$ Top 20 chunks.
+- **Metadata Pre-Filter**: Restricts search space to `scheme_id` if resolved (`where={"scheme_id": scheme_id}` in ChromaDB or `filter={"scheme_id": {"$eq": scheme_id}}` in Pinecone).
+- **Dense Search**: Queries vector store (ChromaDB or Pinecone) with query embedding $\rightarrow$ Top 20 chunks.
 - **Lexical Search**: BM25 query with tokenized terms $\rightarrow$ Top 20 chunks.
 - **Reciprocal Rank Fusion (RRF)**:
   $$\text{Score}(d) = \sum_{m \in \{\text{dense}, \text{bm25}\}} \frac{1}{60 + \text{rank}_m(d)} \times \text{PriorityWeight}(\text{doc})$$

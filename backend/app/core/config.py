@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     RETRIEVAL_TAU: float = 0.58
     TOP_K_CHUNKS: int = 4
+    VECTOR_DB_TYPE: str = "chroma"  # "chroma" | "pinecone"
+    PINECONE_API_KEY: str = ""
+    PINECONE_INDEX_NAME: str = "mutual-fund-facts"
+    PINECONE_ENVIRONMENT: str = "us-east-1"
 
     # Storage Paths
     DATA_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
