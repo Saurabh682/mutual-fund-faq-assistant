@@ -204,10 +204,12 @@ FIELD_GLOSSARY: Dict[str, List[str]] = {
         "aum",
     ],
     "fund_manager": [
+        "who is the manager",
         "who manages",
         "fund manager details",
         "fund manager",
         "portfolio manager",
+        "managed by",
         "manager",
     ],
 }

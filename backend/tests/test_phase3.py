@@ -39,6 +39,8 @@ class TestEntityResolution:
             ("What benchmark does HDFC Mid Cap track?", "hdfc_midcap_dg", "benchmark"),
             ("What is the current NAV of HDFC Small Cap?", "hdfc_smallcap_dg", "nav"),
             ("What is the fund size of HDFC Top 100?", "hdfc_largecap_dg", "aum"),
+            ("Who is the fund manager of HDFC Small Cap?", "hdfc_smallcap_dg", "fund_manager"),
+            ("Who manages HDFC Top 100?", "hdfc_largecap_dg", "fund_manager"),
         ],
     )
     def test_entity_resolution_accuracy(
@@ -79,6 +81,8 @@ class TestEVAL_P3_2_StructuredFactPath:
         ("hdfc_largecap_dg", "ter_direct", "1.02%"),
         ("hdfc_silver_fof_dg", "ter_direct", "0.21%"),
         ("hdfc_multicap_dg", "ter_direct", "0.96%"),
+        ("hdfc_smallcap_dg", "fund_manager", "Chirag Setalvad"),
+        ("hdfc_largecap_dg", "fund_manager", "Prashant Jain"),
     ]
 
     @pytest.mark.parametrize("scheme_id,field,expected_val", CANONICAL_TEST_CASES)

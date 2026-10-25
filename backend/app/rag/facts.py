@@ -22,7 +22,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from app.core.config import settings
-from app.guardrails.refusal import get_default_corpus_date
+from app.guardrails.refusal import get_default_corpus_date, normalize_date_footer
 from app.rag.entities import SCHEME_REGISTRY, resolve_entities
 
 FACT_TEMPLATES: Dict[str, str] = {
@@ -36,24 +36,13 @@ FACT_TEMPLATES: Dict[str, str] = {
     "benchmark": "The benchmark index for {scheme_name} is {value}.",
     "nav": "The Net Asset Value (NAV) of {scheme_name} is {value}.",
     "aum": "The Assets Under Management (AUM) of {scheme_name} is {value}.",
+    "fund_manager": "The fund manager for {scheme_name} is {value}.",
 }
 
 
 def normalize_iso_date(date_str: str) -> str:
     """Normalizes various date formats to ISO YYYY-MM-DD."""
-    if not date_str:
-        return get_default_corpus_date()
-    try:
-        # Matches 23-Oct-2026
-        return datetime.strptime(date_str.strip(), "%d-%b-%Y").strftime("%Y-%m-%d")
-    except Exception:
-        pass
-    try:
-        # Matches YYYY-MM-DD
-        return datetime.strptime(date_str.strip(), "%Y-%m-%d").strftime("%Y-%m-%d")
-    except Exception:
-        pass
-    return get_default_corpus_date()
+    return normalize_date_footer(date_str)
 
 
 def get_fact_from_db(
