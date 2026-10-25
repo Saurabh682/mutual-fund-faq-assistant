@@ -45,6 +45,96 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
     }
   };
 
+  const renderFormattedText = (content: string) => {
+    if (!content.includes('|')) {
+      return <p className="text-sm text-slate-100 leading-relaxed whitespace-pre-wrap">{content}</p>;
+    }
+
+    const lines = content.split('\n');
+    const blocks: { type: 'text' | 'table'; lines: string[] }[] = [];
+    let currentBlock: { type: 'text' | 'table'; lines: string[] } | null = null;
+
+    for (const line of lines) {
+      const isTableLine = line.trim().startsWith('|') && line.trim().endsWith('|');
+      if (isTableLine) {
+        if (currentBlock?.type === 'table') {
+          currentBlock.lines.push(line);
+        } else {
+          if (currentBlock) blocks.push(currentBlock);
+          currentBlock = { type: 'table', lines: [line] };
+        }
+      } else {
+        if (currentBlock?.type === 'text') {
+          currentBlock.lines.push(line);
+        } else {
+          if (currentBlock) blocks.push(currentBlock);
+          currentBlock = { type: 'text', lines: [line] };
+        }
+      }
+    }
+    if (currentBlock) blocks.push(currentBlock);
+
+    const cleanCell = (c: string) =>
+      c.trim().replace(/^\*\*(.*?)\*\*$/, '$1').replace(/^\*(.*?)\*$/, '$1');
+
+    return (
+      <div className="space-y-3">
+        {blocks.map((block, idx) => {
+          if (block.type === 'text') {
+            const text = block.lines.join('\n').trim();
+            if (!text) return null;
+            return (
+              <p key={idx} className="text-sm text-slate-100 leading-relaxed whitespace-pre-wrap">
+                {text}
+              </p>
+            );
+          }
+
+          const headerLine = block.lines[0];
+          const dataRows = block.lines.slice(2);
+          const headers = headerLine.split('|').slice(1, -1).map(cleanCell);
+
+          return (
+            <div key={idx} className="overflow-x-auto my-2.5 rounded-xl border border-[#28323E] bg-[#12161A]/90 shadow-md">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#28323E] bg-[#1E252E]/90 text-slate-300 font-semibold">
+                    {headers.map((h, hIdx) => (
+                      <th key={hIdx} className="px-3.5 py-2 font-semibold text-slate-300 first:w-1/3">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#28323E]/60 text-slate-200">
+                  {dataRows.map((r, rIdx) => {
+                    const cells = r.split('|').slice(1, -1).map(cleanCell);
+                    return (
+                      <tr key={rIdx} className="hover:bg-[#1E252E]/40 transition-colors">
+                        {cells.map((cell, cIdx) => (
+                          <td
+                            key={cIdx}
+                            className={`px-3.5 py-2.5 ${
+                              cIdx === 0
+                                ? 'font-medium text-slate-300'
+                                : 'font-semibold text-[#00D09C] font-mono'
+                            }`}
+                          >
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // 1. User Message Bubble
   if (isUser) {
     return (
@@ -176,9 +266,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
           </div>
 
           {/* Authoritative Answer Text */}
-          <p className="text-sm text-slate-100 leading-relaxed whitespace-pre-wrap">
-            {message.text}
-          </p>
+          {renderFormattedText(message.text)}
 
           {/* Single Citation Pill & Action Buttons */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#28323E]">

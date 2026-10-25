@@ -25,6 +25,20 @@ from app.core.config import settings
 from app.guardrails.refusal import get_default_corpus_date, normalize_date_footer
 from app.rag.entities import SCHEME_REGISTRY, resolve_entities
 
+FIELD_TITLES: Dict[str, str] = {
+    "ter_direct": "Total Expense Ratio (TER - Direct)",
+    "exit_load": "Exit Load",
+    "min_sip": "Minimum SIP Installment",
+    "min_lumpsum": "Minimum Lumpsum Investment",
+    "min_additional": "Minimum Additional Purchase",
+    "lock_in": "Lock-in Period",
+    "riskometer": "Riskometer Rating",
+    "benchmark": "Benchmark Index",
+    "nav": "Net Asset Value (NAV)",
+    "aum": "AUM (Fund Size)",
+    "fund_manager": "Fund Manager",
+}
+
 FACT_TEMPLATES: Dict[str, str] = {
     "ter_direct": "The Total Expense Ratio (TER) of {scheme_name} (Direct Plan) is {value}.",
     "exit_load": "The exit load for {scheme_name} is {value}",
@@ -112,15 +126,27 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     formatted_val = format_indian_number(raw_val)
     if field == "aum" and "Cr" in formatted_val:
         crore_val = formatted_val.replace("Cr", "Crore").strip()
-        formatted_val = f"{formatted_val} ({crore_val})"
+        display_val = f"{formatted_val} ({crore_val})"
+    else:
+        display_val = formatted_val
 
     template = FACT_TEMPLATES.get(field, "{scheme_name} {field} is {value}.")
-    body = template.format(scheme_name=scheme_name, value=formatted_val, field=field)
+    narrative = template.format(scheme_name=scheme_name, value=display_val, field=field).strip()
+    if not narrative.endswith("."):
+        narrative += "."
 
-    # Ensure clean single-sentence punctuation
-    body = body.strip()
-    if not body.endswith("."):
-        body += "."
+    # Option C: Stat Card / Fact Sheet Format
+    metric_title = FIELD_TITLES.get(field, field.replace("_", " ").title())
+    official_scheme_name = scheme_meta.get("official_name", f"{scheme_name} (Direct - Growth)")
+
+    stat_card = (
+        f"| Metric | Value |\n"
+        f"| :--- | :--- |\n"
+        f"| **Scheme** | {official_scheme_name} |\n"
+        f"| **{metric_title}** | **{display_val}** |"
+    )
+
+    body = f"{narrative}\n\n{stat_card}".strip()
 
     doc_date = normalize_iso_date(fact.get("doc_date", ""))
     rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
