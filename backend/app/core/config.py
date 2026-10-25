@@ -31,29 +31,21 @@ class Settings(BaseSettings):
 
     # Storage Paths
     DATA_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
-    FACTS_DB_PATH: str = os.path.join(DATA_DIR, "index", "facts.db")
-    CHROMA_DIR: str = os.path.join(DATA_DIR, "index", "chroma")
+    FACTS_DB_PATH: str = ""
+    CHROMA_DIR: str = ""
     SESSION_TTL_DAYS: int = 7
+
+    def model_post_init(self, __context):
+        if not self.FACTS_DB_PATH:
+            self.FACTS_DB_PATH = os.path.join(self.DATA_DIR, "index", "facts.db")
+        if not self.CHROMA_DIR:
+            self.CHROMA_DIR = os.path.join(self.DATA_DIR, "index", "chroma")
 
     @field_validator("DATA_DIR", mode="after")
     @classmethod
     def resolve_data_dir(cls, v: str) -> str:
         if not os.path.isabs(v):
             return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
-        return v
-
-    @field_validator("FACTS_DB_PATH", mode="after")
-    @classmethod
-    def resolve_facts_db(cls, v: str) -> str:
-        if not os.path.isabs(v):
-            return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data/index/facts.db"))
-        return v
-
-    @field_validator("CHROMA_DIR", mode="after")
-    @classmethod
-    def resolve_chroma_dir(cls, v: str) -> str:
-        if not os.path.isabs(v):
-            return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data/index/chroma"))
         return v
 
     model_config = SettingsConfigDict(
