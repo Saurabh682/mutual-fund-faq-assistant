@@ -259,7 +259,7 @@ def get_fact_explorer_data() -> str:
 
 
 # Build Gradio Interface
-with gr.Blocks(title="Mutual Fund FAQ Assistant") as demo:
+with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ Assistant") as demo:
     with gr.Column(elem_id="col-container"):
         # Header Section
         gr.HTML(
@@ -298,6 +298,7 @@ with gr.Blocks(title="Mutual Fund FAQ Assistant") as demo:
             label="Verified Groww Assistant",
             elem_classes=["chatbot-container"],
             height=420,
+            type="messages",
             avatar_images=(None, "https://groww.in/groww-logo-270.png"),
         )
 
@@ -365,6 +366,4 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        theme=gr.themes.Citrus(),
-        css=CUSTOM_CSS,
     )
