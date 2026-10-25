@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # RAG Settings
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    RETRIEVAL_TAU: float = 0.70
+    RETRIEVAL_TAU: float = 0.58
     TOP_K_CHUNKS: int = 4
 
     # Storage Paths
