@@ -248,6 +248,8 @@ def resolve_entities(
         EntityResolutionResult detailing matched scheme, field, and ambiguity status.
     """
     clean_query = query.lower()
+    # Normalized query with uniform spacing across hyphens (e.g. 'mid-cap' -> 'mid cap')
+    norm_query = re.sub(r"[-\s]+", " ", clean_query)
 
     # 1. Match Scheme Entity (Longest alias match first)
     detected_scheme_id = None
@@ -256,8 +258,9 @@ def resolve_entities(
     for sid, info in SCHEME_REGISTRY.items():
         sorted_aliases = sorted(info["aliases"], key=len, reverse=True)
         for alias in sorted_aliases:
-            pattern = r"\b" + re.escape(alias) + r"\b"
-            if re.search(pattern, clean_query):
+            norm_alias = re.sub(r"[-\s]+", " ", alias.lower())
+            pattern = r"\b" + re.escape(norm_alias) + r"\b"
+            if re.search(pattern, norm_query) or re.search(r"\b" + re.escape(alias) + r"\b", clean_query):
                 if detected_scheme_alias is None or len(alias) > len(detected_scheme_alias):
                     detected_scheme_id = sid
                     detected_scheme_alias = alias
@@ -275,8 +278,9 @@ def resolve_entities(
     for f_key, keywords in FIELD_GLOSSARY.items():
         sorted_kw = sorted(keywords, key=len, reverse=True)
         for kw in sorted_kw:
-            pattern = r"\b" + re.escape(kw) + r"\b"
-            if re.search(pattern, clean_query):
+            norm_kw = re.sub(r"[-\s]+", " ", kw.lower())
+            pattern = r"\b" + re.escape(norm_kw) + r"\b"
+            if re.search(pattern, norm_query) or re.search(r"\b" + re.escape(kw) + r"\b", clean_query):
                 if detected_field_alias is None or len(kw) > len(detected_field_alias):
                     detected_field = f_key
                     detected_field_alias = kw

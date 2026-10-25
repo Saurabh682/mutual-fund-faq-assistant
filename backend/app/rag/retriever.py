@@ -16,7 +16,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
-from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
+from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date, normalize_date_footer
 
 _EMBEDDER_INSTANCE: Optional[SentenceTransformer] = None
 
@@ -222,8 +222,8 @@ class HybridRetriever:
         if top_chunks:
             primary_chunk = top_chunks[0]
             primary_url = primary_chunk.metadata.get("url", primary_url)
-            primary_doc_date = primary_chunk.metadata.get(
-                "doc_date", primary_doc_date
+            primary_doc_date = normalize_date_footer(
+                primary_chunk.metadata.get("doc_date")
             )
 
         return RetrievalResult(

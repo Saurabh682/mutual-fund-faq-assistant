@@ -14,7 +14,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
+from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date, normalize_date_footer
 
 # Comprehensive Banned Lexicon (Evaluative, speculative, or advisory words)
 BANNED_LEXICON = {
@@ -158,7 +158,7 @@ def safe_contract_fallback(
         "Official details regarding this topic can be verified directly in the scheme records."
     )
     url = primary_url or CANONICAL_LINKS["ADVISORY"]
-    date_str = doc_date or get_default_corpus_date()
+    date_str = normalize_date_footer(doc_date)
     rendered = f"{body}\n\nSource: {url}\nLast updated from sources: {date_str}"
 
     return ValidationResult(
@@ -190,7 +190,7 @@ def validate_response(
     Returns:
         ValidationResult with compliant text, sentence count, and programmatic footer.
     """
-    effective_date = doc_date or get_default_corpus_date()
+    effective_date = normalize_date_footer(doc_date)
     clean_draft = draft_text.strip()
 
     # 0. Handle NOT_FOUND or empty output

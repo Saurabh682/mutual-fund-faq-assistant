@@ -17,7 +17,7 @@ Adheres strictly to the Response Contract:
 from __future__ import annotations
 
 import os
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Dict, Optional
 import yaml
 
@@ -80,6 +80,29 @@ def get_default_corpus_date(manifest_path: str = _DEFAULT_MANIFEST_PATH) -> str:
     return date.today().isoformat()
 
 
+def normalize_date_footer(date_str: Optional[str]) -> str:
+    """Normalizes any date string to ISO YYYY-MM-DD format."""
+    if not date_str:
+        return get_default_corpus_date()
+    clean = str(date_str).strip()
+    try:
+        # Handles 23-Oct-2026 or 23-OCT-2026
+        return datetime.strptime(clean, "%d-%b-%Y").strftime("%Y-%m-%d")
+    except Exception:
+        pass
+    try:
+        # Handles YYYY-MM-DD
+        return datetime.strptime(clean, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except Exception:
+        pass
+    for fmt in ("%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(clean, fmt).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    return get_default_corpus_date()
+
+
 def generate_refusal(
     intent: str,
     last_updated: Optional[str] = None,
@@ -105,7 +128,7 @@ def generate_refusal(
             normalized_intent, CANONICAL_LINKS["ADVISORY"]
         )
 
-    doc_date = last_updated or get_default_corpus_date()
+    doc_date = normalize_date_footer(last_updated)
     rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
 
     return {
@@ -144,7 +167,7 @@ def generate_compound_refusal(
         compliance_sentence = "I can only provide factual mutual fund information and cannot offer advice."
 
     body = f"{clean_fact} {compliance_sentence}"
-    doc_date = last_updated or get_default_corpus_date()
+    doc_date = normalize_date_footer(last_updated)
     rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
 
     return {

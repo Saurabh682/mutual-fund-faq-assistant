@@ -67,6 +67,9 @@ ADVISORY_PATTERNS = [
     re.compile(r"\bif\s+you\s+had\s+(?:[₹rs]\s*)?\d+", re.I),
     re.compile(r"\bshould\s+i\s+(?:hold|sell|redeem|exit)\b", re.I),
     re.compile(r"\bis\s+(?:this|it)\s+(?:a\s+)?good\s+(?:fund|scheme|investment)\b", re.I),
+    re.compile(r"\bis\s+.*?\s+(?:a\s+)?(?:safe|good|advisable)\s+(?:investment|fund|option)\b", re.I),
+    re.compile(r"\b(?:safe|good|suitable)\s+(?:investment|fund|option)\s+for\s+(?:a\s+)?(?:beginner|senior|retiree|student)\b", re.I),
+    re.compile(r"\b(?:which\s+(?:fund|scheme)\s+is\s+(?:the\s+)?safest|safest\s+(?:among|fund|scheme))\b", re.I),
 ]
 
 # 2. Comparative Trigger Patterns (Schemes must not be compared or ranked)
@@ -92,14 +95,19 @@ PROJECTION_PATTERNS = [
     re.compile(r"\bfuture\s+returns?\b", re.I),
     re.compile(r"\breturns\s+in\s+\d+\s+(?:years?|months?|yrs?)\b", re.I),
     re.compile(r"\bcalculate\s+(?:future|my)?\s*(?:returns|growth|wealth)\b", re.I),
+    re.compile(r"\bcalculate\s+(?:my\s+)?(?:sip\s+)?(?:maturity|future|returns|corpus|wealth)\b", re.I),
+    re.compile(r"\bmaturity\s+value\b", re.I),
     re.compile(r"\bwhat\s+will\s+be\s+the\s+value\b", re.I),
+    re.compile(r"\b(?:will|can)\s+.*?\s+(?:double|triple|grow)\b", re.I),
+    re.compile(r"\bdouble\s+(?:my\s+)?(?:investment|money)\b", re.I),
 ]
 
 # 4. Tax/Legal Evasion Patterns
 TAX_LEGAL_PATTERNS = [
     re.compile(r"\btax\s+evasion\b", re.I),
     re.compile(r"\bevade\s+tax\b", re.I),
-    re.compile(r"\b(?:without\s+paying|avoid|escape|bypass|evade|not\s+pay|save)\s+(?:any\s+)?(?:capital\s+gains|tax)\b", re.I),
+    re.compile(r"\b(?:without\s+paying|avoid|escape|bypass|evade|not\s+pay|save)\s+(?:any\s+)?(?:paying\s+)?(?:capital\s+gains|tax)\b", re.I),
+    re.compile(r"\bavoid\s+(?:paying\s+)?(?:any\s+)?(?:capital\s+gains\s+)?tax\b", re.I),
     re.compile(r"\b(?:illegal|black\s+money|money\s+laundering|bypass\s+tax)\b", re.I),
     re.compile(r"\bhide\s+(?:money|income|gains)\b", re.I),
 ]
