@@ -174,10 +174,10 @@ button.primary-btn:hover {
 
 @spaces.GPU(duration=60)
 def respond(
-    message: str,
-    history: List[dict],
-    selected_scheme_label: str,
-) -> Generator[List[dict], None, None]:
+    message,
+    history,
+    selected_scheme_label,
+):
     """Process user message and yield streaming chat response."""
     if not message or not message.strip():
         yield history
@@ -353,13 +353,15 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
         respond,
         inputs=[msg_input, chatbot, scheme_dropdown],
         outputs=[chatbot],
-    ).then(lambda: "", None, [msg_input])
+        show_api=False,
+    ).then(lambda: "", None, [msg_input], show_api=False)
 
     submit_btn.click(
         respond,
         inputs=[msg_input, chatbot, scheme_dropdown],
         outputs=[chatbot],
-    ).then(lambda: "", None, [msg_input])
+        show_api=False,
+    ).then(lambda: "", None, [msg_input], show_api=False)
 
 
 if __name__ == "__main__":
