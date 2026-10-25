@@ -45,6 +45,36 @@ def normalize_iso_date(date_str: str) -> str:
     return normalize_date_footer(date_str)
 
 
+def format_indian_number(val_str: str) -> str:
+    """Formats numeric values with standard Indian numbering system (e.g. ₹101856.06 Cr -> ₹1,01,856.06 Cr)."""
+    import re
+
+    def replace_num(m):
+        prefix = m.group(1) or ""
+        num_str = m.group(2)
+        if "." in num_str:
+            int_part, dec_part = num_str.split(".", 1)
+            dec_part = "." + dec_part
+        else:
+            int_part, dec_part = num_str, ""
+
+        if len(int_part) <= 3:
+            formatted_int = int_part
+        else:
+            last3 = int_part[-3:]
+            rem = int_part[:-3]
+            chunks = []
+            while len(rem) > 2:
+                chunks.append(rem[-2:])
+                rem = rem[:-2]
+            if rem:
+                chunks.append(rem)
+            formatted_int = ",".join(reversed(chunks)) + "," + last3
+        return prefix + formatted_int + dec_part
+
+    return re.sub(r"(₹|\b)(\d{4,}(?:\.\d+)?)", replace_num, val_str)
+
+
 def get_fact_from_db(
     scheme_id: str, field: str, db_path: str = settings.FACTS_DB_PATH
 ) -> Optional[Dict[str, Any]]:
@@ -78,8 +108,14 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     scheme_name = scheme_meta.get("name", scheme_id)
     citation_url = fact.get("citation_url") or scheme_meta.get("url", "")
 
+    # Format numbers using standard Indian currency notation
+    formatted_val = format_indian_number(raw_val)
+    if field == "aum" and "Cr" in formatted_val:
+        crore_val = formatted_val.replace("Cr", "Crore").strip()
+        formatted_val = f"{formatted_val} ({crore_val})"
+
     template = FACT_TEMPLATES.get(field, "{scheme_name} {field} is {value}.")
-    body = template.format(scheme_name=scheme_name, value=raw_val, field=field)
+    body = template.format(scheme_name=scheme_name, value=formatted_val, field=field)
 
     # Ensure clean single-sentence punctuation
     body = body.strip()
