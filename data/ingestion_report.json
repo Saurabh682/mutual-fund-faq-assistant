@@ -1,0 +1,104 @@
+{
+  "status": "success",
+  "timestamp": "2026-10-25T06:02:57.025641+00:00",
+  "elapsed_seconds": 62.35,
+  "total_sources": 5,
+  "total_chunks": 30,
+  "schemes": [
+    {
+      "scheme_id": "hdfc_midcap_dg",
+      "scheme_name": "HDFC Mid Cap Fund Direct Growth",
+      "url": "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
+      "doc_date": "23-Oct-2026",
+      "chunks_count": 6,
+      "canonical_facts": {
+        "ter_direct": "0.74%",
+        "exit_load": "Exit load of 1% if redeemed within 1 year.",
+        "min_sip": "₹100",
+        "min_lumpsum": "₹100",
+        "min_additional": "₹100",
+        "lock_in": "None",
+        "riskometer": "High Risk",
+        "benchmark": "NIFTY Midcap 150 Total Return Index",
+        "nav": "₹213.423",
+        "aum": "₹101856.06 Cr"
+      }
+    },
+    {
+      "scheme_id": "hdfc_smallcap_dg",
+      "scheme_name": "HDFC Small Cap Fund Direct Growth",
+      "url": "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth",
+      "doc_date": "23-Oct-2026",
+      "chunks_count": 6,
+      "canonical_facts": {
+        "ter_direct": "0.8%",
+        "exit_load": "Exit load of 1% if redeemed within 1 year",
+        "min_sip": "₹100",
+        "min_lumpsum": "₹100",
+        "min_additional": "₹100",
+        "lock_in": "None",
+        "riskometer": "High Risk",
+        "benchmark": "BSE 250 SmallCap Total Return Index",
+        "nav": "₹148.394",
+        "aum": "₹40800.81 Cr"
+      }
+    },
+    {
+      "scheme_id": "hdfc_largecap_dg",
+      "scheme_name": "HDFC Large Cap Fund Direct Growth",
+      "url": "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
+      "doc_date": "23-Oct-2026",
+      "chunks_count": 6,
+      "canonical_facts": {
+        "ter_direct": "1.02%",
+        "exit_load": "Exit load of 1% if redeemed within 1 year",
+        "min_sip": "₹100",
+        "min_lumpsum": "₹100",
+        "min_additional": "₹100",
+        "lock_in": "None",
+        "riskometer": "High Risk",
+        "benchmark": "NIFTY 100 Total Return Index",
+        "nav": "₹1133.761",
+        "aum": "₹37293.95 Cr"
+      }
+    },
+    {
+      "scheme_id": "hdfc_silver_fof_dg",
+      "scheme_name": "HDFC Silver ETF FoF Direct Growth",
+      "url": "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth",
+      "doc_date": "23-Oct-2026",
+      "chunks_count": 6,
+      "canonical_facts": {
+        "ter_direct": "0.21%",
+        "exit_load": "Exit load of 1%, if redeemed within 15 days.",
+        "min_sip": "₹100",
+        "min_lumpsum": "₹100",
+        "min_additional": "₹100",
+        "lock_in": "None",
+        "riskometer": "High Risk",
+        "benchmark": "Domestic Price of Silver",
+        "nav": "₹31.6796",
+        "aum": "₹4497 Cr"
+      }
+    },
+    {
+      "scheme_id": "hdfc_multicap_dg",
+      "scheme_name": "HDFC Multi Cap Fund Direct Growth",
+      "url": "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth",
+      "doc_date": "23-Oct-2026",
+      "chunks_count": 6,
+      "canonical_facts": {
+        "ter_direct": "0.96%",
+        "exit_load": "Exit load of 1% if redeemed within 1 year.",
+        "min_sip": "₹100",
+        "min_lumpsum": "₹100",
+        "min_additional": "₹100",
+        "lock_in": "None",
+        "riskometer": "High Risk",
+        "benchmark": "Nifty 500 Multicap 50:25:25 Total Return Index",
+        "nav": "₹18.176",
+        "aum": "₹19490.01 Cr"
+      }
+    }
+  ]
+}
