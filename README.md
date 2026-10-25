@@ -1,3 +1,14 @@
+---
+title: Mutual Fund FAQ Assistant
+emoji: 📈
+colorFrom: green
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # 📊 Mutual Fund FAQ Assistant (Facts-Only Q&A)
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
