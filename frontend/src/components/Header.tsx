@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeftRight, ChevronDown, ExternalLink, FileText, Menu, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, ExternalLink, FileText, HelpCircle, Menu, Trash2 } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
 
 interface Props {
@@ -15,7 +15,7 @@ const SCHEME_DISPLAY_NAMES: Record<string, string> = {
 };
 
 export const Header: React.FC<Props> = ({ onOpenCompare }) => {
-  const { toggleSidebar, activeThread, startNewThread } = useChatStore();
+  const { toggleSidebar, activeThread, startNewThread, sendUserMessage } = useChatStore();
 
   const activeSchemeKey = activeThread?.last_scheme_id || 'hdfc_midcap_dg';
   const activeSchemeName = SCHEME_DISPLAY_NAMES[activeSchemeKey] || 'All 5 HDFC Schemes';
@@ -63,6 +63,15 @@ export const Header: React.FC<Props> = ({ onOpenCompare }) => {
           <span className="px-1.5 py-0.2 text-[9px] font-mono bg-[#00D09C]/20 text-[#00D09C] rounded border border-[#00D09C]/30 uppercase">
             Diff
           </span>
+        </button>
+
+        <button
+          onClick={() => sendUserMessage('What can I ask?')}
+          className="hidden md:flex items-center gap-1.5 text-xs text-slate-300 hover:text-[#00D09C] px-2.5 py-1.5 rounded-lg hover:bg-[#1A2027] border border-[#28323E] hover:border-[#00D09C]/40 transition cursor-pointer"
+          title="Ask what questions are supported"
+        >
+          <HelpCircle className="w-3.5 h-3.5 text-[#00D09C]" />
+          <span>What can I ask?</span>
         </button>
 
         <a

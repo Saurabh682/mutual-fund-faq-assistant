@@ -51,6 +51,11 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
         "You can ask me factual questions regarding expense ratios, exit loads, minimum SIPs, "
         "benchmarks, and riskometers for our 5 supported schemes."
     ),
+    "HELP": (
+        "I can answer factual questions about 5 official HDFC Mutual Fund schemes and standard Groww investment procedures. "
+        "You can query expense ratios (TER), exit loads, minimum SIP amounts, fund managers, benchmarks, and NAV. "
+        "In accordance with SEBI regulations, investment advice, fund recommendations, and future return predictions are strictly prohibited."
+    ),
 }
 
 CANONICAL_LINKS: Dict[str, str] = {
@@ -60,6 +65,7 @@ CANONICAL_LINKS: Dict[str, str] = {
     "TAX_LEGAL": "https://www.amfiindia.com/investor-corner/knowledge-center",
     "OUT_OF_SCOPE": "https://www.amfiindia.com/investor-corner/knowledge-center",
     "SMALLTALK": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "HELP": "https://www.amfiindia.com/investor-corner/knowledge-center",
 }
 
 _DEFAULT_MANIFEST_PATH = os.path.abspath(
@@ -178,4 +184,34 @@ def generate_compound_refusal(
         "is_compound": True,
         "is_refusal": True,
         "intent": intent,
+    }
+
+
+HELP_TABLE = (
+    "\n\n| Topic | Supported Categories & Example Questions |\n"
+    "| :--- | :--- |\n"
+    "| **Exit Load & Lock-in** | *\"What is the exit load for HDFC Mid-Cap Opportunities Fund?\"* |\n"
+    "| **SIP & Limits** | *\"What is the minimum SIP amount for HDFC Small Cap Fund?\"* |\n"
+    "| **Expense Ratio (TER)** | *\"What is the TER for HDFC Top 100 Fund (Direct - Growth)?\"* |\n"
+    "| **Fund Management** | *\"Who manages HDFC Silver ETF FoF?\"* |\n"
+    "| **Benchmark & Risk** | *\"What is the benchmark for HDFC Multi Cap Fund?\"* |\n"
+    "| **Groww Procedures** | *\"How do I download my Capital Gains statement on Groww?\"* |"
+)
+
+
+def generate_help_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
+    """Generates an official SEBI-compliant guide on what users can ask."""
+    prose = REFUSAL_TEMPLATES["HELP"]
+    full_text = prose + HELP_TABLE
+    doc_date = normalize_date_footer(last_updated)
+    citation_url = CANONICAL_LINKS["HELP"]
+    rendered = f"{full_text}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
+
+    return {
+        "text": full_text,
+        "citation_url": citation_url,
+        "last_updated": doc_date,
+        "rendered": rendered,
+        "is_help": True,
+        "intent": "HELP",
     }

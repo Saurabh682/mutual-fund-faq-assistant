@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUp, ChevronDown, ShieldAlert } from 'lucide-react';
+import { ArrowUp, ChevronDown, HelpCircle, ShieldAlert, Sparkles } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
 
 const PII_WARNING_PATTERN =
@@ -13,9 +13,19 @@ const QUICK_SCHEMES = [
   'HDFC Multi Cap Fund',
 ];
 
+const SUGGESTED_QUESTIONS = [
+  { category: 'Exit Load & Lock-in', q: 'What is the exit load for HDFC Mid-Cap Opportunities Fund?' },
+  { category: 'SIP & Limits', q: 'What is the minimum SIP amount for HDFC Small Cap Fund?' },
+  { category: 'Expense Ratio (TER)', q: 'What is the expense ratio for HDFC Top 100 Fund (Direct - Growth)?' },
+  { category: 'Fund Management', q: 'Who manages HDFC Silver ETF FoF?' },
+  { category: 'Benchmark Index', q: 'What is the benchmark for HDFC Multi Cap Fund?' },
+  { category: 'Groww Procedure', q: 'How do I download my Capital Gains statement on Groww?' },
+];
+
 export const Composer: React.FC = () => {
   const [text, setText] = useState('');
   const [showQuickSchemes, setShowQuickSchemes] = useState(false);
+  const [showWhatCanIAsk, setShowWhatCanIAsk] = useState(false);
   const { sendUserMessage, isSending } = useChatStore();
 
   const hasPiiWarning = PII_WARNING_PATTERN.test(text);
@@ -26,6 +36,7 @@ export const Composer: React.FC = () => {
     sendUserMessage(text);
     setText('');
     setShowQuickSchemes(false);
+    setShowWhatCanIAsk(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -38,6 +49,11 @@ export const Composer: React.FC = () => {
   const handleSelectScheme = (schemeName: string) => {
     setText(`What is the expense ratio and exit load for ${schemeName}?`);
     setShowQuickSchemes(false);
+  };
+
+  const handleSelectSuggestedQuestion = (question: string) => {
+    setText(question);
+    setShowWhatCanIAsk(false);
   };
 
   return (
@@ -83,11 +99,14 @@ export const Composer: React.FC = () => {
           />
 
           <div className="flex items-center justify-between pt-2 border-t border-[#28323E]/50 px-1 mt-1">
-            {/* Left Controls / Quick Scheme Selector Pill */}
+            {/* Left Controls / Quick Scheme Selector Pill & What Can I Ask */}
             <div className="relative flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowQuickSchemes(!showQuickSchemes)}
+                onClick={() => {
+                  setShowQuickSchemes(!showQuickSchemes);
+                  setShowWhatCanIAsk(false);
+                }}
                 className="flex items-center gap-1.5 text-[11px] bg-[#12161A] hover:bg-[#202832] text-slate-300 hover:text-white px-2.5 py-1 rounded-lg border border-[#28323E] transition cursor-pointer"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D09C]"></span>
@@ -95,8 +114,21 @@ export const Composer: React.FC = () => {
                 <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
 
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWhatCanIAsk(!showWhatCanIAsk);
+                  setShowQuickSchemes(false);
+                }}
+                className="flex items-center gap-1.5 text-[11px] bg-[#12161A] hover:bg-[#202832] text-slate-300 hover:text-[#00D09C] px-2.5 py-1 rounded-lg border border-[#28323E] hover:border-[#00D09C]/40 transition cursor-pointer"
+                title="View what topics and questions you can ask"
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-[#00D09C]" />
+                <span className="font-medium">What can I ask?</span>
+              </button>
+
               {showQuickSchemes && (
-                <div className="absolute left-0 bottom-full mb-2 w-64 bg-[#151A20] border border-[#28323E] rounded-xl shadow-2xl p-2 z-50 flex flex-col gap-1">
+                <div className="absolute left-0 bottom-full mb-2 w-64 bg-[#151A20] border border-[#28323E] rounded-xl shadow-2xl p-2 z-50 flex flex-col gap-1 animate-fadeIn">
                   <div className="text-[10px] font-mono text-slate-400 px-2 py-1 uppercase tracking-wider">
                     Select HDFC Scheme
                   </div>
@@ -105,11 +137,56 @@ export const Composer: React.FC = () => {
                       key={s}
                       type="button"
                       onClick={() => handleSelectScheme(s)}
-                      className="text-left text-xs text-slate-200 hover:text-white hover:bg-[#1A2027] px-2.5 py-1.5 rounded-lg transition truncate"
+                      className="text-left text-xs text-slate-200 hover:text-white hover:bg-[#1A2027] px-2.5 py-1.5 rounded-lg transition truncate cursor-pointer"
                     >
                       {s}
                     </button>
                   ))}
+                </div>
+              )}
+
+              {showWhatCanIAsk && (
+                <div className="absolute left-0 bottom-full mb-2 w-80 sm:w-96 bg-[#151A20] border border-[#28323E] rounded-xl shadow-2xl p-3 z-50 flex flex-col gap-2.5 animate-fadeIn">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-[#28323E]">
+                    <div className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#00D09C]" />
+                      <span>What you can ask</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sendUserMessage('What can I ask?');
+                        setShowWhatCanIAsk(false);
+                      }}
+                      className="text-[10px] text-[#00D09C] hover:underline cursor-pointer"
+                    >
+                      Ask in chat →
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
+                    <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+                      Factual Topics (Click to ask)
+                    </div>
+                    {SUGGESTED_QUESTIONS.map((item) => (
+                      <button
+                        key={item.q}
+                        type="button"
+                        onClick={() => handleSelectSuggestedQuestion(item.q)}
+                        className="text-left text-xs bg-[#1A2027] hover:bg-[#202832] hover:border-[#00D09C]/40 border border-transparent p-2 rounded-lg transition flex flex-col gap-0.5 cursor-pointer group"
+                      >
+                        <span className="text-[10px] font-semibold text-[#00D09C]">{item.category}</span>
+                        <span className="text-slate-300 group-hover:text-white text-[11.5px] leading-snug">
+                          "{item.q}"
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t border-[#28323E]/80 text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>🛡️ 5 Official HDFC Schemes</span>
+                    <span className="text-red-400/80">Zero advice or predictions</span>
+                  </div>
                 </div>
               )}
 

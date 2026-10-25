@@ -8,7 +8,12 @@ from fastapi.responses import JSONResponse
 
 from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
 from app.guardrails.intent import classify_intent
-from app.guardrails.refusal import CANONICAL_LINKS, generate_refusal, get_default_corpus_date
+from app.guardrails.refusal import (
+    CANONICAL_LINKS,
+    generate_refusal,
+    generate_help_response,
+    get_default_corpus_date,
+)
 from app.guardrails.validator import split_sentences
 from app.rag.entities import get_disambiguation_response, resolve_entities
 from app.rag.facts import lookup_fact
@@ -71,6 +76,28 @@ def retrieve_query(request: RetrievalQueryRequest):
             citation_url=refusal["citation_url"],
             last_updated=refusal["last_updated"],
             rendered=refusal["rendered"],
+            chunks=[],
+            latency_ms=elapsed_ms,
+        )
+
+    # 2b. Help / Capabilities Stage
+    if intent_res.intent in ("HELP", "SMALLTALK"):
+        help_resp = generate_help_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(help_resp["text"])
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="help",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=help_resp["text"],
+            sentence_count=len(sentences),
+            citation_url=help_resp["citation_url"],
+            last_updated=help_resp["last_updated"],
+            rendered=help_resp["rendered"],
+            repaired=False,
+            repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
         )
@@ -240,6 +267,28 @@ def ask_query(request: SynthesisQueryRequest):
             citation_url=refusal["citation_url"],
             last_updated=refusal["last_updated"],
             rendered=refusal["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+        )
+
+    # 2b. Help / Capabilities Stage
+    if intent_res.intent in ("HELP", "SMALLTALK"):
+        help_resp = generate_help_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(help_resp["text"])
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="help",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=help_resp["text"],
+            sentence_count=len(sentences),
+            citation_url=help_resp["citation_url"],
+            last_updated=help_resp["last_updated"],
+            rendered=help_resp["rendered"],
             repaired=False,
             repair_count=0,
             chunks=[],

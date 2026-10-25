@@ -30,6 +30,7 @@ class IntentType(str, Enum):
     PROJECTION = "PROJECTION"
     TAX_LEGAL = "TAX_LEGAL"
     SMALLTALK = "SMALLTALK"
+    HELP = "HELP"
     OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
 
@@ -119,11 +120,21 @@ PROCEDURAL_PATTERNS = [
     re.compile(r"\bhow\s+can\s+i\s+(?:invest|apply|register|open\s+an\s+account|redeem)\b", re.I),
 ]
 
-# 6. Smalltalk Patterns
+# 6. Help / Capabilities Query Patterns
+HELP_PATTERNS = [
+    re.compile(r"\bwhat\s+(?:can|should)\s+i\s+(?:ask|query)\b", re.I),
+    re.compile(r"\bwhat\s+(?:can|do)\s+you\s+(?:do|know|tell\s+me)\b", re.I),
+    re.compile(r"\bwhat\s+questions?\s+(?:can|should)\s+i\s+ask\b", re.I),
+    re.compile(r"\bwhat\s+(?:topics?|features?|categories?)\s+(?:can|do)\b", re.I),
+    re.compile(r"\b(?:help|guide|topics|features|capabilities|sample\s+questions?|example\s+questions?|how\s+to\s+use)\b", re.I),
+    re.compile(r"\bwhat\s+schemes?\s+(?:do\s+you\s+have|are\s+supported|are\s+available|do\s+you\s+know)\b", re.I),
+    re.compile(r"^\s*(?:help|guide|examples?|sample|questions?)\s*[?!.]*\s*$", re.I),
+]
+
+# 7. Smalltalk Patterns
 SMALLTALK_PATTERNS = [
     re.compile(r"^\s*(?:hi|hello|hey|good\s+morning|good\s+afternoon|good\s+evening|namaste)\b", re.I),
     re.compile(r"\bwho\s+are\s+you\b", re.I),
-    re.compile(r"\bwhat\s+can\s+you\s+do\b", re.I),
     re.compile(r"\b(?:thank\s+you|thanks|bye|goodbye)\b", re.I),
 ]
 
@@ -218,7 +229,21 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
             matched_triggers=matched_triggers,
         )
 
-    # 5. Smalltalk Check
+    # 5. Help / Capabilities Check
+    for p in HELP_PATTERNS:
+        m = p.search(clean_query)
+        if m:
+            matched_triggers.append(m.group(0))
+    if matched_triggers:
+        return IntentResult(
+            intent=IntentType.HELP.value,
+            confidence=0.98,
+            is_refusal=False,
+            is_compound=False,
+            matched_triggers=matched_triggers,
+        )
+
+    # 6. Smalltalk Check
     for p in SMALLTALK_PATTERNS:
         m = p.search(clean_query)
         if m:
@@ -232,7 +257,7 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
             matched_triggers=matched_triggers,
         )
 
-    # 6. Procedural Check
+    # 7. Procedural Check
     for p in PROCEDURAL_PATTERNS:
         m = p.search(clean_query)
         if m:

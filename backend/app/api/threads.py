@@ -14,6 +14,7 @@ from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
 from app.guardrails.refusal import (
     CANONICAL_LINKS,
     generate_refusal,
+    generate_help_response,
     get_default_corpus_date,
 )
 from app.guardrails.validator import split_sentences
@@ -189,6 +190,37 @@ async def post_message(
                 resolution_type="refusal",
                 intent=intent_res.intent,
                 citation_url=refusal["citation_url"],
+                sentence_count=len(sentences),
+                latency_ms=elapsed_ms,
+            )
+            return asst_msg
+
+        # 2b. Help / Capabilities Stage (Guidance on supported topics & schemes)
+        if intent_res.intent in ("HELP", "SMALLTALK"):
+            help_resp = generate_help_response()
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(help_resp["text"])
+
+            asst_msg = MessageDTO(
+                id=f"msg_{uuid.uuid4().hex[:12]}",
+                role="assistant",
+                type="help",
+                text=help_resp["text"],
+                sentence_count=len(sentences),
+                citation_url=help_resp["citation_url"],
+                last_updated=help_resp["last_updated"],
+                rendered=help_resp["rendered"],
+                latency_ms=elapsed_ms,
+            )
+            _store.append_message(thread_id, asst_msg)
+
+            record_audit_entry(
+                thread_id=thread_id,
+                client_id=client_id,
+                redacted_query=user_query,
+                resolution_type="help",
+                intent=intent_res.intent,
+                citation_url=help_resp["citation_url"],
                 sentence_count=len(sentences),
                 latency_ms=elapsed_ms,
             )
