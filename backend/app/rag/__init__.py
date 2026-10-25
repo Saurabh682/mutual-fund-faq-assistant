@@ -27,6 +27,16 @@ from app.rag.retriever import (
     get_embedder,
     get_not_found_response,
 )
+from app.rag.prompts import (
+    SYSTEM_SYNTHESIS_PROMPT,
+    build_repair_prompt,
+    build_synthesis_user_prompt,
+    format_context_chunks,
+)
+from app.rag.synthesizer import (
+    ConstrainedSynthesizer,
+    SynthesisResult,
+)
 
 __all__ = [
     "EntityResolutionResult",
@@ -44,4 +54,10 @@ __all__ = [
     "HybridRetriever",
     "get_embedder",
     "get_not_found_response",
+    "SYSTEM_SYNTHESIS_PROMPT",
+    "build_synthesis_user_prompt",
+    "build_repair_prompt",
+    "format_context_chunks",
+    "ConstrainedSynthesizer",
+    "SynthesisResult",
 ]
