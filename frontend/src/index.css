@@ -2,29 +2,52 @@
 
 @layer base {
   :root {
-    --primary: #00b386;
-    --primary-hover: #00d09c;
-    --background: #f8f9fa;
-    --card: #ffffff;
-    --text: #1a1e24;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-  }
-
-  .dark {
-    --primary: #00d09c;
-    --primary-hover: #00b386;
-    --background: #0f1419;
-    --card: #192028;
-    --text: #f3f4f6;
-    --text-muted: #9ca3af;
-    --border: #2b3542;
+    --brand-emerald: #00D09C;
+    --brand-emerald-hover: #00B386;
+    --brand-emerald-glow: rgba(0, 208, 156, 0.15);
+    --slate-base: #12161A;
+    --slate-card: #1A2027;
+    --slate-border: #28323E;
+    --slate-bubble: #242D38;
+    --slate-hover: #202832;
+    --amber-gold: #F59E0B;
+    --amber-banner: rgba(245, 158, 11, 0.08);
+    --amber-border: rgba(245, 158, 11, 0.25);
   }
 
   body {
-    background-color: var(--background);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #12161A;
+    color: #FFFFFF;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #12161A;
+}
+::-webkit-scrollbar-thumb {
+  background: #28323E;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3A4756;
+}
+
+.num-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+.pulse-dot {
+  animation: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

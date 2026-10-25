@@ -233,6 +233,7 @@ class EntityResolutionResult:
     citation_url: Optional[str] = None
     field: Optional[str] = None
     is_ambiguous: bool = False
+    is_external_amc: bool = False
     matched_scheme_alias: Optional[str] = None
     matched_field_alias: Optional[str] = None
 
@@ -315,6 +316,7 @@ def resolve_entities(
         citation_url=citation_url,
         field=detected_field,
         is_ambiguous=is_ambiguous,
+        is_external_amc=has_external_amc,
         matched_scheme_alias=detected_scheme_alias,
         matched_field_alias=detected_field_alias,
     )

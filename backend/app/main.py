@@ -55,3 +55,12 @@ def get_metadata():
             {"id": "hdfc_multicap_dg", "name": "HDFC Multi Cap Fund (Direct - Growth)"}
         ]
     }
+
+# Mount static frontend build in production if available
+import os
+from fastapi.staticfiles import StaticFiles
+
+_static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.isdir(_static_dir):
+    app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")
+

@@ -64,9 +64,13 @@ class ConstrainedSynthesizer:
                 logger.warning(f"Could not initialize Groq client: {e}")
 
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
-        """Executes a single constrained completion call to Groq."""
+        """Executes a single constrained completion call to Groq with rate-limit protection."""
         if not self.client:
             raise RuntimeError("Groq client not configured or API key missing.")
+
+        # openai/gpt-oss-120b produces ~80-140 reasoning tokens before generating content,
+        # so budget 260 tokens to accommodate reasoning + <= 3 sentence answer
+        token_ceiling = 260 if ("oss" in self.model or "120b" in self.model) else 120
 
         resp = self.client.chat.completions.create(
             model=self.model,
@@ -75,7 +79,7 @@ class ConstrainedSynthesizer:
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.0,
-            max_tokens=120,
+            max_tokens=token_ceiling,
         )
         content = resp.choices[0].message.content or ""
         return content.strip()

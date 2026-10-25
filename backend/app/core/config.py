@@ -12,7 +12,13 @@ class Settings(BaseSettings):
 
     # Primary LLM Settings (Groq)
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "qwen/qwen3.8-27b"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+
+    # LLM Rate Limits & Quotas (openai/gpt-oss-120b)
+    GROQ_RPM_LIMIT: int = 30         # Requests per minute
+    GROQ_RPD_LIMIT: int = 1000       # Requests per day
+    GROQ_TPM_LIMIT: int = 8000       # Tokens per minute
+    GROQ_TPD_LIMIT: int = 200000     # Tokens per day
 
     # RAG Settings
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"

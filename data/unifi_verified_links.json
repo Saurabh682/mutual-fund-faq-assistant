@@ -1,0 +1,94 @@
+{
+  "source_page": "https://groww.in/mutual-funds/amc/unifi-mutual-funds",
+  "amc_name": "Unifi Mutual Fund",
+  "last_checked": "2026-10-25T15:28:40+05:30",
+  "working_schemes_direct": [
+    {
+      "name": "Unifi Flexi Cap Fund Direct Growth",
+      "category": "Equity: Flexi Cap",
+      "url": "https://groww.in/mutual-funds/unifi-flexi-cap-fund-direct-growth",
+      "status": 200,
+      "page_title": "Unifi Flexi Cap Fund Direct Growth - NAV, Mutual Fund Performance & Portfolio"
+    },
+    {
+      "name": "Unifi Dynamic Asset Allocation Fund Direct Growth",
+      "category": "Hybrid: Dynamic Asset Allocation",
+      "url": "https://groww.in/mutual-funds/unifi-dynamic-asset-allocation-fund-direct-growth",
+      "status": 200,
+      "page_title": "Unifi Dynamic Asset Allocation Fund Direct Growth - NAV, Mutual Fund Performance & Portfolio"
+    },
+    {
+      "name": "Unifi Liquid Fund Direct Growth",
+      "category": "Debt: Liquid Fund",
+      "url": "https://groww.in/mutual-funds/unifi-liquid-fund-direct-growth",
+      "status": 200,
+      "page_title": "Unifi Liquid Fund Direct Growth - NAV, Mutual Fund Performance & Portfolio"
+    }
+  ],
+  "working_schemes_regular": [
+    {
+      "name": "Unifi Flexi Cap Fund Growth (Regular)",
+      "category": "Equity: Flexi Cap",
+      "url": "https://groww.in/mutual-funds/unifi-flexi-cap-fund-regular-growth",
+      "status": 200,
+      "page_title": "Unifi Flexi Cap Fund Growth - NAV, Mutual Fund Performance & Portfolio"
+    },
+    {
+      "name": "Unifi Dynamic Asset Allocation Fund Growth (Regular)",
+      "category": "Hybrid: Dynamic Asset Allocation",
+      "url": "https://groww.in/mutual-funds/unifi-dynamic-asset-allocation-fund-regular-growth",
+      "status": 200,
+      "page_title": "Unifi Dynamic Asset Allocation Fund Growth - NAV, Mutual Fund Performance & Portfolio"
+    },
+    {
+      "name": "Unifi Liquid Fund Growth (Regular)",
+      "category": "Debt: Liquid Fund",
+      "url": "https://groww.in/mutual-funds/unifi-liquid-fund-regular-growth",
+      "status": 200,
+      "page_title": "Unifi Liquid Fund Growth - NAV, Mutual Fund Performance & Portfolio"
+    }
+  ],
+  "working_hub_and_filters": [
+    {
+      "name": "Unifi Mutual Fund AMC Hub",
+      "url": "https://groww.in/mutual-funds/amc/unifi-mutual-funds",
+      "status": 200,
+      "page_title": "Unifi Mutual fund - Latest MF Schemes, NAV, Performance & Returns 2026 - Groww"
+    },
+    {
+      "name": "Unifi All Schemes Screener Filter",
+      "url": "https://groww.in/mutual-funds/filter?fund_house=%5B%22Unifi+Mutual+Fund%22%5D",
+      "status": 200,
+      "page_title": "Mutual Funds Screener: Find Best Mutual Funds at one place to invest on Groww"
+    }
+  ],
+  "other_working_links_on_page": [
+    {
+      "name": "All Mutual Fund Houses Directory",
+      "url": "https://groww.in/mutual-funds/amc",
+      "status": 200
+    },
+    {
+      "name": "Mahindra Manulife Mutual Fund",
+      "url": "https://groww.in/mutual-funds/amc/mahindra-manulife-mutual-funds",
+      "status": 200
+    }
+  ],
+  "broken_links_on_page": [
+    {
+      "name": "ASK Mutual Fund",
+      "url": "https://groww.in/mutual-funds/amc/ask-mutual-funds",
+      "status": 404
+    },
+    {
+      "name": "Lakshya Mutual Fund",
+      "url": "https://groww.in/mutual-funds/amc/lakshya-mutual-funds",
+      "status": 404
+    },
+    {
+      "name": "AlphaGrep Mutual Fund",
+      "url": "https://groww.in/mutual-funds/amc/alphagrep-mutual-funds",
+      "status": 404
+    }
+  ]
+}

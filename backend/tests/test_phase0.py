@@ -9,7 +9,7 @@ client = TestClient(app)
 
 def test_settings_loaded():
     assert settings.PORT == 8000
-    assert settings.GROQ_MODEL in ["qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]
+    assert settings.GROQ_MODEL in ["qwen/qwen3.8-27b", "llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
     assert len(settings.GROQ_API_KEY) > 0
     assert os.path.exists(settings.DATA_DIR)
 
@@ -19,7 +19,7 @@ def test_health_endpoint():
     data = response.json()
     assert data["status"] == "healthy"
     assert data["llm_provider"] == "groq"
-    assert data["llm_model"] in ["qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]
+    assert data["llm_model"] in ["qwen/qwen3.8-27b", "llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
     assert data["schemes_count"] == 5
 
 def test_meta_endpoint():

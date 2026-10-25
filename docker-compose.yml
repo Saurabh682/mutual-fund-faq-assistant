@@ -10,7 +10,7 @@ services:
       - "8000:8000"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - GROQ_MODEL=qwen/qwen3.8-27b
+      - GROQ_MODEL=${GROQ_MODEL:-openai/gpt-oss-120b}
       - ENVIRONMENT=production
       - DATA_DIR=/app/data
     volumes:

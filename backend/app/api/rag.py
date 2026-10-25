@@ -78,6 +78,24 @@ def retrieve_query(request: RetrievalQueryRequest):
     # 3. Entity Resolution
     entity_res = resolve_entities(request.query, session_scheme_id=request.session_scheme_id)
 
+    # External AMC check (strictly out-of-corpus)
+    if entity_res.is_external_amc:
+        not_found = get_not_found_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        return RetrievalQueryResponse(
+            query=request.query,
+            resolution_type="not_found",
+            scheme_id=None,
+            scheme_name=None,
+            field=entity_res.field,
+            text=not_found["text"],
+            citation_url=not_found["citation_url"],
+            last_updated=not_found["last_updated"],
+            rendered=not_found["rendered"],
+            chunks=[],
+            latency_ms=elapsed_ms,
+        )
+
     # Ambiguity check (EC-ENT-01)
     if entity_res.is_ambiguous:
         clarification = get_disambiguation_response()
@@ -230,6 +248,28 @@ def ask_query(request: SynthesisQueryRequest):
 
     # 3. Entity Resolution
     entity_res = resolve_entities(request.query, session_scheme_id=request.session_scheme_id)
+
+    # External AMC check (strictly out-of-corpus)
+    if entity_res.is_external_amc:
+        not_found = get_not_found_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(not_found["text"])
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="not_found",
+            scheme_id=None,
+            scheme_name=None,
+            field=entity_res.field,
+            text=not_found["text"],
+            sentence_count=len(sentences),
+            citation_url=not_found["citation_url"],
+            last_updated=not_found["last_updated"],
+            rendered=not_found["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+        )
 
     if entity_res.is_ambiguous:
         clarification = get_disambiguation_response()

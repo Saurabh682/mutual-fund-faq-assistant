@@ -17,7 +17,8 @@ Phase 3 ──▶ Hybrid Retrieval & Entity Resolution Engine (BM25 + ChromaDB)
 Phase 4 ──▶ Constrained Synthesis & Output Contract Validator (≤ 3 Sentences)
 Phase 5 ──▶ Multi-Thread Session Management & Backend REST API Service
 Phase 6 ──▶ Frontend UI & Groww-Style Interface (React + Tailwind + Zustand)
-Phase 7 ──▶ End-to-End Testing, Golden Dataset Evals & Production Readiness
+Phase 7 ──▶ Scheduled Data Pipeline via GitHub Actions (Daily 10:00 AM Cron)
+Phase 8 ──▶ End-to-End Testing, Golden Dataset Evals & Production Readiness
 ```
 
 | Phase | Name | Key Deliverable | Estimated Time |
@@ -26,12 +27,13 @@ Phase 7 ──▶ End-to-End Testing, Golden Dataset Evals & Production Readines
 | **1** | **Corpus & Ingestion Pipeline** | `corpus_manifest.yaml`, Playwright/httpx fetchers, table chunker, ChromaDB, SQLite facts | 2.0 hr |
 | **2** | **Guardrails & Compliance Firewall** | PII regex/Verhoeff detector, intent classifier, templated refusal engine | 1.5 hr |
 | **3** | **Hybrid Retrieval & Entity Engine** | Scheme entity extraction, BM25 + dense search, RRF fusion, priority weighting | 1.5 hr |
-| **4** | **Constrained LLM & Validator** | PromptBuilder, Groq LLM client (Llama 3.3 70B), sentence counter, grounding check, footer | 1.5 hr |
+| **4** | **Constrained LLM & Validator** | PromptBuilder, Groq LLM client (openai/gpt-oss-120b), sentence counter, grounding check, footer | 1.5 hr |
 | **5** | **Session Store & FastAPI Layer** | `/api/v1/threads` & `/messages`, Pydantic schemas, session lock, audit tracer | 1.5 hr |
 | **6** | **Frontend UI & Groww Experience** | Disclaimer banner, thread sidebar, starter chips, citation pill, dark/light theme | 2.5 hr |
-| **7** | **Evals, Testing & Delivery** | Pytest suite, golden eval runner (accuracy, refusals, PII), Docker Compose | 1.5 hr |
+| **7** | **Scheduled Ingestion Pipeline** | GitHub Actions 10:00 AM IST cron, scraping, normalization, ChromaDB & SQLite refresh | 1.0 hr |
+| **8** | **Evals, Testing & Delivery** | Pytest suite, golden eval runner (accuracy, refusals, PII), Docker Compose | 1.5 hr |
 
-**Total Estimated Implementation Time**: ~12 hours
+**Total Estimated Implementation Time**: ~13 hours
 
 ---
 
@@ -138,9 +140,15 @@ PORT=8000
 HOST=0.0.0.0
 CORS_ORIGINS=["http://localhost:5173"]
 
-# Primary LLM Provider: Groq
+# Primary LLM Provider: Groq (Model: openai/gpt-oss-120b)
 GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
+
+# Groq Rate Limits & Quotas (openai/gpt-oss-120b)
+GROQ_RPM_LIMIT=30
+GROQ_RPD_LIMIT=1000
+GROQ_TPM_LIMIT=8000
+GROQ_TPD_LIMIT=200000
 
 # RAG & Embeddings
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
@@ -166,9 +174,13 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
     
-    # Primary LLM Provider: Groq
+    # Primary LLM Provider: Groq (Reasoning Model: openai/gpt-oss-120b)
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+    GROQ_RPM_LIMIT: int = 30
+    GROQ_RPD_LIMIT: int = 1000
+    GROQ_TPM_LIMIT: int = 8000
+    GROQ_TPD_LIMIT: int = 200000
     
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     RETRIEVAL_TAU: float = 0.70
@@ -524,10 +536,19 @@ For procedural or descriptive queries:
 
 ## Phase 4 — Constrained LLM Synthesis & Output Contract Validator
 
-**Goal**: Implement the synthesis module using Groq (Llama 3.3 70B Versatile) with strict system instructions, paired with an automated post-generation Contract Validator enforcing the **Rule of Three** ($\le 3$ sentences, 1 URL, date footer).
+**Goal**: Implement the synthesis module using Groq with **`openai/gpt-oss-120b`** (with reasoning token budgeting and rate-limit guardrails: 30 RPM, 1K RPD, 8K TPM, 200K TPD), paired with an automated post-generation Contract Validator enforcing the **Rule of Three** ($\le 3$ sentences, 1 URL, date footer).
 
 ### 4.1 Constrained Prompt Builder (`backend/app/rag/prompts.py` & `synthesizer.py`)
-- Model Configuration: `temperature=0`, `max_tokens=120`.
+- Model Configuration:
+  - Model: `openai/gpt-oss-120b` via Groq
+  - Temperature: `0.0`
+  - Max Completion Tokens: `260` (budgeted for ~80–140 internal reasoning tokens + 60–100 response tokens)
+  - Quotas & Rate Limits:
+    - Requests per minute (RPM): `30`
+    - Requests per day (RPD): `1,000`
+    - Tokens per minute (TPM): `8,000`
+    - Tokens per day (TPD): `200,000`
+  - Quota Preservation: Canonical fact queries resolve via SQLite `facts.db` (0 LLM tokens, 0 API calls), preserving Groq quotas strictly for complex procedural queries.
 - System Instruction:
   ```text
   You are an official, factual Mutual Fund FAQ assistant for HDFC Mutual Fund schemes.
@@ -642,6 +663,19 @@ class MetaResponse(BaseModel):
 - Threads keyed strictly by `(client_id, thread_id)`.
 - Enforces session isolation: queries from Thread A never see or retrieve conversation context from Thread B.
 
+### 5.3 Quota & Rate Limit Architecture (`openai/gpt-oss-120b`)
+- **Configured Model**: `openai/gpt-oss-120b` via Groq
+- **Statutory Limits**:
+  - Request per minute (RPM): `30`
+  - Request per day (RPD): `1,000`
+  - Tokens per minute (TPM): `8,000`
+  - Tokens per day (TPD): `200,000`
+- **Quota Protection Mechanism**:
+  1. **$O(1)$ Fact Store Interception**: All canonical queries (TER, Exit Load, Minimum SIP, NAV, AUM, Lock-in, Riskometer, Benchmark, Fund Manager) resolve deterministically via SQLite `facts.db`, consuming **0 LLM calls and 0 tokens**.
+  2. **Security & Intent Firewall**: PII injections (HTTP 400) and advisory/comparative questions (templated refusal) resolve deterministically with **0 LLM calls**.
+  3. **Reasoning Token Budget**: Sized to 260 max completion tokens to accommodate ~80–140 internal reasoning tokens while strictly bounding total cost to ~250–350 tokens per procedural synthesis.
+  4. **Concurrency Serialization**: Per-thread `asyncio.Lock` prevents duplicate bursts and prevents exceeding the 30 RPM window.
+
 ### 5.3 REST API Endpoints (`backend/app/api/`)
 - `GET /api/v1/health`: Checks vector index and SQLite liveness.
 - `GET /api/v1/meta`: Returns disclaimer text, starter questions, and HDFC scheme list.
@@ -706,17 +740,148 @@ class MetaResponse(BaseModel):
 
 ---
 
-## Phase 7 — End-to-End Testing, Golden Dataset Evals & Production Delivery
+## Phase 7 — Scheduled Data Pipeline via GitHub Actions (Daily 10:00 AM Cron)
+
+**Goal**: Automate daily scraping, normalization, cleaning, chunking, embedding, and ChromaDB & SQLite fact store synchronization via a scheduled GitHub Actions workflow running daily at 10:00 AM IST (04:30 AM UTC), with post-ingestion integrity tests, caching, and automated Git synchronization.
+
+### 7.1 Pipeline Architecture & Workflow Specification (`.github/workflows/daily-data-ingestion.yml`)
+- **Execution Schedule**:
+  - `cron: '30 4 * * *'` (Daily at 10:00 AM IST / 04:30 AM UTC, aligned with morning AMC NAV updates and market opening).
+  - `workflow_dispatch:` for manual on-demand execution with optional `force_refresh` boolean input (default: true).
+- **Core Pipeline Stages (`ingest/run.py --force`)**:
+  1. **Scraping**: Fresh live HTML fetch from verified Groww URLs in `data/corpus_manifest.yaml` (domain allowlist strictly enforced).
+  2. **Normalization & Cleaning**: Remove navigation noise, scripts, and promotional widgets.
+  3. **Fact Extraction**: Update SQLite `facts.db` with latest statutory metrics (TER, Exit Load, Minimum SIP, Riskometer, Benchmark).
+  4. **Semantic Chunking**: Generate markdown chunks with scheme metadata, section headings, and source URLs.
+  5. **Embedding & Indexing**: Compute 384-dimensional dense vectors via SentenceTransformer (`all-MiniLM-L6-v2`), update ChromaDB (`data/index/chroma/`), and pickle lexical BM25 (`data/index/bm25.pkl`).
+- **Post-Ingestion Automated Integrity Gate**:
+  - Automatically executes `pytest backend/tests/test_phase1.py` within the CI runner to assert that ChromaDB contains non-empty collections, SQLite `facts.db` satisfies statutory schema checks, and zero data corruption occurred before pushing.
+- **Workflow Optimization & Caching**:
+  - Caches Python virtualenv dependencies (`~/.cache/pip`).
+  - Caches HuggingFace SentenceTransformer weights (`~/.cache/huggingface`) to guarantee execution under 2 minutes without external rate-limiting.
+- **Automated Git Synchronization & Step Summary**:
+  - Commits updated index artifacts (`data/index/`, `data/raw/`, `data/ingestion_report.json`) back to the branch with `[skip ci]` to prevent recursive workflow runs.
+  - Generates a GitHub Step Summary Markdown report detailing ingested schemes, chunk counts, and elapsed pipeline seconds.
+
+### 7.2 GitHub Action Workflow Definition (`.github/workflows/daily-data-ingestion.yml`)
+
+```yaml
+name: Scheduled Daily Data Ingestion
+
+"on":
+  schedule:
+    # 10:00 AM IST daily (04:30 AM UTC)
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: 'Force live re-scrape from Groww sources'
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  group: daily-ingestion
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    name: Scrape, Clean, Chunk & Index
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: Cache Hugging Face Transformers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: ${{ runner.os }}-hf-minilm-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-hf-minilm-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Execute Ingestion Pipeline (Scrape -> Clean -> Chunk -> Embed -> Store)
+        run: |
+          python -m ingest.run --force
+
+      - name: Verify Ingestion Data Integrity
+        run: |
+          pytest backend/tests/test_phase1.py -v
+
+      - name: Generate Ingestion Step Summary
+        if: always()
+        run: |
+          if [ -f "data/ingestion_report.json" ]; then
+            echo "### 📊 Ingestion Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            python -c "
+          import json
+          with open('data/ingestion_report.json') as f:
+              d = json.load(f)
+          print(f\"- **Status**: {d.get('status')}\")
+          print(f\"- **Timestamp**: {d.get('timestamp')}\")
+          print(f\"- **Total Sources**: {d.get('total_sources')}\")
+          print(f\"- **Total Chunks**: {d.get('total_chunks')}\")
+          print(f\"- **Elapsed Seconds**: {d.get('elapsed_seconds')}s\n\")
+          print('| Scheme | Chunks | Date |')
+          print('| :--- | :--- | :--- |')
+          for s in d.get('schemes', []):
+              print(f\"| {s['scheme_name']} | {s['chunks_count']} | {s['doc_date']} |\")
+          " >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Commit & Push Updated Corpus Index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/index/ data/raw/ data/ingestion_report.json
+          if git diff --staged --quiet; then
+            echo "No corpus changes detected. Repository is already up to date."
+          else
+            git commit -m "chore(data): automated daily corpus refresh (10:00 AM IST) [skip ci]"
+            git push
+          fi
+```
+
+### Phase 7 Acceptance Criteria
+- [x] Scheduled cron (`30 4 * * *` - 10:00 AM IST) and manual `workflow_dispatch` trigger correctly configured.
+- [x] Full ingestion pipeline executes all 5 steps (scraping, cleaning, chunking, embedding, ChromaDB & SQLite storage).
+- [x] Automated test gate asserts ChromaDB vector store and SQLite facts integrity before git commit.
+- [x] Hugging Face cache preserves embedding weights across runs.
+- [x] Updated data is cleanly synchronized with `[skip ci]` to prevent recursive triggering.
+
+---
+
+## Phase 8 — End-to-End Testing, Golden Dataset Evals & Production Delivery
 
 **Goal**: Execute comprehensive test suites, evaluate accuracy on golden benchmark sets, package with Docker Compose, and generate final documentation.
 
-### 7.1 Automated Pytest Suite (`backend/tests/`)
+### 8.1 Automated Pytest Suite (`backend/tests/`)
 - `test_pii.py`: Validates regexes and Verhoeff checks across 20+ valid/invalid PAN, Aadhaar, and OTP patterns.
 - `test_intent.py`: Asserts 100% refusal on advisory, comparative, and return-projection questions.
 - `test_validator.py`: Property-based test enforcing $\le 3$ sentences and single valid citation URL.
 - `test_retriever.py`: Validates retrieval accuracy against factsheets for all 5 HDFC schemes.
 
-### 7.2 Golden Evaluation Harness (`eval/run_eval.py`)
+### 8.2 Golden Evaluation Harness (`eval/run_eval.py`)
 Run the golden benchmark datasets (`eval/datasets/*.jsonl`):
 
 ```bash
@@ -731,7 +896,7 @@ python -m eval.run_eval --dataset eval/datasets/golden_mf_eval.jsonl
 | **Contract Invariants** | All queries | **100%** adhere to $\le 3$ sentences, 1 URL, date footer |
 | **Hallucination Rate** | Out-of-corpus queries | **0.0%** hallucinated financial numbers |
 
-### 7.3 Docker Compose Packaging (`docker-compose.yml`)
+### 8.3 Docker Compose Packaging (`docker-compose.yml`)
 
 ```yaml
 version: '3.8'
@@ -760,7 +925,7 @@ services:
       - backend
 ```
 
-### 7.4 Deliverables Verification Checklist
+### 8.4 Deliverables Verification Checklist
 - [x] Curated corpus established with 15–25 official URLs for HDFC Mutual Fund and Groww.
 - [x] Backend RAG engine running with ChromaDB and SQLite facts table.
 - [x] Input PII firewall and intent classifier blocking 100% of sensitive/advisory queries.
