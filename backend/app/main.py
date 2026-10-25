@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.api.guardrails import router as guardrails_router
 
 app = FastAPI(
     title="Mutual Fund FAQ Assistant API",
@@ -16,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include Routers
+app.include_router(guardrails_router)
 
 @app.get("/health")
 def health_check():

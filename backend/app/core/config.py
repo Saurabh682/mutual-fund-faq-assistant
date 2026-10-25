@@ -25,6 +25,27 @@ class Settings(BaseSettings):
     CHROMA_DIR: str = os.path.join(DATA_DIR, "index", "chroma")
     SESSION_TTL_DAYS: int = 7
 
+    @field_validator("DATA_DIR", mode="after")
+    @classmethod
+    def resolve_data_dir(cls, v: str) -> str:
+        if not os.path.isabs(v):
+            return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
+        return v
+
+    @field_validator("FACTS_DB_PATH", mode="after")
+    @classmethod
+    def resolve_facts_db(cls, v: str) -> str:
+        if not os.path.isabs(v):
+            return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data/index/facts.db"))
+        return v
+
+    @field_validator("CHROMA_DIR", mode="after")
+    @classmethod
+    def resolve_chroma_dir(cls, v: str) -> str:
+        if not os.path.isabs(v):
+            return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data/index/chroma"))
+        return v
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), "../../.env"),
         env_file_encoding="utf-8",
