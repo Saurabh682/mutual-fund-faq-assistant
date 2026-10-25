@@ -43,7 +43,10 @@ except ImportError:
 
 import gradio as gr
 from fastapi.middleware.cors import CORSMiddleware
-from app.main import app as fastapi_app
+from app.api.guardrails import router as guardrails_router
+from app.api.rag import router as rag_router
+from app.api.threads import router as threads_router
+from app.core.config import settings
 from app.api.rag import ask_query
 from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
@@ -381,6 +384,42 @@ demo.app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Expose full FastAPI backend REST API for Vercel and external frontends
+demo.app.include_router(guardrails_router)
+demo.app.include_router(rag_router)
+demo.app.include_router(threads_router)
+
+@demo.app.get("/health")
+@demo.app.get("/api/v1/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "environment": settings.ENVIRONMENT,
+        "llm_provider": "groq",
+        "llm_model": settings.GROQ_MODEL,
+        "amc": "HDFC Mutual Fund",
+        "schemes_count": 5,
+    }
+
+@demo.app.get("/api/v1/meta")
+def get_metadata():
+    return {
+        "disclaimer": "Facts-only. No investment advice.",
+        "amc": "HDFC Mutual Fund",
+        "starter_questions": [
+            "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
+            "What is the minimum SIP amount for HDFC Small Cap Fund?",
+            "How do I download my Capital Gains statement on Groww?",
+        ],
+        "schemes": [
+            {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},
+            {"id": "hdfc_smallcap_dg", "name": "HDFC Small Cap Fund (Direct - Growth)"},
+            {"id": "hdfc_largecap_dg", "name": "HDFC Top 100 Fund (Direct - Growth)"},
+            {"id": "hdfc_silver_fof_dg", "name": "HDFC Silver ETF FoF (Direct - Growth)"},
+            {"id": "hdfc_multicap_dg", "name": "HDFC Multi Cap Fund (Direct - Growth)"},
+        ],
+    }
 
 if __name__ == "__main__":
     demo.launch(
