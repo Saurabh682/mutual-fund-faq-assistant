@@ -36,9 +36,9 @@ class Settings(BaseSettings):
     SESSION_TTL_DAYS: int = 7
 
     def model_post_init(self, __context):
-        if not self.FACTS_DB_PATH:
+        if not self.FACTS_DB_PATH or not os.path.isabs(self.FACTS_DB_PATH):
             self.FACTS_DB_PATH = os.path.join(self.DATA_DIR, "index", "facts.db")
-        if not self.CHROMA_DIR:
+        if not self.CHROMA_DIR or not os.path.isabs(self.CHROMA_DIR):
             self.CHROMA_DIR = os.path.join(self.DATA_DIR, "index", "chroma")
 
     @field_validator("DATA_DIR", mode="after")
