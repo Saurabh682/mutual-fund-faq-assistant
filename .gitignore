@@ -13,6 +13,7 @@ __pycache__/
 data/raw/
 data/*.jsonl
 data/sessions.db
+data/sessions.db*
 *.log
 !data/index/facts.db
 !data/index/chroma/chroma.sqlite3

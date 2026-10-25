@@ -24,6 +24,11 @@ while "" in sys.path:
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
+# If 'app' was registered in sys.modules as a single-file module (app.py), remove it so
+# that `import app.api...` properly imports the backend/app package.
+if "app" in sys.modules and not hasattr(sys.modules["app"], "__path__"):
+    del sys.modules["app"]
+
 # Restore CURRENT_DIR at the end of sys.path for other local assets
 sys.path.append(CURRENT_DIR)
 
@@ -377,52 +382,71 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
     ).then(lambda: "", None, [msg_input], api_name=False)
 
 # Enable CORS for external frontends (e.g. Vercel, Netlify, localhost)
-demo.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Intercept Gradio's internal App.create_app so FastAPI routers and endpoints
+# are attached to the actual running server app created by demo.launch().
+orig_create_app = gr.routes.App.create_app
 
-# Expose full FastAPI backend REST API for Vercel and external frontends
-demo.app.include_router(guardrails_router)
-demo.app.include_router(rag_router)
-demo.app.include_router(threads_router)
+def custom_create_app(*args, **kwargs):
+    server_app = orig_create_app(*args, **kwargs)
 
-@demo.app.get("/health")
-@demo.app.get("/api/v1/health")
-def health_check():
-    return {
-        "status": "healthy",
-        "environment": settings.ENVIRONMENT,
-        "llm_provider": "groq",
-        "llm_model": settings.GROQ_MODEL,
-        "amc": "HDFC Mutual Fund",
-        "schemes_count": 5,
-    }
+    server_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-@demo.app.get("/api/v1/meta")
-def get_metadata():
-    return {
-        "disclaimer": "Facts-only. No investment advice.",
-        "amc": "HDFC Mutual Fund",
-        "starter_questions": [
-            "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
-            "What is the minimum SIP amount for HDFC Small Cap Fund?",
-            "How do I download my Capital Gains statement on Groww?",
-        ],
-        "schemes": [
-            {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},
-            {"id": "hdfc_smallcap_dg", "name": "HDFC Small Cap Fund (Direct - Growth)"},
-            {"id": "hdfc_largecap_dg", "name": "HDFC Top 100 Fund (Direct - Growth)"},
-            {"id": "hdfc_silver_fof_dg", "name": "HDFC Silver ETF FoF (Direct - Growth)"},
-            {"id": "hdfc_multicap_dg", "name": "HDFC Multi Cap Fund (Direct - Growth)"},
-        ],
-    }
+    server_app.include_router(guardrails_router)
+    server_app.include_router(rag_router)
+    server_app.include_router(threads_router)
+
+    @server_app.get("/health")
+    @server_app.get("/api/v1/health")
+    def health_check():
+        return {
+            "status": "healthy",
+            "environment": settings.ENVIRONMENT,
+            "llm_provider": "groq",
+            "llm_model": settings.GROQ_MODEL,
+            "amc": "HDFC Mutual Fund",
+            "schemes_count": 5,
+        }
+
+    @server_app.get("/api/v1/meta")
+    def get_metadata():
+        return {
+            "disclaimer": "Facts-only. No investment advice.",
+            "amc": "HDFC Mutual Fund",
+            "starter_questions": [
+                "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
+                "What is the minimum SIP amount for HDFC Small Cap Fund?",
+                "How do I download my Capital Gains statement on Groww?",
+            ],
+            "schemes": [
+                {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},
+                {"id": "hdfc_smallcap_dg", "name": "HDFC Small Cap Fund (Direct - Growth)"},
+                {"id": "hdfc_largecap_dg", "name": "HDFC Top 100 Fund (Direct - Growth)"},
+                {"id": "hdfc_silver_fof_dg", "name": "HDFC Silver ETF FoF (Direct - Growth)"},
+                {"id": "hdfc_multicap_dg", "name": "HDFC Multi Cap Fund (Direct - Growth)"},
+            ],
+        }
+
+    return server_app
+
+gr.routes.App.create_app = custom_create_app
+
+os.environ["GRADIO_SSR_MODE"] = "false"
 
 if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-    )
+    try:
+        demo.launch(
+            server_name="0.0.0.0",
+            server_port=7860,
+            ssr_mode=False,
+        )
+    except TypeError:
+        demo.launch(
+            server_name="0.0.0.0",
+            server_port=7860,
+        )
