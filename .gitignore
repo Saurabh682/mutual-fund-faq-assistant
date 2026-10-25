@@ -1,0 +1,28 @@
+# Virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets & Environment
+.env
+*.env.local
+
+# Ingestion raw files & index artifacts
+data/raw/
+data/index/
+*.sqlite3
+*.db
+chroma_db/
+
+# Node & Frontend
+node_modules/
+dist/
+.vite/
+
+# Testing & Logs
+.pytest_cache/
+.coverage
+htmlcov/
+*.log

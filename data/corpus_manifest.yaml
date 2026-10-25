@@ -1,0 +1,76 @@
+version: 1
+last_refreshed: "2026-10-25"
+allowed_domains:
+  - groww.in
+
+schemes:
+  - id: hdfc_midcap_dg
+    name: "HDFC Mid-Cap Opportunities Fund"
+    category: "Equity: Mid Cap"
+    plan: "Direct"
+    option: "Growth"
+    groww_url: "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth"
+
+  - id: hdfc_smallcap_dg
+    name: "HDFC Small Cap Fund"
+    category: "Equity: Small Cap"
+    plan: "Direct"
+    option: "Growth"
+    groww_url: "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth"
+
+  - id: hdfc_largecap_dg
+    name: "HDFC Top 100 Fund (Large Cap)"
+    category: "Equity: Large Cap"
+    plan: "Direct"
+    option: "Growth"
+    groww_url: "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth"
+
+  - id: hdfc_silver_fof_dg
+    name: "HDFC Silver ETF Fund of Fund"
+    category: "Commodities: Precious Metals FoF"
+    plan: "Direct"
+    option: "Growth"
+    groww_url: "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth"
+
+  - id: hdfc_multicap_dg
+    name: "HDFC Multi Cap Fund"
+    category: "Equity: Multi Cap"
+    plan: "Direct"
+    option: "Growth"
+    groww_url: "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth"
+
+sources:
+  - id: grw_midcap
+    url: "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth"
+    type: scheme_page
+    publisher: groww
+    scheme_id: hdfc_midcap_dg
+    priority: 1
+
+  - id: grw_smallcap
+    url: "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth"
+    type: scheme_page
+    publisher: groww
+    scheme_id: hdfc_smallcap_dg
+    priority: 1
+
+  - id: grw_largecap
+    url: "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth"
+    type: scheme_page
+    publisher: groww
+    scheme_id: hdfc_largecap_dg
+    priority: 1
+
+  - id: grw_silver_fof
+    url: "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth"
+    type: scheme_page
+    publisher: groww
+    scheme_id: hdfc_silver_fof_dg
+    priority: 1
+
+  - id: grw_multicap
+    url: "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth"
+    type: scheme_page
+    publisher: groww
+    scheme_id: hdfc_multicap_dg
+    priority: 1

@@ -1,0 +1,78 @@
+# Synonym mappings for Mutual Fund entity and field extraction
+ter_direct:
+  - "expense ratio"
+  - "ter"
+  - "total expense ratio"
+  - "charges"
+  - "management fees"
+  - "annual fees"
+
+exit_load:
+  - "exit load"
+  - "redemption fee"
+  - "exit penalty"
+  - "load structure"
+  - "redemption charges"
+  - "penalty for withdrawal"
+
+min_sip:
+  - "minimum sip"
+  - "min sip"
+  - "sip installment"
+  - "sip amount"
+  - "minimum monthly investment"
+  - "systematic investment plan"
+
+min_lumpsum:
+  - "minimum investment"
+  - "initial investment"
+  - "lumpsum"
+  - "min lumpsum"
+  - "minimum purchase"
+
+lock_in:
+  - "lock in"
+  - "lock-in"
+  - "lockin"
+  - "lock in period"
+  - "statutory lock in"
+  - "80c lock-in"
+
+riskometer:
+  - "riskometer"
+  - "risk level"
+  - "risk category"
+  - "risk profile"
+  - "risk rating"
+
+benchmark:
+  - "benchmark"
+  - "benchmark index"
+  - "nifty index"
+  - "underlying index"
+  - "reference index"
+
+schemes:
+  hdfc_midcap_dg:
+    - "hdfc mid cap"
+    - "hdfc midcap"
+    - "mid cap opportunities"
+    - "hdfc mid-cap opportunities"
+  hdfc_smallcap_dg:
+    - "hdfc small cap"
+    - "hdfc smallcap"
+    - "small cap fund"
+  hdfc_largecap_dg:
+    - "hdfc large cap"
+    - "hdfc largecap"
+    - "hdfc top 100"
+    - "top 100 fund"
+  hdfc_silver_fof_dg:
+    - "hdfc silver"
+    - "silver etf"
+    - "silver fof"
+    - "silver etf fund of fund"
+  hdfc_multicap_dg:
+    - "hdfc multi cap"
+    - "hdfc multicap"
+    - "multi cap fund"
