@@ -58,6 +58,21 @@ def parse_groww_scheme(raw_data: dict) -> dict:
     # Fund Manager & House
     fund_manager = next_data.get("fund_manager", "HDFC Asset Management Company")
     fund_house = next_data.get("fund_house", "HDFC Mutual Fund")
+    isin = next_data.get("isin", "")
+    stamp_duty = next_data.get("stamp_duty", "0.005% (from July 1st, 2020)")
+
+    # Manager details & RTA
+    mgr_details_list = next_data.get("fund_manager_details", [])
+    mgr_edu = ""
+    mgr_exp = ""
+    if mgr_details_list and isinstance(mgr_details_list, list):
+        primary_mgr = mgr_details_list[0]
+        mgr_edu = primary_mgr.get("education", "")
+        mgr_exp = primary_mgr.get("experience", "")
+
+    rta_info = next_data.get("rta_details", {})
+    rta_name = rta_info.get("rta_name", "CAMS") if isinstance(rta_info, dict) else "CAMS"
+    rta_email = rta_info.get("email", "enq_h@camsonline.com") if isinstance(rta_info, dict) else ""
 
     # Tax impact
     tax_impact = ""
@@ -67,14 +82,17 @@ def parse_groww_scheme(raw_data: dict) -> dict:
 
     # 2. Extract FAQs from DOM
     faqs = []
+    seen_questions = set()
     for h3 in soup.find_all(["h3", "h4"]):
         q_text = h3.get_text(strip=True)
-        if "?" in q_text and len(q_text) < 150:
-            parent_div = h3.find_parent("div")
-            if parent_div:
-                ans_text = parent_div.get_text(separator=" ", strip=True)
-                ans_clean = ans_text.replace(q_text, "").strip()
-                if 20 < len(ans_clean) < 600:
+        if "?" in q_text and len(q_text) < 150 and q_text not in seen_questions:
+            ans_div = h3.parent.find_next_sibling("div") if h3.parent else None
+            if not ans_div and h3.find_next_sibling("div"):
+                ans_div = h3.find_next_sibling("div")
+            if ans_div:
+                ans_clean = ans_div.get_text(separator=" ", strip=True)
+                if len(ans_clean) > 20:
+                    seen_questions.add(q_text)
                     faqs.append({"question": q_text, "answer": ans_clean})
 
     # Assemble structured sections for RAG chunking
@@ -102,11 +120,15 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         {
             "section": "Riskometer & Benchmark Index",
             "content": f"Riskometer Classification for {scheme_name}: {riskometer}. The underlying benchmark against which fund performance is evaluated is {benchmark}."
+        },
+        {
+            "section": "Fund Management & Operations",
+            "content": f"Fund Manager: {fund_manager}. {mgr_edu} {mgr_exp[:200] if mgr_exp else ''} Registrar and Transfer Agent (RTA): {rta_name} ({rta_email}). ISIN: {isin}. Stamp Duty: {stamp_duty}."
         }
     ]
 
-    # Add FAQ sections
-    for i, faq in enumerate(faqs[:5]):
+    # Add FAQ sections (procedural guidance, redemption steps, SIP instructions)
+    for faq in faqs:
         sections.append({
             "section": f"FAQ: {faq['question']}",
             "content": f"Question: {faq['question']} Answer: {faq['answer']}"
