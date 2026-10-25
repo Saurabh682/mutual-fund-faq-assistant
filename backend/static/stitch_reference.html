@@ -1,0 +1,557 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groww MF Insights — HDFC Mutual Fund Facts-Only Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              emerald: '#00D09C',
+              'emerald-hover': '#00B386',
+              'emerald-glow': 'rgba(0, 208, 156, 0.15)',
+            },
+            slate: {
+              base: '#12161A',
+              card: '#1A2027',
+              border: '#28323E',
+              bubble: '#242D38',
+              hover: '#202832',
+            },
+            amber: {
+              gold: '#F59E0B',
+              banner: 'rgba(245, 158, 11, 0.08)',
+              'border-subtle': 'rgba(245, 158, 11, 0.25)',
+              container: 'rgba(245, 158, 11, 0.12)',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #12161A;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #28323E;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3a4756;
+    }
+    .num-tabular {
+      font-variant-numeric: tabular-nums;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.15); }
+    }
+    .pulse-dot {
+      animation: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#12161A] text-white font-sans antialiased h-screen flex flex-col overflow-hidden selection:bg-[#00D09C]/20 selection:text-[#00D09C]">
+
+  <!-- 1. Mandatory Top Compliance Header (44px) -->
+  <header class="h-[44px] shrink-0 w-full bg-[rgba(245,158,11,0.08)] border-b border-[rgba(245,158,11,0.22)] px-4 flex items-center justify-between z-30 text-xs">
+    <div class="flex items-center gap-2 text-amber-300 font-medium tracking-tight">
+      <span class="flex items-center justify-center w-5 h-5 rounded bg-amber-500/20 text-amber-400">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </span>
+      <span class="text-amber-200/90 font-semibold text-[11px] sm:text-xs">
+        <strong class="text-amber-400 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] mr-1">Regulatory Disclaimer:</strong>
+        Facts-only mutual fund assistant. Zero investment advice, comparisons, or recommendations provided.
+      </span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#00D09C]/10 border border-[#00D09C]/30 text-[#00D09C] text-[11px] font-medium">
+        <span class="w-2 h-2 rounded-full bg-[#00D09C] pulse-dot inline-block shadow-[0_0_8px_#00D09C]"></span>
+        <span class="">Corpus: 5 Official HDFC Schemes</span>
+      </div>
+      <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-mono border border-slate-700/60">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <span class="">SEBI Grounded</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. Main App Container (Sidebar + Content Workspace) -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Left Sidebar (280px Fixed Width) -->
+    <aside class="w-[280px] shrink-0 bg-[#151A20] border-r border-[#28323E] flex flex-col justify-between hidden md:flex z-20">
+      
+      <!-- Sidebar Upper Section -->
+      <div class="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
+        <!-- Brand Header -->
+        <div class="flex items-center justify-between pb-2 border-b border-[#28323E]/60">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#00D09C] to-[#00f5b8] p-[1.5px] flex items-center justify-center shadow-lg shadow-[#00D09C]/15">
+              <div class="w-full h-full bg-[#12161A] rounded-[10px] flex items-center justify-center">
+                <!-- Groww Logo Glyph -->
+                <svg class="w-4 h-4 text-[#00D09C]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm6 8h-2v-4h2v4zm0-6h-2v-2h2v2z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 leading-none">
+                <span class="font-bold text-sm tracking-tight text-white">groww</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-[#00D09C]"></span>
+                <span class="text-xs text-slate-300 font-semibold tracking-wide">MF INSIGHTS</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">HDFC Scheme Facts v2.4</span>
+            </div>
+          </div>
+          <button title="Collapse sidebar" class="p-1 rounded text-slate-500 hover:text-slate-300 hover:bg-[#1A2027] transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <!-- "New Chat" primary button -->
+        <button class="w-full py-2.5 px-3 rounded-xl border border-[#00D09C] bg-[#00D09C]/5 hover:bg-[#00D09C]/15 text-[#00D09C] font-semibold text-xs flex items-center justify-between transition-all group shadow-sm hover:shadow-[0_0_15px_rgba(0,208,156,0.2)]">
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-md bg-[#00D09C] text-[#12161A] flex items-center justify-center group-hover:scale-105 transition-transform">
+              <svg class="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </div>
+            <span class="">New Fact Query</span>
+          </div>
+          <span class="px-1.5 py-0.5 rounded bg-[#202832] border border-[#28323E] text-[10px] text-slate-400 font-mono tracking-tighter">Ctrl+K</span>
+        </button>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <input type="text" placeholder="Filter questions..." class="w-full bg-[#1A2027] border border-[#28323E] rounded-lg px-2.5 py-1.5 pl-8 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#00D09C]/60 focus:ring-1 focus:ring-[#00D09C]/40 transition">
+          <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+
+        <!-- Conversation History List -->
+        <div class="flex flex-col gap-4 mt-1">
+          <!-- Group: Today -->
+          <div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 mb-1.5">Today</div>
+            
+            <!-- Active item -->
+            <div class="relative group rounded-lg bg-[#1A2027] border border-[#28323E] p-2.5 flex items-center justify-between cursor-pointer transition shadow-sm overflow-hidden">
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#00D09C]"></div>
+              <div class="flex flex-col gap-0.5 pl-1.5 pr-2 truncate">
+                <span class="text-xs font-semibold text-white truncate">Exit Load for HDFC Mid Cap</span>
+                <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  MID-CAP • Facts verified
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0 ml-2"><span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[#202832] text-slate-300 border border-[#28323E] leading-none shrink-0 num-tabular">4 msgs</span><button class="opacity-0 group-hover:opacity-100 p-1 rounded hover:text-red-400 text-slate-500 transition" title="Delete conversation"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>
+            </div>
+
+            <!-- Inactive item 1 -->
+            <div class="group rounded-lg hover:bg-[#1A2027]/70 p-2.5 flex items-center justify-between cursor-pointer transition text-slate-400 hover:text-slate-200 mt-1">
+              <div class="flex flex-col gap-0.5 truncate pr-2">
+                <span class="text-xs font-medium truncate">Min SIP for HDFC Small Cap</span>
+                <span class="text-[10px] text-slate-500">2 msgs • 11:20 AM</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-600 group-hover:text-slate-400">₹100</span>
+            </div>
+          </div>
+
+          <!-- Group: Previous 7 Days -->
+          <div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 mb-1.5">Previous 7 Days</div>
+            
+            <div class="group rounded-lg hover:bg-[#1A2027]/70 p-2.5 flex items-center justify-between cursor-pointer transition text-slate-400 hover:text-slate-200">
+              <div class="flex flex-col gap-0.5 truncate pr-2">
+                <span class="text-xs font-medium truncate">HDFC Top 100 TER Comparison</span>
+                <span class="text-[10px] text-slate-500">3 msgs • Oct 21</span>
+              </div>
+            </div>
+
+            <div class="group rounded-lg hover:bg-[#1A2027]/70 p-2.5 flex items-center justify-between cursor-pointer transition text-slate-400 hover:text-slate-200 mt-1">
+              <div class="flex flex-col gap-0.5 truncate pr-2">
+                <span class="text-xs font-medium truncate">Silver ETF FoF Benchmark</span>
+                <span class="text-[10px] text-slate-500">1 msg • Oct 18</span>
+              </div>
+            </div>
+
+            <div class="group rounded-lg hover:bg-[#1A2027]/70 p-2.5 flex items-center justify-between cursor-pointer transition text-slate-400 hover:text-slate-200 mt-1">
+              <div class="flex flex-col gap-0.5 truncate pr-2">
+                <span class="text-xs font-medium truncate">Redemption settlement time T+2</span>
+                <span class="text-[10px] text-slate-500">2 msgs • Oct 15</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="p-3 bg-[#12161A] border-t border-[#28323E] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-[#1A2027] border border-[#28323E] flex items-center justify-center text-[10px] font-mono text-slate-300">
+            ID
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[11px] font-mono text-slate-300 leading-tight">default_client</span>
+            <span class="text-[9px] text-[#00D09C] flex items-center gap-1 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#00D09C]"></span> Connected
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="p-1.5 rounded text-slate-400 hover:text-white hover:bg-[#1A2027] transition" title="Dark mode active">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+          </button>
+          <button class="p-1.5 rounded text-slate-400 hover:text-white hover:bg-[#1A2027] transition" title="Settings">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Workspace -->
+    <main class="flex-1 flex flex-col bg-[#12161A] overflow-hidden relative">
+      
+      <!-- Top App Bar -->
+      <div class="h-14 border-b border-[#28323E] px-4 md:px-8 flex items-center justify-between shrink-0 bg-[#12161A]/90 backdrop-blur z-10">
+        <div class="flex items-center gap-3">
+          <!-- Mobile Drawer button -->
+          <button class="md:hidden p-1.5 rounded-lg bg-[#1A2027] border border-[#28323E] text-slate-300">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          
+          <!-- Active Scheme Scope Selector -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 hidden sm:inline">Active Scope:</span>
+            <div class="flex items-center gap-2 bg-[#1A2027] hover:bg-[#202832] border border-[#28323E] px-3 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer transition shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-[#00D09C]"></span>
+              <span class="truncate max-w-[200px] sm:max-w-none">HDFC Mid-Cap Opportunities Fund</span>
+              <span class="text-[10px] px-1.5 py-0.2 bg-[#28323E] rounded text-slate-300 font-mono">GROWTH</span>
+              <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="flex items-center gap-2"><button id="open-compare-drawer" onclick="document.getElementById('compare-drawer-backdrop').classList.remove('hidden'); document.getElementById('compare-drawer').classList.remove('translate-x-full');" class="flex items-center gap-1.5 text-xs font-semibold text-[#00D09C] bg-[#00D09C]/10 hover:bg-[#00D09C]/20 border border-[#00D09C]/40 px-3 py-1.5 rounded-lg transition shadow-sm hover:shadow-[0_0_12px_rgba(0,208,156,0.25)]"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3 4 7l4 4"></path><path d="M4 7h16"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17H4"></path></svg><span class="">Compare Schemes</span><span class="px-1.5 py-0.2 text-[9px] font-mono bg-[#00D09C]/20 text-[#00D09C] rounded border border-[#00D09C]/30 uppercase">Diff</span></button>
+          <button class="hidden lg:flex items-center gap-1.5 text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#1A2027] border border-transparent hover:border-[#28323E] transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span class="">AMC Factsheet</span>
+          </button>
+          <button class="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#1A2027] border border-transparent hover:border-[#28323E] transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            <span class="">API Docs</span>
+          </button>
+          <div class="h-4 w-px bg-[#28323E] mx-1 hidden sm:block"></div>
+          <button class="flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-red-500/10 transition" title="Clear chat history">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span class="hidden sm:inline">Clear Chat</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Feed Container (Centered 860px Max Width) -->
+      <div class="flex-1 overflow-y-auto px-4 md:px-8 py-6">
+        <div class="max-w-[860px] mx-auto flex flex-col gap-6">
+
+          <!-- Welcome Card / Empty State (Interactive Scope & Starters) -->
+          <div class="bg-[#1A2027] border border-[#28323E] rounded-2xl p-5 md:p-6 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-48 h-48 bg-[#00D09C]/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md bg-[#00D09C]/15 text-[#00D09C] border border-[#00D09C]/30 text-[11px] font-bold tracking-wide uppercase">Official Facts Engine</span>
+                  <span class="text-xs text-slate-400">• Verified AMC Data</span>
+                </div>
+                <h1 class="text-lg md:text-xl font-bold text-white tracking-tight">Official HDFC Mutual Fund Facts Assistant</h1>
+                <p class="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                  Fast, verified answers grounded strictly in Groww and AMC scheme records. No advice, no speculation, zero algorithmic portfolio predictions.
+                </p>
+              </div>
+              <div class="hidden sm:flex shrink-0 w-12 h-12 rounded-2xl bg-[#12161A] border border-[#28323E] items-center justify-center text-[#00D09C] shadow-inner">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              </div>
+            </div>
+
+            <!-- Scheme Scope Pills (5 items) -->
+            <div class="mt-4 pt-4 border-t border-[#28323E]/80">
+              <div class="text-[11px] font-semibold text-slate-400 mb-2.5 flex items-center gap-1.5">
+                <span class="">Active Knowledge Base (5 Ingested Schemes):</span>
+                <span class="text-[10px] text-slate-500 font-mono">(Direct &amp; Regular Plans)</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="px-2.5 py-1 rounded-lg bg-[#00D09C]/10 border border-[#00D09C]/40 text-[#00D09C] text-xs font-semibold flex items-center gap-1.5 transition shadow-sm hover:bg-[#00D09C]/20">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#00D09C]"></span>
+                  HDFC Mid-Cap Opportunities
+                </button>
+                <button class="px-2.5 py-1 rounded-lg bg-[#12161A] hover:bg-[#202832] border border-[#28323E] text-slate-300 text-xs font-medium transition hover:border-slate-500">
+                  HDFC Small Cap Fund
+                </button>
+                <button class="px-2.5 py-1 rounded-lg bg-[#12161A] hover:bg-[#202832] border border-[#28323E] text-slate-300 text-xs font-medium transition hover:border-slate-500">
+                  HDFC Top 100 Fund
+                </button>
+                <button class="px-2.5 py-1 rounded-lg bg-[#12161A] hover:bg-[#202832] border border-[#28323E] text-slate-300 text-xs font-medium transition hover:border-slate-500">
+                  HDFC Silver ETF FoF
+                </button>
+                <button class="px-2.5 py-1 rounded-lg bg-[#12161A] hover:bg-[#202832] border border-[#28323E] text-slate-300 text-xs font-medium transition hover:border-slate-500">
+                  HDFC Multi Cap Fund
+                </button>
+              </div>
+            </div>
+
+            <!-- 3 Clickable Starter Question Cards -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              <div class="group bg-[#12161A]/80 hover:bg-[#12161A] border border-[#28323E] hover:border-[#00D09C]/60 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between">
+                <span class="text-xs text-slate-200 group-hover:text-white leading-snug">"What is the exit load for HDFC Mid-Cap Opportunities Fund?"</span>
+                <span class="text-[10px] text-[#00D09C] font-semibold mt-2 flex items-center gap-1">
+                  Ask fact → <span class="text-slate-500 font-mono text-[9px]">(Exit rules)</span>
+                </span>
+              </div>
+              <div class="group bg-[#12161A]/80 hover:bg-[#12161A] border border-[#28323E] hover:border-[#00D09C]/60 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between">
+                <span class="text-xs text-slate-200 group-hover:text-white leading-snug">"What is the minimum SIP amount for HDFC Small Cap Fund?"</span>
+                <span class="text-[10px] text-[#00D09C] font-semibold mt-2 flex items-center gap-1">
+                  Ask fact → <span class="text-slate-500 font-mono text-[9px]">(SIP thresholds)</span>
+                </span>
+              </div>
+              <div class="group bg-[#12161A]/80 hover:bg-[#12161A] border border-[#28323E] hover:border-[#00D09C]/60 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between">
+                <span class="text-xs text-slate-200 group-hover:text-white leading-snug">"How do I redeem my mutual fund units on Groww?"</span>
+                <span class="text-[10px] text-[#00D09C] font-semibold mt-2 flex items-center gap-1">
+                  Ask fact → <span class="text-slate-500 font-mono text-[9px]">(Settlement timeline)</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Turn 1: User Question -->
+          <div class="flex justify-end items-start gap-3">
+            <div class="flex flex-col items-end max-w-[85%] sm:max-w-[70%]">
+              <div class="bg-[#242D38] border border-[#28323E] rounded-2xl rounded-tr-sm px-4 py-3 text-sm text-white shadow-md">
+                What is the exit load and current expense ratio for HDFC Mid-Cap Opportunities Fund (Direct Growth)?
+              </div>
+              <span class="text-[10px] text-slate-500 mt-1 font-mono">10:42 AM • HDFC Mid-Cap</span>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-[#1A2027] border border-[#28323E] flex items-center justify-center text-xs text-slate-300 font-semibold shrink-0 mt-0.5">
+              U
+            </div>
+          </div>
+
+          <!-- Turn 1: Assistant Factual / RAG Answer Bubble -->
+          <div class="flex justify-start items-start gap-3">
+            <div class="w-8 h-8 rounded-xl bg-[#00D09C]/10 border border-[#00D09C]/40 flex items-center justify-center text-[#00D09C] shrink-0 mt-0.5 shadow-sm">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            
+            <div class="flex flex-col max-w-[90%] sm:max-w-[80%] gap-2">
+              <div class="bg-[#1A2027] border border-[#00D09C]/35 rounded-2xl rounded-tl-sm p-4 sm:p-5 shadow-lg relative">
+                <!-- Top verification chip -->
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#28323E]/80">
+                  <div class="flex items-center gap-1.5 text-xs text-[#00D09C] font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-[#00D09C]"></span>
+                    <span class="">Facts Grounded: HDFC Mid-Cap Opportunities (Direct)</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-400 bg-[#12161A] px-2 py-0.5 rounded border border-[#28323E]">RAG ID: #HDFC-MID-772</span>
+                </div>
+
+                <!-- Authoritative facts text (Max 3 crisp sentences with highlighted tabular metrics) -->
+                <p class="text-sm text-slate-100 leading-relaxed">
+                  For <strong class="text-white font-semibold">HDFC Mid-Cap Opportunities Fund Direct-Growth</strong>, the exit load is <span class="bg-[#00D09C]/15 text-[#00D09C] px-1.5 py-0.5 rounded font-mono font-bold num-tabular">1.00%</span> if redeemed or switched out within <span class="text-white font-semibold underline decoration-[#00D09C]/40 underline-offset-2">1 year</span> from the date of allotment, and <span class="bg-[#00D09C]/15 text-[#00D09C] px-1.5 py-0.5 rounded font-mono font-bold num-tabular">Nil (0%)</span> thereafter. The current Total Expense Ratio (TER) is <span class="bg-[#00D09C]/15 text-[#00D09C] px-1.5 py-0.5 rounded font-mono font-bold num-tabular">0.74%</span> as per latest AMC filings. Minimum SIP investment for this fund begins at <span class="bg-[#00D09C]/15 text-[#00D09C] px-1.5 py-0.5 rounded font-mono font-bold num-tabular">₹100</span>.
+                </p>
+
+                <!-- Scheme Facts Table Snapshot -->
+                <div class="grid grid-cols-3 gap-2 mt-3.5 pt-3 border-t border-[#28323E]/60 text-xs">
+                  <div class="bg-[#12161A] p-2 rounded-lg border border-[#28323E]">
+                    <div class="text-[10px] text-slate-400 uppercase font-mono">Exit Load (&lt;1 Yr)</div>
+                    <div class="text-sm font-bold text-white font-mono num-tabular">1.00%</div>
+                  </div>
+                  <div class="bg-[#12161A] p-2 rounded-lg border border-[#28323E]">
+                    <div class="text-[10px] text-slate-400 uppercase font-mono">Direct TER</div>
+                    <div class="text-sm font-bold text-white font-mono num-tabular">0.74%</div>
+                  </div>
+                  <div class="bg-[#12161A] p-2 rounded-lg border border-[#28323E]">
+                    <div class="text-[10px] text-slate-400 uppercase font-mono">Min. SIP</div>
+                    <div class="text-sm font-bold text-white font-mono num-tabular">₹100</div>
+                  </div>
+                </div>
+
+                <!-- Verified Source Pill -->
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#28323E]">
+                  <a href="https://groww.in/mutual-funds/hdfc-mid-cap-opportunities-fund-direct-growth" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-[#00D09C] hover:text-[#00B386] bg-[#00D09C]/10 hover:bg-[#00D09C]/20 border border-[#00D09C]/30 px-2.5 py-1 rounded-full font-medium transition group">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <span class="">Source: groww.in/mutual-funds/hdfc-mid-cap...</span>
+                    <span class="group-hover:translate-x-0.5 transition-transform">↗</span>
+                  </a>
+
+                  <!-- Copy / Share / Audit quick actions -->
+                  <div class="flex items-center gap-1 text-slate-400">
+                    <button class="p-1 hover:text-white rounded hover:bg-[#12161A]" title="Copy answer">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                    <button class="p-1 hover:text-[#00D09C] rounded hover:bg-[#12161A]" title="Grounded fact audit">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Freshness Footer -->
+              <div class="flex items-center gap-2 px-1 text-[11px] text-slate-500 font-mono">
+                <span class="flex items-center gap-1 text-emerald-400">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Verified O(1) Fact Store
+                </span>
+                <span class="">•</span>
+                <span class="">Last updated from sources: <span class="text-slate-400 font-semibold">2026-10-23</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Turn 2: User Asking Prohibited Advisory Question -->
+          <div class="flex justify-end items-start gap-3">
+            <div class="flex flex-col items-end max-w-[85%] sm:max-w-[70%]">
+              <div class="bg-[#242D38] border border-[#28323E] rounded-2xl rounded-tr-sm px-4 py-3 text-sm text-white shadow-md">
+                Should I invest ₹50,000 in HDFC Small Cap Fund right now instead of HDFC Mid Cap for highest returns?
+              </div>
+              <span class="text-[10px] text-slate-500 mt-1 font-mono">10:44 AM • Advisory Query</span>
+            </div>
+            <div class="w-7 h-7 rounded-full bg-[#1A2027] border border-[#28323E] flex items-center justify-center text-xs text-slate-300 font-semibold shrink-0 mt-0.5">
+              U
+            </div>
+          </div>
+
+          <!-- Turn 2: Assistant Refusal Bubble (Advisory Query Guardrail) -->
+          <div class="flex justify-start items-start gap-3">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 mt-0.5 shadow-sm">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+
+            <div class="flex flex-col max-w-[90%] sm:max-w-[80%] gap-2">
+              <div class="bg-[#1A2027] border border-amber-500/40 rounded-2xl rounded-tl-sm p-4 sm:p-5 shadow-lg relative">
+                <!-- Compliance tag -->
+                <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#28323E]/80">
+                  <div class="flex items-center gap-1.5 text-xs text-amber-400 font-semibold">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span class="">SEBI Compliance Refusal (No Investment Advice)</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Rule 7A Regulated</span>
+                </div>
+
+                <!-- Refusal Text -->
+                <p class="text-sm text-slate-200 leading-relaxed">
+                  As an automated facts-only assistant, I am strictly prohibited by SEBI guidelines from providing investment advice, scheme recommendations, or future return comparisons. I can provide the factual benchmark, historical TER, portfolio turnover, or riskometer rating for both schemes to help you evaluate official disclosures yourself.
+                </p>
+
+                <!-- Guidance & Education Action Pill -->
+                <div class="mt-4 pt-3 border-t border-[#28323E] flex flex-wrap items-center gap-2">
+                  <a href="https://www.amfiindia.com/investor-corner/knowledge-center" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-3 py-1 rounded-full font-medium transition">
+                    <span class="">📚 AMFI Investor Education Center</span>
+                    <span class="">↗</span>
+                  </a>
+                  <button class="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded bg-[#12161A] border border-[#28323E]">
+                    Compare Official Benchmarks
+                  </button>
+                </div>
+              </div>
+
+              <!-- Freshness Footer -->
+              <div class="flex items-center gap-2 px-1 text-[11px] text-slate-500 font-mono">
+                <span class="text-amber-400 font-medium">System Guardrail Triggered: Intent(Advisory_Recommendation)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 3. Sticky Bottom Composer Area -->
+      <div class="shrink-0 bg-[#12161A] border-t border-[#28323E] p-4 md:px-8 z-20">
+        <div class="max-w-[860px] mx-auto flex flex-col gap-2">
+          
+          <!-- Guardrail Notice Pill above input -->
+          <div class="flex items-center justify-between px-1 text-[11px]">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <span class="flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-slate-300 text-[10px]">🔒</span>
+              <span class="font-medium">DPDP Shield Active:</span>
+              <span class="text-slate-500 hidden sm:inline">Never share PAN, Aadhaar, folio number, or bank OTPs.</span>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+              <span class="">Tokens: 1.2k cached</span>
+              <span class="">•</span>
+              <span class="text-emerald-400 font-semibold">Latency: ~42ms</span>
+            </div>
+          </div>
+
+          <!-- Input Container: Rounded 16px slate box with 1px border -->
+          <div class="bg-[#1A2027] border border-[#28323E] focus-within:border-[#00D09C] focus-within:ring-1 focus-within:ring-[#00D09C]/40 rounded-2xl p-2.5 transition shadow-lg">
+            
+            <textarea rows="2" placeholder="Ask a factual question about HDFC schemes (e.g. TER, exit load, SIP limit, fund manager)..." class="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none focus:outline-none px-2 py-1"></textarea>
+
+            <div class="flex items-center justify-between pt-2 border-t border-[#28323E]/50 px-1 mt-1">
+              
+              <!-- Left Controls / Quick Scheme Selector Pill -->
+              <div class="flex items-center gap-2">
+                <button class="flex items-center gap-1.5 text-[11px] bg-[#12161A] hover:bg-[#202832] text-slate-300 hover:text-white px-2.5 py-1 rounded-lg border border-[#28323E] transition">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#00D09C]"></span>
+                  <span class="font-medium">Quick Schemes</span>
+                  <svg class="w-3 h-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+
+                <div class="hidden sm:flex items-center gap-1 text-[11px] text-slate-500 font-mono">
+                  <span class="">Scope:</span>
+                  <span class="text-slate-300">5 Schemes</span>
+                </div>
+              </div>
+
+              <!-- Right: Character counter & Circular Emerald Send Button -->
+              <div class="flex items-center gap-3">
+                <span class="text-[11px] font-mono text-slate-500 num-tabular">42 / 500</span>
+
+                <button class="w-8 h-8 rounded-full bg-[#00D09C] hover:bg-[#00B386] active:scale-95 text-[#12161A] flex items-center justify-center font-bold transition shadow-md shadow-[#00D09C]/25" title="Send question">
+                  <svg class="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Bottom Micro-footer -->
+          <div class="flex items-center justify-center text-[10px] text-slate-600 gap-2">
+            <span class="">Powered by Groww Scheme Facts API</span>
+            <span class="">•</span>
+            <span class="">AMFI Registered</span>
+            <span class="">•</span>
+            <span class="">SEBI Regulations Compliant</span>
+          </div>
+
+        </div>
+      </div>
+
+    <!-- Comparison Drawer Backdrop --><div id="compare-drawer-backdrop" onclick="document.getElementById('compare-drawer-backdrop').classList.add('hidden'); document.getElementById('compare-drawer').classList.add('translate-x-full');" class="absolute inset-0 bg-[#12161A]/70 backdrop-blur-sm z-40 transition-opacity duration-300"></div><!-- Comparison Drawer Panel --><div id="compare-drawer" class="absolute top-0 right-0 bottom-0 w-full sm:w-[590px] bg-[#151A20] border-l border-[#28323E] z-50 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out"><!-- Header --><div class="p-4 sm:px-6 border-b border-[#28323E] flex items-center justify-between bg-[#12161A]/90 shrink-0"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-xl bg-[#00D09C]/10 border border-[#00D09C]/35 flex items-center justify-center text-[#00D09C]"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3 4 7l4 4"></path><path d="M4 7h16"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17H4"></path></svg></div><div><div class="flex items-center gap-2"><h2 class="text-sm font-bold text-white tracking-tight">HDFC Scheme Comparison</h2><span class="px-2 py-0.2 rounded-full bg-[#00D09C]/10 border border-[#00D09C]/30 text-[#00D09C] text-[10px] font-mono font-medium">Factual Matrix Only</span></div><p class="text-[11px] text-slate-400 mt-0.5">Side-by-side statutory metrics • Non-advisory comparison</p></div></div><button onclick="document.getElementById('compare-drawer-backdrop').classList.add('hidden'); document.getElementById('compare-drawer').classList.add('translate-x-full');" class="w-8 h-8 rounded-lg bg-[#1A2027] hover:bg-[#202832] border border-[#28323E] flex items-center justify-center text-slate-400 hover:text-white transition" title="Close comparison"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div><!-- Scheme Selector Bar (Side-by-Side Dual Header) --><div class="p-4 sm:px-6 bg-[#1A2027]/70 border-b border-[#28323E] shrink-0 grid grid-cols-2 gap-3"><div class="flex flex-col gap-1.5"><span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#00D09C]"></span> Scheme A (Baseline)</span><div class="relative"><select class="w-full bg-[#12161A] text-xs font-semibold text-white border border-[#00D09C]/40 rounded-lg px-2.5 py-2 appearance-none focus:outline-none focus:border-[#00D09C]"><option selected="">HDFC Mid-Cap Opportunities Fund</option><option>HDFC Top 100 Fund</option><option>HDFC Small Cap Fund</option><option>HDFC Silver ETF FoF</option></select><div class="pointer-events-none absolute right-2.5 top-3 text-slate-400"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div></div><div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-400"><span class="px-1.5 py-0.2 bg-[#202832] rounded text-slate-300">Direct-Growth</span><span class="">• 2007 Inception</span></div></div><div class="flex flex-col gap-1.5"><span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Scheme B (Benchmark)</span><div class="relative"><select class="w-full bg-[#12161A] text-xs font-semibold text-white border border-amber-500/40 rounded-lg px-2.5 py-2 appearance-none focus:outline-none focus:border-amber-400"><option selected="">HDFC Small Cap Fund</option><option>HDFC Top 100 Fund</option><option>HDFC Multi Cap Fund</option><option>HDFC Silver ETF FoF</option></select><div class="pointer-events-none absolute right-2.5 top-3 text-slate-400"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div></div><div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-400"><span class="px-1.5 py-0.2 bg-[#202832] rounded text-slate-300">Direct-Growth</span><span class="">• 2008 Inception</span></div></div></div><!-- Scrollable Comparison Content --><div class="flex-1 overflow-y-auto p-4 sm:px-6 flex flex-col gap-4"><!-- Comparison Matrix Table --><div class="border border-[#28323E] rounded-xl overflow-hidden bg-[#12161A]"><div class="bg-[#1A2027] px-3.5 py-2 border-b border-[#28323E] flex items-center justify-between"><span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider font-mono">Statutory Fact Matrix</span><span class="text-[10px] text-emerald-400 font-mono flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Audited AMC Record</span></div><div class="divide-y divide-[#28323E]/70 text-xs"><!-- Row 1: Direct TER --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Direct TER (Expense Ratio)</div><div class="col-span-1.5 font-mono font-bold text-[#00D09C] bg-[#00D09C]/10 px-2 py-1 rounded text-center">0.74%</div><div class="col-span-1.5 font-mono font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded text-center">0.68%</div></div><!-- Row 2: Exit Load --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Exit Load Terms</div><div class="col-span-1.5 text-slate-200 text-[11px] leading-snug px-1">1.00% if &lt;1 yr, Nil thereafter</div><div class="col-span-1.5 text-slate-200 text-[11px] leading-snug px-1">1.00% if &lt;1 yr, Nil thereafter</div></div><!-- Row 3: Minimum SIP / Lumpsum --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Min SIP / Lumpsum</div><div class="col-span-1.5 font-mono font-semibold text-white px-1">₹100 / ₹100</div><div class="col-span-1.5 font-mono font-semibold text-white px-1">₹100 / ₹100</div></div><!-- Row 4: Category & Riskometer --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Category &amp; Risk</div><div class="col-span-1.5 text-[11px] px-1"><span class="text-white font-medium">Mid Cap</span><span class="block text-[10px] text-red-400 font-mono">Very High Risk</span></div><div class="col-span-1.5 text-[11px] px-1"><span class="text-white font-medium">Small Cap</span><span class="block text-[10px] text-red-400 font-mono">Very High Risk</span></div></div><!-- Row 5: Benchmark Index --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Benchmark Index</div><div class="col-span-1.5 text-[11px] text-slate-300 font-mono px-1 leading-tight">NIFTY Midcap 150 TRI</div><div class="col-span-1.5 text-[11px] text-slate-300 font-mono px-1 leading-tight">NIFTY Smallcap 250 TRI</div></div><!-- Row 6: Fund Manager --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Fund Manager</div><div class="col-span-1.5 text-[11px] text-slate-200 px-1">Chirag Setalvad</div><div class="col-span-1.5 text-[11px] text-slate-200 px-1">Chirag Setalvad</div></div><!-- Row 7: AUM --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Asset Base (AUM)</div><div class="col-span-1.5 font-mono font-semibold text-white px-1">₹72,400 Cr</div><div class="col-span-1.5 font-mono font-semibold text-white px-1">₹34,250 Cr</div></div><!-- Row 8: Portfolio Turnover & Cash --><div class="grid grid-cols-5 p-3 items-center hover:bg-[#1A2027]/40 transition"><div class="col-span-2 text-slate-400 text-[11px] font-medium">Turnover &amp; Cash</div><div class="col-span-1.5 text-[11px] font-mono text-slate-300 px-1">14.2% • 7.8% cash</div><div class="col-span-1.5 text-[11px] font-mono text-slate-300 px-1">19.5% • 5.1% cash</div></div></div></div><!-- Regulatory Guardrail Note Card --><div class="bg-amber-500/10 border border-amber-500/25 rounded-xl p-3.5 flex items-start gap-2.5"><div class="w-5 h-5 rounded bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div><div class="text-[11px] text-amber-200/90 leading-relaxed"><strong class="text-amber-300 font-semibold block uppercase tracking-wider text-[10px]">Compliance Mandate</strong>As per SEBI guidelines, performance returns, alpha comparisons, and forward-looking scheme rankings are strictly omitted. Consult your registered investment advisor for financial suitability.</div></div></div><!-- Drawer Footer Actions --><div class="p-4 sm:px-6 bg-[#12161A] border-t border-[#28323E] flex items-center justify-between gap-3 shrink-0"><button onclick="alert('Factsheet Diff downloaded');" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-3 py-2 rounded-lg bg-[#1A2027] hover:bg-[#202832] border border-[#28323E] transition"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span class="">Download PDF Diff</span></button><button onclick="document.querySelector('textarea').value = 'Compare the expense ratio, exit load, and asset base between HDFC Mid-Cap Opportunities Fund and HDFC Small Cap Fund.'; document.getElementById('compare-drawer-backdrop').classList.add('hidden'); document.getElementById('compare-drawer').classList.add('translate-x-full');" class="flex items-center gap-2 text-xs font-semibold text-[#12161A] bg-[#00D09C] hover:bg-[#00B386] px-4 py-2 rounded-lg shadow-md transition active:scale-95"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span class="">Insert Matrix into Chat</span></button></div></div></main>
+  </div>
+
+
+
+
+
+
+</body></html>

@@ -382,12 +382,13 @@ demo.app.add_middleware(
     allow_headers=["*"],
 )
 
-# Expose full FastAPI backend REST API (/api/v1/meta, /api/v1/threads, /api/v1/rag, /health)
-demo.app.include_router(fastapi_app.router)
+import uvicorn
 
+# Mount Gradio demo onto FastAPI at /gradio so FastAPI serves:
+# 1. / -> Production React 19 + Tailwind CSS Groww UI
+# 2. /api/v1 -> Full FastAPI REST API (/threads, /rag, /meta, /health)
+# 3. /gradio -> Gradio blocks demo interface
+app = gr.mount_gradio_app(fastapi_app, demo, path="/gradio")
 
 if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-    )
+    uvicorn.run(app, host="0.0.0.0", port=7860)
