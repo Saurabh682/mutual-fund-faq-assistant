@@ -67,8 +67,28 @@ export const StarterQuestions: React.FC = () => {
         </div>
       </div>
 
+      {/* Quick Discovery Help Bar */}
+      <div className="mt-4 px-3 py-2 bg-[#12161A]/70 border border-[#28323E]/70 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+        <div className="flex items-center gap-1.5 text-slate-400">
+          <span className="text-[#00D09C]">💡</span>
+          <span className="text-[11.5px]">Explore all supported topics &amp; schemes:</span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {['What can I ask?', 'what else can i ask?', 'ask?', '?'].map((trigger) => (
+            <button
+              key={trigger}
+              onClick={() => handleSelect(trigger)}
+              className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#1A2027] hover:bg-[#202832] text-slate-300 hover:text-[#00D09C] border border-[#28323E] hover:border-[#00D09C]/40 transition cursor-pointer"
+              title={`Ask "${trigger}"`}
+            >
+              {trigger}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* 3 Clickable Starter Question Cards */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2.5">
+      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2.5">
         <div
           onClick={() => handleSelect('What is the exit load for HDFC Mid-Cap Opportunities Fund?')}
           className="group bg-[#12161A]/80 hover:bg-[#12161A] border border-[#28323E] hover:border-[#00D09C]/60 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between"

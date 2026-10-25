@@ -94,7 +94,7 @@ export const Composer: React.FC = () => {
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, 500))}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a factual question about HDFC schemes (e.g. TER, exit load, SIP limit, fund manager)..."
+            placeholder="Ask about TER, exit load, min SIP... or type 'What can I ask?' / '?' for topics"
             className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 resize-none focus:outline-none px-2 py-1"
           />
 
@@ -162,6 +162,24 @@ export const Composer: React.FC = () => {
                     >
                       Ask in chat →
                     </button>
+                  </div>
+
+                  {/* Shorthand Triggers Pill Row */}
+                  <div className="flex items-center gap-1.5 flex-wrap pb-1">
+                    <span className="text-[10px] text-slate-400">Try typing:</span>
+                    {['What can I ask?', 'what else can i ask?', 'ask?', '?'].map((shorthand) => (
+                      <button
+                        key={shorthand}
+                        type="button"
+                        onClick={() => {
+                          sendUserMessage(shorthand);
+                          setShowWhatCanIAsk(false);
+                        }}
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1A2027] hover:bg-[#202832] text-slate-300 hover:text-[#00D09C] border border-[#28323E] hover:border-[#00D09C]/40 transition cursor-pointer"
+                      >
+                        {shorthand}
+                      </button>
+                    ))}
                   </div>
 
                   <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">

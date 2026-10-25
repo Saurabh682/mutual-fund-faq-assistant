@@ -122,13 +122,14 @@ PROCEDURAL_PATTERNS = [
 
 # 6. Help / Capabilities Query Patterns
 HELP_PATTERNS = [
-    re.compile(r"\bwhat\s+(?:can|should)\s+i\s+(?:ask|query)\b", re.I),
-    re.compile(r"\bwhat\s+(?:can|do)\s+you\s+(?:do|know|tell\s+me)\b", re.I),
-    re.compile(r"\bwhat\s+questions?\s+(?:can|should)\s+i\s+ask\b", re.I),
-    re.compile(r"\bwhat\s+(?:topics?|features?|categories?)\s+(?:can|do)\b", re.I),
-    re.compile(r"\b(?:help|guide|topics|features|capabilities|sample\s+questions?|example\s+questions?|how\s+to\s+use)\b", re.I),
+    re.compile(r"^\s*[\?!.,;~]+\s*$"),
+    re.compile(r"^\s*(?:what\s+to\s+ask|how\s+to\s+ask|can\s+i\s+ask|to\s+ask|ask)\s*\?*\s*$", re.I),
+    re.compile(r"\bwhat\s+(?:else\s+)?(?:can|should|could|do)\s+(?:i|we|you)\s+(?:ask|query|tell|know|answer|do)\b", re.I),
+    re.compile(r"^\s*what\s+else\s*[?!.]*\s*$", re.I),
+    re.compile(r"\bwhat\s+(?:else\s+)?(?:questions?|topics?|features?|categories?)\b", re.I),
     re.compile(r"\bwhat\s+schemes?\s+(?:do\s+you\s+have|are\s+supported|are\s+available|do\s+you\s+know)\b", re.I),
-    re.compile(r"^\s*(?:help|guide|examples?|sample|questions?)\s*[?!.]*\s*$", re.I),
+    re.compile(r"^\s*(?:help|guide|topics?|features?|capabilities|sample\s+questions?|example\s+questions?|how\s+to\s+use|options?|suggestions?|menu)\s*[?!.]*\s*$", re.I),
+    re.compile(r"^\s*(?:what\s+next|what\s+now|what\s+more|more|next)\s*[?!.]*\s*$", re.I),
 ]
 
 # 7. Smalltalk Patterns

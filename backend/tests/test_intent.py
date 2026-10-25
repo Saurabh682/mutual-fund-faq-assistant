@@ -164,3 +164,38 @@ class TestResponseContractCompliance:
         assert len(sentences) <= 3
         assert "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth" in compound_resp["rendered"]
         assert "Last updated from sources:" in compound_resp["rendered"]
+
+
+class TestHelpQueries:
+    """Verifies that short and colloquial prompts for capabilities resolve to HELP intent."""
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "What can I ask?",
+            "what can i ask",
+            "what else can i ask?",
+            "what else can i ask",
+            "ask?",
+            "ask",
+            "?",
+            "??",
+            "???",
+            "what else?",
+            "what to ask?",
+            "what to ask",
+            "options?",
+            "options",
+            "suggestions?",
+            "help",
+            "help?",
+            "guide",
+            "how to use",
+            "what schemes do you have",
+        ],
+    )
+    def test_help_patterns_resolve_to_help_intent(self, query: str):
+        res = classify_intent(query)
+        assert res.intent == IntentType.HELP.value, f"Query '{query}' did not resolve to HELP intent (got {res.intent})"
+        assert res.is_refusal is False
+
