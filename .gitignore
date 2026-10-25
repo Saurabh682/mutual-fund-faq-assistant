@@ -12,6 +12,8 @@ __pycache__/
 # Ingestion raw files & index artifacts
 data/raw/
 data/index/
+data/*.jsonl
+data/*.db
 *.sqlite3
 *.db
 chroma_db/
