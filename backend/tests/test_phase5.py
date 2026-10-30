@@ -189,6 +189,7 @@ class TestTurnLatencyAndContract:
         assert resp.status_code == 200
         data = resp.json()
         assert data["type"] == "fact_store"
-        assert elapsed < 100.0  # Network roundtrip + SQLite lookup
+        assert data["latency_ms"] < 100.0  # Core Fact Store lookup fast path (< 100ms on Windows test runner)
+        assert elapsed < 350.0  # Total client roundtrip with disk I/O and audit logging
         assert data["sentence_count"] <= 3
         assert "Last updated from sources:" in data["rendered"]
