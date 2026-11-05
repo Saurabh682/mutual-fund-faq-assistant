@@ -75,24 +75,24 @@ class TestThreadCRUD:
         assert create_resp.status_code == 201
         thread_id = create_resp.json()["id"]
 
-        # Bob tries to access Alice's thread -> 403 Forbidden
+        # Bob tries to access Alice's thread -> 404 Not Found (prevents thread ID enumeration)
         bob_get = client.get(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "bob_intruder"})
-        assert bob_get.status_code == 403
-        assert "Access denied" in bob_get.json()["detail"]
+        assert bob_get.status_code == 404
+        assert "not found" in bob_get.json()["detail"].lower()
 
-        # Bob tries to post to Alice's thread -> 403 Forbidden
+        # Bob tries to post to Alice's thread -> 404 Not Found
         bob_post = client.post(
             f"/api/v1/threads/{thread_id}/messages",
             json={"text": "Hello from Bob"},
             headers={"X-Client-Id": "bob_intruder"},
         )
-        assert bob_post.status_code == 403
-        assert "Access denied" in bob_post.json()["detail"]
+        assert bob_post.status_code == 404
+        assert "not found" in bob_post.json()["detail"].lower()
 
-        # Bob tries to delete Alice's thread -> 403 Forbidden
+        # Bob tries to delete Alice's thread -> 404 Not Found
         bob_del = client.delete(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "bob_intruder"})
-        assert bob_del.status_code == 403
-        assert "Access denied" in bob_del.json()["detail"]
+        assert bob_del.status_code == 404
+        assert "not found" in bob_del.json()["detail"].lower()
 
         # Alice accesses, posts, and deletes successfully
         alice_get = client.get(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "alice_sec_1"})

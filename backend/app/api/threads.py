@@ -81,8 +81,8 @@ def get_thread(
     effective_cid = client_id or x_client_id
     if effective_cid and thread.client_id not in (effective_cid, "default_client") and effective_cid != "default_client":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this conversation thread.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Thread '{thread_id}' not found.",
         )
     return thread
 
@@ -103,8 +103,8 @@ def delete_thread(
     effective_cid = client_id or x_client_id
     if effective_cid and thread.client_id not in (effective_cid, "default_client") and effective_cid != "default_client":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this conversation thread.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Thread '{thread_id}' not found.",
         )
     deleted = _store.delete_thread(thread_id)
     if not deleted:
@@ -141,8 +141,8 @@ async def post_message(
             )
         elif x_client_id and thread.client_id not in (x_client_id, "default_client") and x_client_id != "default_client":
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this conversation thread.",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Thread '{thread_id}' not found.",
             )
 
         client_id = (x_client_id if isinstance(x_client_id, str) else None) or thread.client_id
