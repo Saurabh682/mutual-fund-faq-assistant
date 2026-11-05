@@ -52,8 +52,8 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
         "benchmarks, and riskometers for our 5 supported schemes."
     ),
     "HELP": (
-        "I can answer factual questions about 5 official HDFC Mutual Fund schemes and standard Groww investment procedures. "
-        "You can query expense ratios (TER), exit loads, minimum SIP amounts, fund managers, benchmarks, and NAV. "
+        "I can answer factual questions about 5 official HDFC Mutual Fund schemes and SEBI/AMFI regulatory guidelines. "
+        "You can query expense ratios (TER), exit loads, minimum SIP amounts, fund managers, benchmarks, riskometers, and ELSS lock-in rules. "
         "In accordance with SEBI regulations, investment advice, fund recommendations, and future return predictions are strictly prohibited."
     ),
 }
@@ -193,9 +193,9 @@ HELP_TABLE = (
     "| **Exit Load & Lock-in** | *\"What is the exit load for HDFC Mid-Cap Opportunities Fund?\"* |\n"
     "| **SIP & Limits** | *\"What is the minimum SIP amount for HDFC Small Cap Fund?\"* |\n"
     "| **Expense Ratio (TER)** | *\"What is the TER for HDFC Top 100 Fund (Direct - Growth)?\"* |\n"
-    "| **Fund Management** | *\"Who manages HDFC Silver ETF FoF?\"* |\n"
-    "| **Benchmark & Risk** | *\"What is the benchmark for HDFC Multi Cap Fund?\"* |\n"
-    "| **Groww Procedures** | *\"How do I download my Capital Gains statement on Groww?\"* |"
+    "| **Fund Management & NAV** | *\"Who manages HDFC Silver ETF FoF?\"* |\n"
+    "| **Benchmark & Riskometer** | *\"What is the benchmark for HDFC Multi Cap Fund?\"* |\n"
+    "| **ELSS Lock-in & Regulations** | *\"What is the lock-in period for ELSS mutual funds?\"* |"
 )
 
 

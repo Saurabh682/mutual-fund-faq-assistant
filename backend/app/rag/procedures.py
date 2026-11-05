@@ -111,6 +111,78 @@ PROCEDURE_ITEMS = [
         ],
         "citation_url": "https://www.amfiindia.com/investor-corner/knowledge-center/kyc",
     },
+    {
+        "id": "elss_lock_in",
+        "patterns": [
+            re.compile(r"\b(?:what\s+is\s+(?:the\s+)?lock[\s-]?in\s+(?:period\s+)?(?:for\s+)?elss|elss\s+lock[\s-]?in|lock[\s-]?in\s+period\s+for\s+elss)\b", re.I),
+            re.compile(r"\b(?:tax\s+saving\s+mutual\s+funds?|elss\s+mutual\s+funds?)\s+lock[\s-]?in\b", re.I),
+            re.compile(r"\b(?:lock[\s-]?in\s+period\s+for\s+mutual\s+funds?|do\s+mutual\s+funds\s+have\s+lock[\s-]?in)\b", re.I),
+        ],
+        "procedure_title": "ELSS Mutual Fund Lock-in Period & Tax Rules",
+        "platform": "Official Regulatory Standard",
+        "navigation": "SEBI Guidelines / Section 80C of Income Tax Act",
+        "narrative": (
+            "Equity Linked Savings Schemes (ELSS) have a mandatory statutory lock-in period of 3 years from the date of allotment, "
+            "which is the shortest lock-in among all Section 80C tax-saving options. "
+            "For SIPs in ELSS, each monthly installment has an independent 3-year lock-in period. "
+            "Our 5 supported HDFC schemes are open-ended equity and commodity funds with zero lock-in."
+        ),
+        "table_rows": [
+            ("Category", "Equity Linked Savings Scheme (ELSS)"),
+            ("Statutory Lock-in", "3 Years (36 Months from unit allotment date)"),
+            ("SIP Installment Rule", "Each individual SIP installment is locked for 3 years"),
+            ("Supported Schemes Lock-in", "None (All 5 supported HDFC schemes have 0 lock-in)"),
+            ("Regulatory Framework", "SEBI Regulations & Section 80C, Income Tax Act"),
+        ],
+        "citation_url": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    },
+    {
+        "id": "sebi_riskometer",
+        "patterns": [
+            re.compile(r"\b(?:sebi\s+riskometer|riskometer\s+(?:tiers?|framework|levels?|guidelines?)|how\s+does\s+riskometer\s+work)\b", re.I),
+            re.compile(r"\b(?:explain\s+riskometer|mutual\s+fund\s+riskometer\s+tiers?)\b", re.I),
+        ],
+        "procedure_title": "SEBI 6-Tier Mutual Fund Riskometer Framework",
+        "platform": "SEBI Official Regulatory Standard",
+        "navigation": "SEBI Circular SEBI/HO/IMD/DF3/CIR/P/2020/197",
+        "narrative": (
+            "SEBI mandates a standardized 6-tier Riskometer for all mutual fund schemes: Low, Low to Moderate, Moderate, "
+            "Moderately High, High, and Very High. "
+            "Asset Management Companies (AMCs) evaluate scheme risk monthly based on portfolio credit risk, interest rate risk, and liquidity risk. "
+            "Updated Riskometers must be published by AMCs and AMFI within 10 days of each calendar month-end."
+        ),
+        "table_rows": [
+            ("Regulatory Standard", "SEBI 6-Tier Scheme Riskometer"),
+            ("Riskometer Levels", "Low, Low-to-Mod, Moderate, Mod-High, High, Very High"),
+            ("Evaluation Frequency", "Monthly (published within 10 days of month-end)"),
+            ("Governing Circular", "SEBI/HO/IMD/DF3/CIR/P/2020/197"),
+            ("Official Portal", "AMFI India & HDFC AMC Portals"),
+        ],
+        "citation_url": "https://www.sebi.gov.in/legal/circulars/oct-2020/product-labeling-in-mutual-fund-schemes-on-riskometer_47796.html",
+    },
+    {
+        "id": "sebi_categorization",
+        "patterns": [
+            re.compile(r"\b(?:sebi\s+categorization|mutual\s+fund\s+categories|market\s+cap\s+definition|sebi\s+scheme\s+categorization)\b", re.I),
+            re.compile(r"\b(?:definition\s+of\s+(?:large|mid|small)\s+cap|how\s+are\s+mutual\s+funds\s+categorized)\b", re.I),
+        ],
+        "procedure_title": "SEBI Mutual Fund Categorization Framework",
+        "platform": "SEBI Official Regulatory Standard",
+        "navigation": "SEBI Circular SEBI/HO/IMD/DF3/CIR/P/2017/114",
+        "narrative": (
+            "SEBI circular SEBI/HO/IMD/DF3/CIR/P/2017/114 defines equity mutual fund categories strictly by market capitalization: "
+            "Large Cap (1st to 100th company, min 80%), Mid Cap (101st to 250th company, min 65%), and Small Cap (251st company onwards, min 65%). "
+            "Multi Cap funds are required to maintain a minimum 25% allocation each in Large Cap, Mid Cap, and Small Cap companies at all times."
+        ),
+        "table_rows": [
+            ("Framework", "SEBI Scheme Categorization & Rationalization"),
+            ("Large Cap Mandate", "Top 100 companies by market cap (min 80% allocation)"),
+            ("Mid Cap Mandate", "101st to 250th companies (min 65% allocation)"),
+            ("Small Cap Mandate", "251st company onwards (min 65% allocation)"),
+            ("Multi Cap Mandate", "Min 25% Large, 25% Mid, 25% Small Cap at all times"),
+        ],
+        "citation_url": "https://www.sebi.gov.in/legal/circulars/oct-2017/categorization-and-rationalization-of-mutual-fund-schemes_36199.html",
+    },
 ]
 
 

@@ -46,7 +46,7 @@ def get_metadata():
         "starter_questions": [
             "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
             "What is the minimum SIP amount for HDFC Small Cap Fund?",
-            "How do I download my Capital Gains statement on Groww?"
+            "What is the lock-in period for ELSS mutual funds?"
         ],
         "schemes": [
             {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},

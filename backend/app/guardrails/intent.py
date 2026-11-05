@@ -119,6 +119,7 @@ PROCEDURAL_PATTERNS = [
     re.compile(r"\b(?:step\s+by\s+step|process\s+to|procedure\s+(?:for|to)|kyc\s+process|kyc\s+documents|kyc\s+verification|documents\s+required)\b", re.I),
     re.compile(r"\bhow\s+can\s+i\s+(?:invest|apply|register|open\s+an\s+account|redeem|download)\b", re.I),
     re.compile(r"\b(?:capital\s+gains?|tax\s+statement|p&l\s+statement|account\s+statement|kyc)\b", re.I),
+    re.compile(r"\b(?:elss\s+lock[\s-]?in|lock[\s-]?in\s+(?:period\s+)?(?:for\s+)?elss|sebi\s+riskometer|sebi\s+categorization)\b", re.I),
 ]
 
 # 6. Help / Capabilities Query Patterns

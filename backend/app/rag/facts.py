@@ -138,13 +138,21 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     # Option C: Stat Card / Fact Sheet Format
     metric_title = FIELD_TITLES.get(field, field.replace("_", " ").title())
     official_scheme_name = scheme_meta.get("official_name", f"{scheme_name} (Direct - Growth)")
+    amc_url = scheme_meta.get("amc_url")
+    amfi_code = scheme_meta.get("amfi_code")
 
-    stat_card = (
-        f"| Metric | Value |\n"
-        f"| :--- | :--- |\n"
-        f"| **Scheme** | {official_scheme_name} |\n"
-        f"| **{metric_title}** | **{display_val}** |"
-    )
+    stat_card_rows = [
+        "| Metric | Value |",
+        "| :--- | :--- |",
+        f"| **Scheme** | {official_scheme_name} |",
+        f"| **{metric_title}** | **{display_val}** |",
+    ]
+    if amfi_code:
+        stat_card_rows.append(f"| **AMFI Code** | {amfi_code} |")
+    if amc_url:
+        stat_card_rows.append(f"| **Official Source** | [HDFC AMC Factsheet]({amc_url}) |")
+
+    stat_card = "\n".join(stat_card_rows)
 
     body = f"{narrative}\n\n{stat_card}".strip()
 

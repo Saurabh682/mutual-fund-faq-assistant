@@ -19,7 +19,7 @@ const SUGGESTED_QUESTIONS = [
   { category: 'Expense Ratio (TER)', q: 'What is the expense ratio for HDFC Top 100 Fund (Direct - Growth)?' },
   { category: 'Fund Management', q: 'Who manages HDFC Silver ETF FoF?' },
   { category: 'Benchmark Index', q: 'What is the benchmark for HDFC Multi Cap Fund?' },
-  { category: 'Groww Procedure', q: 'How do I download my Capital Gains statement on Groww?' },
+  { category: 'ELSS Lock-in & Tax', q: 'What is the lock-in period for ELSS mutual funds?' },
 ];
 
 export const Composer: React.FC = () => {
@@ -235,7 +235,7 @@ export const Composer: React.FC = () => {
 
         {/* Bottom Micro-footer */}
         <div className="flex items-center justify-center text-[10px] text-slate-600 gap-2">
-          <span>Powered by Groww Scheme Facts API</span>
+          <span>Powered by Official HDFC AMC &amp; AMFI Records</span>
           <span>•</span>
           <span>AMFI Registered</span>
           <span>•</span>

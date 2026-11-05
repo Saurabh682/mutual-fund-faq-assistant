@@ -35,7 +35,7 @@ export const StarterQuestions: React.FC = () => {
             Official HDFC Mutual Fund Facts Assistant
           </h1>
           <p className="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Fast, verified answers grounded strictly in Groww and AMC scheme records. No advice, no speculation, zero algorithmic portfolio predictions.
+            Fast, verified answers grounded strictly in official AMC (HDFC AMC), AMFI, and SEBI regulatory records. No advice, no speculation, zero algorithmic portfolio predictions.
           </p>
         </div>
         <div className="hidden sm:flex shrink-0 w-12 h-12 rounded-2xl bg-[#12161A] border border-[#28323E] items-center justify-center text-[#00D09C] shadow-inner">
@@ -114,14 +114,14 @@ export const StarterQuestions: React.FC = () => {
         </div>
 
         <div
-          onClick={() => handleSelect('How do I redeem my mutual fund units on Groww?')}
+          onClick={() => handleSelect('What is the lock-in period for ELSS mutual funds?')}
           className="group bg-[#12161A]/80 hover:bg-[#12161A] border border-[#28323E] hover:border-[#00D09C]/60 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between"
         >
           <span className="text-xs text-slate-200 group-hover:text-white leading-snug">
-            "How do I redeem my mutual fund units on Groww?"
+            "What is the lock-in period for ELSS mutual funds?"
           </span>
           <span className="text-[10px] text-[#00D09C] font-semibold mt-2 flex items-center gap-1">
-            Ask fact → <span className="text-slate-500 font-mono text-[9px]">(Settlement timeline)</span>
+            Ask fact → <span className="text-slate-500 font-mono text-[9px]">(Statutory 80C rule)</span>
           </span>
         </div>
       </div>

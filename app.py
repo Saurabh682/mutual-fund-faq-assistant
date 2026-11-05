@@ -275,7 +275,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
         gr.HTML(
             """
             <div class="groww-header">
-                <div class="groww-badge">Groww UX • Facts-Only • SEBI Compliant</div>
+                <div class="groww-badge">Official AMC • Facts-Only • SEBI Compliant</div>
                 <h1 style="color: #FFFFFF; margin: 4px 0 8px 0; font-size: 24px; font-weight: 700;">
                     📊 Mutual Fund FAQ Assistant
                 </h1>
@@ -306,7 +306,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
 
         try:
             chatbot = gr.Chatbot(
-                label="Verified Groww Assistant",
+                label="Official AMC & AMFI Verified Assistant",
                 elem_classes=["chatbot-container"],
                 height=420,
                 type="messages",
@@ -314,7 +314,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
             )
         except TypeError:
             chatbot = gr.Chatbot(
-                label="Verified Groww Assistant",
+                label="Official AMC & AMFI Verified Assistant",
                 elem_classes=["chatbot-container"],
                 height=420,
                 avatar_images=(None, "https://groww.in/groww-logo-270.png"),
@@ -356,7 +356,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
             """
             <div style="margin-top: 24px; padding: 14px; border: 1px solid #232D3F; border-radius: 8px; background: rgba(30, 37, 46, 0.4); text-align: center; font-size: 12px; color: #6B7280;">
                 🛡️ <strong>SEBI Regulatory Notice</strong>: Mutual fund investments are subject to market risks. Read all scheme related documents carefully.
-                This assistant provides factual metrics strictly from official regulatory sources (AMFI, Groww, CAMS) and never offers investment advice.
+                This assistant provides factual metrics strictly from official regulatory sources (HDFC AMC, AMFI, SEBI) and never offers investment advice.
             </div>
             """
         )
@@ -421,7 +421,7 @@ def custom_create_app(*args, **kwargs):
             "starter_questions": [
                 "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
                 "What is the minimum SIP amount for HDFC Small Cap Fund?",
-                "How do I download my Capital Gains statement on Groww?",
+                "What is the lock-in period for ELSS mutual funds?",
             ],
             "schemes": [
                 {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},

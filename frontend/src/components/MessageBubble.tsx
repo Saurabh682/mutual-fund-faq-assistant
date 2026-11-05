@@ -238,7 +238,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
   const isFactStore = message.type === 'fact_store';
   const badgeLabel = isFactStore
     ? 'Facts Grounded: Official Fact Store'
-    : 'Facts Grounded: Verified Groww Corpus';
+    : 'Facts Grounded: Official AMC & AMFI Records';
 
   return (
     <div className="flex justify-start items-start gap-3 mb-4">

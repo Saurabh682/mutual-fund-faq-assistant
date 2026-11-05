@@ -212,6 +212,9 @@ class TestProceduralQueries:
             "How do I redeem my mutual fund units on Groww?",
             "How to start a SIP on Groww?",
             "What documents are required for KYC?",
+            "What is the lock-in period for ELSS mutual funds?",
+            "Explain the SEBI riskometer framework",
+            "What is the SEBI categorization for large cap funds?",
         ],
     )
     def test_procedural_intent_and_lookup(self, query: str):
@@ -226,5 +229,26 @@ class TestProceduralQueries:
         assert fact.get("source") == "procedural_store"
         assert "Source: " in fact.get("rendered", "")
         assert "Last updated from sources:" in fact.get("rendered", "")
+
+
+class TestOfficialSourcingContract:
+    """Verifies that all facts and help tables provide official AMC, AMFI, and SEBI grounding."""
+
+    def test_help_table_uses_official_categories(self):
+        from app.guardrails.refusal import HELP_TABLE, generate_help_response
+
+        res = generate_help_response()
+        assert "Groww Procedures" not in res["rendered"]
+        assert "ELSS Lock-in & Regulations" in res["rendered"]
+        assert "https://www.amfiindia.com/investor-corner/knowledge-center" in res["rendered"]
+
+    def test_fact_response_includes_amc_and_amfi_sources(self):
+        from app.rag.facts import lookup_fact
+
+        fact = lookup_fact("What is the expense ratio of HDFC Mid-Cap Opportunities Fund?")
+        assert fact is not None
+        assert "HDFC AMC Factsheet" in fact["rendered"]
+        assert "118989" in fact["rendered"]  # AMFI Scheme Code for HDFC Mid-Cap
+        assert "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund" in fact["rendered"]
 
 

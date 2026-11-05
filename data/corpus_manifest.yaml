@@ -1,6 +1,13 @@
 version: 1
 last_refreshed: "2026-10-25"
+
 allowed_domains:
+  - groww.in
+
+official_allowed_domains:
+  - hdfcfund.com
+  - amfiindia.com
+  - sebi.gov.in
   - groww.in
 
 schemes:
@@ -10,6 +17,23 @@ schemes:
     plan: "Direct"
     option: "Growth"
     groww_url: "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth"
+    amc_portal_url: "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund"
+    amfi_scheme_code: "118989"
+    amfi_url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=118989"
+    sebi_category: "Mid Cap Fund (Min 65% in Mid Cap companies)"
+    official_documents:
+      - title: "HDFC Mid-Cap Opportunities Fund Scheme Factsheet"
+        type: "Monthly Factsheet"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund"
+      - title: "Key Information Memorandum (KIM) & Scheme Information Document (SID)"
+        type: "KIM_SID"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com"
+      - title: "AMFI Scheme Master Record - 118989"
+        type: "AMFI Master"
+        publisher: "AMFI India"
+        url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=118989"
 
   - id: hdfc_smallcap_dg
     name: "HDFC Small Cap Fund"
@@ -17,6 +41,23 @@ schemes:
     plan: "Direct"
     option: "Growth"
     groww_url: "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth"
+    amc_portal_url: "https://www.hdfcfund.com/our-products/hdfc-small-cap-fund"
+    amfi_scheme_code: "130503"
+    amfi_url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=130503"
+    sebi_category: "Small Cap Fund (Min 65% in Small Cap companies)"
+    official_documents:
+      - title: "HDFC Small Cap Fund Scheme Factsheet"
+        type: "Monthly Factsheet"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com/our-products/hdfc-small-cap-fund"
+      - title: "Key Information Memorandum (KIM) & Scheme Information Document (SID)"
+        type: "KIM_SID"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com"
+      - title: "AMFI Scheme Master Record - 130503"
+        type: "AMFI Master"
+        publisher: "AMFI India"
+        url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=130503"
 
   - id: hdfc_largecap_dg
     name: "HDFC Top 100 Fund (Large Cap)"
@@ -24,6 +65,23 @@ schemes:
     plan: "Direct"
     option: "Growth"
     groww_url: "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth"
+    amc_portal_url: "https://www.hdfcfund.com/our-products/hdfc-top-100-fund"
+    amfi_scheme_code: "119062"
+    amfi_url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062"
+    sebi_category: "Large Cap Fund (Min 80% in Large Cap companies)"
+    official_documents:
+      - title: "HDFC Top 100 Fund Scheme Factsheet"
+        type: "Monthly Factsheet"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com/our-products/hdfc-top-100-fund"
+      - title: "Key Information Memorandum (KIM) & Scheme Information Document (SID)"
+        type: "KIM_SID"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com"
+      - title: "AMFI Scheme Master Record - 119062"
+        type: "AMFI Master"
+        publisher: "AMFI India"
+        url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062"
 
   - id: hdfc_silver_fof_dg
     name: "HDFC Silver ETF Fund of Fund"
@@ -31,6 +89,23 @@ schemes:
     plan: "Direct"
     option: "Growth"
     groww_url: "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth"
+    amc_portal_url: "https://www.hdfcfund.com/our-products/hdfc-silver-etf-fund-fund"
+    amfi_scheme_code: "150186"
+    amfi_url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186"
+    sebi_category: "Precious Metals FoF (Min 95% in Silver ETF)"
+    official_documents:
+      - title: "HDFC Silver ETF FoF Scheme Factsheet"
+        type: "Monthly Factsheet"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com/our-products/hdfc-silver-etf-fund-fund"
+      - title: "Key Information Memorandum (KIM) & Scheme Information Document (SID)"
+        type: "KIM_SID"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com"
+      - title: "AMFI Scheme Master Record - 150186"
+        type: "AMFI Master"
+        publisher: "AMFI India"
+        url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186"
 
   - id: hdfc_multicap_dg
     name: "HDFC Multi Cap Fund"
@@ -38,6 +113,23 @@ schemes:
     plan: "Direct"
     option: "Growth"
     groww_url: "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth"
+    amc_portal_url: "https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund"
+    amfi_scheme_code: "149262"
+    amfi_url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262"
+    sebi_category: "Multi Cap Fund (Min 25% Large, 25% Mid, 25% Small Cap)"
+    official_documents:
+      - title: "HDFC Multi Cap Fund Scheme Factsheet"
+        type: "Monthly Factsheet"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund"
+      - title: "Key Information Memorandum (KIM) & Scheme Information Document (SID)"
+        type: "KIM_SID"
+        publisher: "HDFC Asset Management Company"
+        url: "https://www.hdfcfund.com"
+      - title: "AMFI Scheme Master Record - 149262"
+        type: "AMFI Master"
+        publisher: "AMFI India"
+        url: "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262"
 
 sources:
   - id: grw_midcap
@@ -74,3 +166,69 @@ sources:
     publisher: groww
     scheme_id: hdfc_multicap_dg
     priority: 1
+
+official_sources:
+  - id: amc_midcap_factsheet
+    url: "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund"
+    type: amc_factsheet
+    publisher: hdfc_amc
+    scheme_id: hdfc_midcap_dg
+    title: "HDFC Mid-Cap Opportunities Fund Factsheet & SID/KIM"
+
+  - id: amc_smallcap_factsheet
+    url: "https://www.hdfcfund.com/our-products/hdfc-small-cap-fund"
+    type: amc_factsheet
+    publisher: hdfc_amc
+    scheme_id: hdfc_smallcap_dg
+    title: "HDFC Small Cap Fund Factsheet & SID/KIM"
+
+  - id: amc_largecap_factsheet
+    url: "https://www.hdfcfund.com/our-products/hdfc-top-100-fund"
+    type: amc_factsheet
+    publisher: hdfc_amc
+    scheme_id: hdfc_largecap_dg
+    title: "HDFC Top 100 Fund Factsheet & SID/KIM"
+
+  - id: amc_silver_fof_factsheet
+    url: "https://www.hdfcfund.com/our-products/hdfc-silver-etf-fund-fund"
+    type: amc_factsheet
+    publisher: hdfc_amc
+    scheme_id: hdfc_silver_fof_dg
+    title: "HDFC Silver ETF FoF Factsheet & SID/KIM"
+
+  - id: amc_multicap_factsheet
+    url: "https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund"
+    type: amc_factsheet
+    publisher: hdfc_amc
+    scheme_id: hdfc_multicap_dg
+    title: "HDFC Multi Cap Fund Factsheet & SID/KIM"
+
+  - id: amfi_scheme_catalog
+    url: "https://www.amfiindia.com/research-information/other-data/scheme-details"
+    type: amfi_portal
+    publisher: amfi
+    title: "AMFI India Official Scheme Master Data"
+
+  - id: amfi_knowledge_center
+    url: "https://www.amfiindia.com/investor-corner/knowledge-center"
+    type: amfi_portal
+    publisher: amfi
+    title: "AMFI India Investor Education & Knowledge Center"
+
+  - id: amfi_nav_history
+    url: "https://www.amfiindia.com/net-asset-value/nav-history"
+    type: amfi_portal
+    publisher: amfi
+    title: "AMFI Official Daily NAV Disclosure Database"
+
+  - id: sebi_categorization_circular
+    url: "https://www.sebi.gov.in/legal/circulars/oct-2017/categorization-and-rationalization-of-mutual-fund-schemes_36199.html"
+    type: sebi_circular
+    publisher: sebi
+    title: "SEBI Circular on Categorization and Rationalization of Mutual Fund Schemes"
+
+  - id: sebi_riskometer_circular
+    url: "https://www.sebi.gov.in/legal/circulars/oct-2020/product-labeling-in-mutual-fund-schemes-on-riskometer_47796.html"
+    type: sebi_circular
+    publisher: sebi
+    title: "SEBI Circular on Product Labeling in Mutual Fund Schemes on Riskometer"
