@@ -1,0 +1,19 @@
+{
+  "id": "doc_14_hdfc_multicap_kim_sid",
+  "scheme_id": "hdfc_multicap_dg",
+  "title": "HDFC Multi Cap Fund - Key Information Memorandum (KIM) & SID",
+  "document_type": "KIM_SID",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "SEBI Statutory Multi-Cap Allocation Pattern",
+      "content": "In compliance with SEBI regulatory circular SEBI/HO/IMD/DF3/CIR/P/2020/172, a Multi Cap fund must maintain a minimum 25% allocation in Large Cap companies, a minimum 25% allocation in Mid Cap companies, and a minimum 25% allocation in Small Cap companies at all times. The remaining 25% is allocated tactically based on market opportunities."
+    },
+    {
+      "section": "Minimum Investment Limits",
+      "content": "Minimum investment is ₹100 for lumpsum and ₹100 for monthly SIP. The fund offers Direct and Regular plans with Growth and IDCW options. There is zero lock-in."
+    }
+  ]
+}

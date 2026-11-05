@@ -1,0 +1,23 @@
+{
+  "id": "doc_04_hdfc_smallcap_factsheet",
+  "scheme_id": "hdfc_smallcap_dg",
+  "title": "HDFC Small Cap Fund - Monthly Scheme Factsheet",
+  "document_type": "Monthly Factsheet",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com/our-products/hdfc-small-cap-fund",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Fund Overview & AUM",
+      "content": "HDFC Small Cap Fund is an open-ended equity scheme investing predominantly in small cap companies. As of October 2026, total Scheme AUM is ₹40,800.81 Crore. The Net Asset Value (NAV) for Direct Plan - Growth is ₹148.394. The fund is managed by Chirag Setalvad (Senior Executive Vice President, managing the fund since June 2014)."
+    },
+    {
+      "section": "Expense Ratio & Exit Load",
+      "content": "Total Expense Ratio (TER) for HDFC Small Cap Fund Direct Plan is 0.80% per annum. Exit load: 1.00% if redeemed or switched out on or before completion of 1 year from the date of allotment. Nil exit load if redeemed after 1 year (365 days) from allotment."
+    },
+    {
+      "section": "Portfolio Composition & Benchmark",
+      "content": "Benchmark: BSE 250 SmallCap Total Return Index (TRI). Asset Allocation: Equity holdings 92.80%, Cash and TREPS 7.20%. Top sector exposures: Capital Goods, Financial Services, Consumer Services, Chemicals, and Construction. Riskometer level: Very High Risk."
+    }
+  ]
+}

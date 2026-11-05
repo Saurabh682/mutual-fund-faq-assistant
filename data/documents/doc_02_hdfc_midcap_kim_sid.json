@@ -1,0 +1,23 @@
+{
+  "id": "doc_02_hdfc_midcap_kim_sid",
+  "scheme_id": "hdfc_midcap_dg",
+  "title": "HDFC Mid-Cap Opportunities Fund - Key Information Memorandum (KIM) & SID",
+  "document_type": "KIM_SID",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Investment Objective & Asset Allocation Mandate",
+      "content": "The investment objective is to provide long-term capital appreciation by investing predominantly (minimum 65%) in equity and equity-related instruments of mid-sized companies. In accordance with SEBI categorization guidelines, mid-cap companies are defined as those ranked 101st to 250th in terms of full market capitalization. Up to 35% may be invested in large cap, small cap, or debt instruments."
+    },
+    {
+      "section": "Investment Limits & Systematic Facilities",
+      "content": "Minimum initial investment amount is ₹100 and in multiples of ₹1 thereafter. Minimum Systematic Investment Plan (SIP) installment is ₹100 per month for a minimum of 6 installments. The scheme offers Direct Plan and Regular Plan, with Growth and Income Distribution cum Capital Withdrawal (IDCW) options."
+    },
+    {
+      "section": "Statutory Risk Factors & Lock-in Status",
+      "content": "Mutual Fund investments are subject to market risks, including volatility inherent to mid-cap equities. There is no statutory lock-in period for HDFC Mid-Cap Opportunities Fund as it is an open-ended growth scheme. Units can be redeemed on any business day at prevailing Net Asset Value (NAV)."
+    }
+  ]
+}

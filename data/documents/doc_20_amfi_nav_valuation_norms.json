@@ -1,0 +1,19 @@
+{
+  "id": "doc_20_amfi_nav_valuation_norms",
+  "scheme_id": null,
+  "title": "AMFI Daily NAV Calculation & Cut-off Operational Norms",
+  "document_type": "AMFI Guidelines",
+  "publisher": "AMFI India",
+  "url": "https://www.amfiindia.com/net-asset-value/nav-history",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Daily NAV Calculation & Reporting",
+      "content": "AMCs must compute Net Asset Value (NAV) of each scheme for every business day by 11:00 PM and publish it on the AMFI website (www.amfiindia.com) and the AMC's portal. NAV reflects the market value of the scheme's securities minus accrued expenses and liabilities divided by total outstanding units."
+    },
+    {
+      "section": "Applicable NAV Cut-off Timings",
+      "content": "For equity schemes: Subscriptions up to 3:00 PM receive same-day NAV subject to fund realization in the AMC account. Redemptions up to 3:00 PM receive same-day NAV. Requests submitted after 3:00 PM receive the next business day's NAV. If a day is a market holiday, transactions are queued for the subsequent working day's NAV."
+    }
+  ]
+}

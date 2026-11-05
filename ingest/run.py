@@ -9,6 +9,7 @@ from ingest.parsers.html import parse_groww_scheme
 from ingest.chunker import chunk_parsed_scheme
 from ingest.fact_extractor import init_fact_store, store_scheme_facts
 from ingest.embed import index_chunks
+from ingest.build_official_corpus import build_official_documents_corpus
 
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
@@ -78,8 +79,14 @@ def run_ingestion(force_refresh: bool = False):
             "canonical_facts": facts
         })
 
+    # 4b. Ingest 20 Official Verified Public Documents (Factsheets, KIMs, SIDs, Regulatory Circulars)
+    print("\nIngesting 20 Official Verified Public Documents (Factsheets, KIMs, SIDs, Regulatory Norms)...")
+    official_docs_res = build_official_documents_corpus(base_dir=base_dir)
+    all_chunks.extend(official_docs_res["chunks"])
+    print(f"   [OK] Appended {official_docs_res['chunks_count']} semantic chunks from {official_docs_res['documents_count']} verified public documents.")
+
     # 5. Embed and Index into ChromaDB + BM25
-    print(f"\nIndexing {len(all_chunks)} chunks into ChromaDB & BM25...")
+    print(f"\nIndexing {len(all_chunks)} total chunks into ChromaDB & BM25...")
     index_chunks(all_chunks, chroma_dir, bm25_path)
     print("   [OK] ChromaDB dense vector indexing complete.")
     print("   [OK] BM25 lexical index built and pickled.")
@@ -91,6 +98,8 @@ def run_ingestion(force_refresh: bool = False):
         "elapsed_seconds": elapsed,
         "total_sources": len(sources),
         "total_chunks": len(all_chunks),
+        "official_documents_count": official_docs_res["documents_count"],
+        "official_documents_chunks": official_docs_res["chunks_count"],
         "schemes": schemes_report
     }
 

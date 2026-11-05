@@ -87,3 +87,45 @@ def test_ingestion_report():
     assert report["total_sources"] == 5
     assert report["total_chunks"] >= 30
     assert len(report["schemes"]) == 5
+
+
+class TestOfficialCorpusSpecPoint8:
+    """Verifies that the knowledge corpus is built from 15-25 verified public documents (Spec Point 8)."""
+
+    def test_official_documents_count_in_target_range(self):
+        docs_dir = os.path.join(BASE_DIR, "data", "documents")
+        assert os.path.exists(docs_dir)
+        doc_files = [f for f in os.listdir(docs_dir) if f.endswith(".json")]
+        # Target range specified in project specification: 15 to 25 documents
+        assert 15 <= len(doc_files) <= 25, f"Expected 15-25 documents, found: {len(doc_files)}"
+
+    def test_corpus_manifest_verified_documents(self):
+        with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+            manifest = yaml.safe_load(f)
+
+        assert "verified_public_documents" in manifest
+        docs = manifest["verified_public_documents"]
+        assert 15 <= len(docs) <= 25
+
+        doc_types = {d["document_type"] for d in docs}
+        assert "Monthly Factsheet" in doc_types
+        assert "KIM_SID" in doc_types
+        assert "AMFI Master Record" in doc_types
+        assert "SEBI Circular" in doc_types
+
+    def test_chroma_and_bm25_contain_official_chunks(self):
+        client = chromadb.PersistentClient(path=CHROMA_DIR)
+        collection = client.get_collection("mutual_fund_facts")
+        total_chunks = collection.count()
+        assert total_chunks >= 100, f"Expected >= 100 chunks with official documents, got: {total_chunks}"
+
+        with open(BM25_PATH, "rb") as f:
+            bm25_data = pickle.load(f)
+        assert len(bm25_data["chunks"]) >= 100
+
+    def test_ingestion_report_records_official_docs(self):
+        with open(REPORT_PATH, "r", encoding="utf-8") as f:
+            report = json.load(f)
+
+        assert report.get("official_documents_count") == 20
+        assert report.get("total_chunks") >= 100

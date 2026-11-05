@@ -1,0 +1,23 @@
+{
+  "id": "doc_13_hdfc_multicap_factsheet",
+  "scheme_id": "hdfc_multicap_dg",
+  "title": "HDFC Multi Cap Fund - Monthly Scheme Factsheet",
+  "document_type": "Monthly Factsheet",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Fund Overview & Multi-Cap AUM",
+      "content": "HDFC Multi Cap Fund is an open-ended equity scheme investing across large cap, mid cap, and small cap stocks. As of October 2026, total Scheme AUM is ₹19,490.01 Crore. Direct Plan Growth NAV is ₹18.176. Fund Manager: Gopal Agrawal (Senior Vice President, managing since December 2021)."
+    },
+    {
+      "section": "Expense Ratio & Load Mandate",
+      "content": "Total Expense Ratio (TER) for Direct Plan is 0.96% per annum. Exit load: 1.00% if redeemed or switched out within 1 year from the date of allotment. Nil exit load after 365 days from unit allotment date."
+    },
+    {
+      "section": "Market-Cap Allocation & Benchmark",
+      "content": "Benchmark: NIFTY 500 Multicap 50:25:25 Total Return Index (TRI). Portfolio allocation across market caps: Large Cap 42.10%, Mid Cap 27.40%, Small Cap 26.80%, Cash & Equivalents 3.70%. Riskometer: Very High Risk."
+    }
+  ]
+}

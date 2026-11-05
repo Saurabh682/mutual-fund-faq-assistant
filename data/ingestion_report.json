@@ -1,9 +1,11 @@
 {
   "status": "success",
-  "timestamp": "2026-10-25T10:04:24.834788+00:00",
-  "elapsed_seconds": 2.71,
+  "timestamp": "2026-11-05T03:34:28.304890+00:00",
+  "elapsed_seconds": 6.17,
   "total_sources": 5,
-  "total_chunks": 75,
+  "total_chunks": 118,
+  "official_documents_count": 20,
+  "official_documents_chunks": 43,
   "schemes": [
     {
       "scheme_id": "hdfc_midcap_dg",

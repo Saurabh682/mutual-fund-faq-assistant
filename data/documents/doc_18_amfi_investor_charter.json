@@ -1,0 +1,19 @@
+{
+  "id": "doc_18_amfi_investor_charter",
+  "scheme_id": null,
+  "title": "AMFI Investor Charter & Unitholder Rights",
+  "document_type": "AMFI Charter",
+  "publisher": "AMFI India",
+  "url": "https://www.amfiindia.com/investor-corner/knowledge-center",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Investor Rights & Payout Timelines",
+      "content": "Mutual fund investors have the right to receive: Consolidated Account Statement (CAS) within 10 days of month-end; Redemption or repurchase proceeds dispatched within T+2 business days from the date of redemption request; Dividend (IDCW) payouts within 7 working days from the record date; and grievance redressal via SCORES within 21 calendar days."
+    },
+    {
+      "section": "Mandatory Disclosures & Transparency",
+      "content": "AMCs must disclose monthly portfolio statements within 10 days of month-end, annual financial reports within 4 months of year-end, and unhedged derivative positions. Investors have the right to inspect trust deeds, AMC agreements, and KIMs."
+    }
+  ]
+}

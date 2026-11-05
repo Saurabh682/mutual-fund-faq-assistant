@@ -1,0 +1,19 @@
+{
+  "id": "doc_05_hdfc_smallcap_kim_sid",
+  "scheme_id": "hdfc_smallcap_dg",
+  "title": "HDFC Small Cap Fund - Key Information Memorandum (KIM) & SID",
+  "document_type": "KIM_SID",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Investment Mandate & Small Cap Universe",
+      "content": "The fund invests a minimum of 65% of its total assets in equity instruments of small cap companies. In line with SEBI definitions, small cap companies comprise entities from the 251st company onwards in market cap. The strategy focuses on high-conviction businesses with robust competitive moats and proven return on capital."
+    },
+    {
+      "section": "Investment Minimums & Restrictions",
+      "content": "Minimum investment amount: ₹100 for lumpsum purchase and ₹100 per monthly SIP installment. To safeguard existing unitholders during rapid market inflows, the AMC may temporarily restrict or cap lumpsum subscription amounts while keeping periodic SIP active. There is no lock-in period."
+    }
+  ]
+}

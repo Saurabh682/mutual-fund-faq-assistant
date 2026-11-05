@@ -1,0 +1,19 @@
+{
+  "id": "doc_08_hdfc_largecap_kim_sid",
+  "scheme_id": "hdfc_largecap_dg",
+  "title": "HDFC Top 100 Fund - Key Information Memorandum (KIM) & SID",
+  "document_type": "KIM_SID",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Investment Objective & Large Cap Mandate",
+      "content": "The investment objective is to generate long-term capital appreciation from a portfolio invested predominantly (minimum 80%) in large cap companies. In accordance with SEBI circulars, large cap companies are the top 100 companies in India ranked by full market capitalization. Up to 20% may be held in non-large cap equities or debt."
+    },
+    {
+      "section": "Subscription Terms & Minimums",
+      "content": "Minimum initial investment is ₹100. Minimum monthly SIP is ₹100. The scheme is open-ended with zero statutory lock-in. Purchases and redemptions execute at cut-off NAV."
+    }
+  ]
+}

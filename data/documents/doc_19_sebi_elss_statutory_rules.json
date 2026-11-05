@@ -1,0 +1,19 @@
+{
+  "id": "doc_19_sebi_elss_statutory_rules",
+  "scheme_id": null,
+  "title": "SEBI & CBDT Regulations for Equity Linked Savings Schemes (ELSS)",
+  "document_type": "Regulatory Standard",
+  "publisher": "SEBI & Central Board of Direct Taxes (CBDT)",
+  "url": "https://www.amfiindia.com/investor-corner/knowledge-center",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "3-Year Mandatory Statutory Lock-in",
+      "content": "Equity Linked Savings Schemes (ELSS) are notified under Section 80C of the Income Tax Act, 1961. ELSS investments carry a strict statutory lock-in period of 3 years (36 months) from the exact date of unit allotment. Premature withdrawals, pledges, or switching to other mutual fund schemes are prohibited during this 3-year period."
+    },
+    {
+      "section": "SIP Lock-in & Tax Deductions",
+      "content": "In an ELSS Systematic Investment Plan (SIP), each monthly installment is treated as a separate investment and is locked for 3 years from its respective deduction date. Under the Old Tax Regime, investments up to ₹1,50,000 qualify for tax deduction under Section 80C. All 5 supported HDFC schemes in this assistant are non-ELSS open-ended funds."
+    }
+  ]
+}

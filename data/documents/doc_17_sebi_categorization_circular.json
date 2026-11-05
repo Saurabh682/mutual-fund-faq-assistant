@@ -1,0 +1,19 @@
+{
+  "id": "doc_17_sebi_categorization_circular",
+  "scheme_id": null,
+  "title": "SEBI Circular on Categorization and Rationalization of Mutual Fund Schemes",
+  "document_type": "SEBI Circular",
+  "publisher": "Securities and Exchange Board of India (SEBI)",
+  "url": "https://www.sebi.gov.in/legal/circulars/oct-2017/categorization-and-rationalization-of-mutual-fund-schemes_36199.html",
+  "doc_date": "2017-10-06",
+  "sections": [
+    {
+      "section": "Market Capitalization Definitions",
+      "content": "Under SEBI circular SEBI/HO/IMD/DF3/CIR/P/2017/114, Indian equity market caps are defined as: Large Cap: 1st to 100th company in terms of full market capitalization. Mid Cap: 101st to 250th company in terms of full market capitalization. Small Cap: 251st company onwards in terms of full market capitalization. AMFI prepares and updates the standardized list of stocks semi-annually in June and December."
+    },
+    {
+      "section": "Equity Scheme Category Mandates",
+      "content": "Large Cap Fund: Minimum 80% investment in Large Cap stocks. Mid Cap Fund: Minimum 65% investment in Mid Cap stocks. Small Cap Fund: Minimum 65% investment in Small Cap stocks. Multi Cap Fund: Minimum 25% each in Large Cap, Mid Cap, and Small Cap stocks. Only one scheme per category is permitted per Mutual Fund (except Index Funds, ETFs, FoFs, and Sectoral/Thematic)."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "doc_16_sebi_riskometer_circular",
+  "scheme_id": null,
+  "title": "SEBI Circular on Product Labeling in Mutual Fund Schemes on Riskometer",
+  "document_type": "SEBI Circular",
+  "publisher": "Securities and Exchange Board of India (SEBI)",
+  "url": "https://www.sebi.gov.in/legal/circulars/oct-2020/product-labeling-in-mutual-fund-schemes-on-riskometer_47796.html",
+  "doc_date": "2020-10-05",
+  "sections": [
+    {
+      "section": "6-Tier Riskometer Framework",
+      "content": "SEBI circular SEBI/HO/IMD/DF3/CIR/P/2020/197 mandates product labeling on a 6-tier Riskometer: 1. Low Risk, 2. Low to Moderate Risk, 3. Moderate Risk, 4. Moderately High Risk, 5. High Risk, 6. Very High Risk. The Riskometer visually communicates the principal risk level to investors across all mutual fund schemes."
+    },
+    {
+      "section": "Monthly Risk Evaluation & Disclosures",
+      "content": "AMCs must evaluate risk of equity and debt portfolios on a monthly basis taking into account market cap, liquidity, and volatility. Any change in riskometer tier must be communicated to unitholders via email/SMS and published on the AMC and AMFI websites within 10 days of the close of each month."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "doc_11_hdfc_silver_fof_kim_sid",
+  "scheme_id": "hdfc_silver_fof_dg",
+  "title": "HDFC Silver ETF Fund of Fund - Key Information Memorandum (KIM) & SID",
+  "document_type": "KIM_SID",
+  "publisher": "HDFC Asset Management Company Limited",
+  "url": "https://www.hdfcfund.com",
+  "doc_date": "2026-10-25",
+  "sections": [
+    {
+      "section": "Investment Objective & Commodity Structure",
+      "content": "The investment objective is to seek capital appreciation by investing in units of HDFC Silver ETF. Minimum 95% of total assets is deployed in underlying Silver ETF units, providing retail investors with convenient exposure to physical silver without the storage, purity, or theft risks of physical bullion."
+    },
+    {
+      "section": "Investment Limits & Liquidity",
+      "content": "Minimum subscription: ₹100 for lumpsum and ₹100 for monthly SIP. The scheme provides daily liquidity via AMC redemption at applicable NAV without requiring a broker trading account. Lock-in period is zero."
+    }
+  ]
+}
