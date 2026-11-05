@@ -18,8 +18,8 @@ _GLOBAL_LOCK = asyncio.Lock()
 
 
 def get_sessions_db_path() -> str:
-    """Returns absolute path to sessions.db."""
-    return os.path.join(settings.DATA_DIR, "sessions.db")
+    """Returns absolute path to sessions.db, cleanly isolated from the corpus index."""
+    return settings.SESSIONS_DB_PATH or os.path.join(settings.DATA_DIR, "sessions.db")
 
 
 def init_session_db(db_path: Optional[str] = None) -> None:

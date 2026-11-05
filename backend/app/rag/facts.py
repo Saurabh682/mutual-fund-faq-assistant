@@ -120,7 +120,7 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     raw_val = fact["value"]
     scheme_meta = SCHEME_REGISTRY.get(scheme_id, {})
     scheme_name = scheme_meta.get("name", scheme_id)
-    citation_url = fact.get("citation_url") or scheme_meta.get("url", "")
+    citation_url = fact.get("source_url") or fact.get("citation_url") or scheme_meta.get("url", "")
 
     # Format numbers using standard Indian currency notation
     formatted_val = format_indian_number(raw_val)
@@ -156,7 +156,7 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
 
     body = f"{narrative}\n\n{stat_card}".strip()
 
-    doc_date = normalize_iso_date(fact.get("doc_date", ""))
+    doc_date = normalize_iso_date(fact.get("as_of") or fact.get("doc_date", ""))
     rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
 
     return {

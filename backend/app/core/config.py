@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     DATA_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../data"))
     FACTS_DB_PATH: str = ""
     CHROMA_DIR: str = ""
+    SESSIONS_DB_PATH: str = ""
     SESSION_TTL_DAYS: int = 7
 
     def model_post_init(self, __context):
@@ -40,6 +41,8 @@ class Settings(BaseSettings):
             self.FACTS_DB_PATH = os.path.join(self.DATA_DIR, "index", "facts.db")
         if not self.CHROMA_DIR or not os.path.isabs(self.CHROMA_DIR):
             self.CHROMA_DIR = os.path.join(self.DATA_DIR, "index", "chroma")
+        if not self.SESSIONS_DB_PATH or not os.path.isabs(self.SESSIONS_DB_PATH):
+            self.SESSIONS_DB_PATH = os.path.join(self.DATA_DIR, "sessions.db")
 
     @field_validator("DATA_DIR", mode="after")
     @classmethod

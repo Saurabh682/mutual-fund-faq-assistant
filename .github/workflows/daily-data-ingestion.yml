@@ -24,12 +24,19 @@ jobs:
     name: Scrape, Clean, Chunk & Index
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -93,3 +100,10 @@ jobs:
             git commit -m "chore(data): automated daily corpus refresh (10:00 AM IST) [skip ci]"
             git push
           fi
+
+      - name: Sync Updated Corpus & Backend to Hugging Face Space
+        if: env.HF_TOKEN != ''
+        run: |
+          echo "Syncing latest commit to Hugging Face Space..."
+          git remote add hf https://deamonizer:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/deamonizer/mutual-fund-faq-assistant.git || git remote set-url hf https://deamonizer:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/deamonizer/mutual-fund-faq-assistant.git
+          git push hf main --force
