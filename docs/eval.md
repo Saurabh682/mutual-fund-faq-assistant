@@ -192,9 +192,9 @@ The evaluation strategy mirrors the 8-phase implementation lifecycle. Every phas
   - Factual values match Ground Truth tables with 100% accuracy.
 
 ### `EVAL-P3.3`: Out-of-Corpus Fallback ($\tau$ Threshold)
-- **Objective**: Queries on unindexed AMCs or topics trigger safe fallback.
+- **Objective**: Queries on unindexed AMCs or out-of-scope topics trigger safe fallback.
 - **Query**: *"What is the expense ratio of SBI Bluechip Fund?"*
-- **Pass Criteria**: Cosine similarity $< 0.70$ triggers *"not found"* template without calling LLM.
+- **Pass Criteria**: Cosine similarity $< 0.58$ (or explicit external AMC detection) triggers verified *"not found"* response citing the official AMFI Knowledge Center without calling LLM.
 
 ---
 
@@ -210,10 +210,13 @@ The evaluation strategy mirrors the 8-phase implementation lifecycle. Every phas
 ### `EVAL-P4.2`: Single Canonical URL Invariant
 - **Test Procedure**:
   - Feed drafts with 0 URLs, 2 URLs, or external third-party links (Moneycontrol, ET).
-  - Verify `ContractValidator` strips illegal links and appends exactly 1 verified Groww URL.
+  - Verify `ContractValidator` strips illegal links and programmatically attaches exactly 1 verified canonical citation:
+    - Factual Scheme Queries: Verified canonical scheme URL (Groww / HDFC AMC).
+    - Compliance Refusals & Out-of-Scope: Official AMFI Investor Education portal.
+    - Regulatory & Categorization Queries: Official SEBI circular link.
 - **Pass Criteria**:
   - Regex count of `https?://` in final rendered output $== 1$.
-  - Domain strictly matches `groww.in`.
+  - Domain strictly matches verified canonical domains (`groww.in`, `hdfcfund.com`, `amfiindia.com`, or `sebi.gov.in`).
 
 ### `EVAL-P4.3`: Mandatory Freshness Footer Format
 - **Test Procedure**:

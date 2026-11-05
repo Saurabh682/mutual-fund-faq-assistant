@@ -7,7 +7,7 @@ using session state, and detects ambiguous queries requiring scheme clarificatio
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dc_field
 from typing import Any, Dict, List, Optional
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
 
@@ -252,6 +252,7 @@ class EntityResolutionResult:
     scheme_name: Optional[str] = None
     citation_url: Optional[str] = None
     field: Optional[str] = None
+    fields: List[str] = dc_field(default_factory=list)
     is_ambiguous: bool = False
     is_external_amc: bool = False
     matched_scheme_alias: Optional[str] = None
@@ -294,9 +295,10 @@ def resolve_entities(
             detected_scheme_id = session_scheme_id
             detected_scheme_alias = "session_anaphora"
 
-    # 3. Match Field Entity
+    # 3. Match Field Entities (supports both single field and multi-field queries)
     detected_field = None
     detected_field_alias = None
+    detected_fields = []
 
     for f_key, keywords in FIELD_GLOSSARY.items():
         sorted_kw = sorted(keywords, key=len, reverse=True)
@@ -304,9 +306,12 @@ def resolve_entities(
             norm_kw = re.sub(r"[-\s]+", " ", kw.lower())
             pattern = r"\b" + re.escape(norm_kw) + r"\b"
             if re.search(pattern, norm_query) or re.search(r"\b" + re.escape(kw) + r"\b", clean_query):
+                if f_key not in detected_fields:
+                    detected_fields.append(f_key)
                 if detected_field_alias is None or len(kw) > len(detected_field_alias):
                     detected_field = f_key
                     detected_field_alias = kw
+                break
 
     # 4. Check External AMC & Ambiguity (EC-ENT-01 & EC-RET-02)
     # If the user explicitly mentions an external AMC, it is strictly out-of-corpus (not HDFC).
@@ -335,6 +340,7 @@ def resolve_entities(
         scheme_name=scheme_name,
         citation_url=citation_url,
         field=detected_field,
+        fields=detected_fields,
         is_ambiguous=is_ambiguous,
         is_external_amc=has_external_amc,
         matched_scheme_alias=detected_scheme_alias,

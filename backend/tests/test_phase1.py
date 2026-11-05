@@ -46,8 +46,30 @@ def test_facts_db_contents():
         for f in required_fields:
             assert f in rows, f"Missing field {f} in {scheme_id}"
             assert len(rows[f]) > 0
+        assert rows["riskometer"] == "Very High Risk", f"{scheme_id} riskometer should be 'Very High Risk'"
 
     conn.close()
+
+
+def test_riskometer_hand_verified_against_amc_factsheets():
+    """EC-AUDIT-2.1: Hand-verified riskometer values match official SEBI and AMC factsheets."""
+    conn = sqlite3.connect(FACTS_DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT scheme_id, value FROM facts WHERE field = 'riskometer'")
+    results = dict(cursor.fetchall())
+    conn.close()
+
+    expected_table = {
+        "hdfc_midcap_dg": "Very High Risk",
+        "hdfc_smallcap_dg": "Very High Risk",
+        "hdfc_largecap_dg": "Very High Risk",
+        "hdfc_silver_fof_dg": "Very High Risk",
+        "hdfc_multicap_dg": "Very High Risk",
+    }
+    for sid, expected_val in expected_table.items():
+        assert results.get(sid) == expected_val, (
+            f"Scheme {sid} riskometer mismatch: expected {expected_val}, got {results.get(sid)}"
+        )
 
 def test_chroma_index():
     from ingest.embed import get_embedder

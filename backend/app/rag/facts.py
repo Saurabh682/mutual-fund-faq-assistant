@@ -171,6 +171,63 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def format_multi_fact_response(
+    facts: List[Dict[str, Any]], scheme_id: str
+) -> Dict[str, Any]:
+    """Formats multiple verified facts for a scheme into a deterministic response complying with the <= 3 sentence limit."""
+    scheme_meta = SCHEME_REGISTRY.get(scheme_id, {})
+    scheme_name = scheme_meta.get("name", scheme_id)
+    official_scheme_name = scheme_meta.get("official_name", f"{scheme_name} (Direct - Growth)")
+    citation_url = scheme_meta.get("url", "")
+    amc_url = scheme_meta.get("amc_url")
+    amfi_code = scheme_meta.get("amfi_code")
+
+    narrative_sentences = []
+    stat_card_rows = [
+        "| Metric | Value |",
+        "| :--- | :--- |",
+        f"| **Scheme** | {official_scheme_name} |",
+    ]
+
+    latest_doc_date = ""
+    for f in facts[:3]:  # Max 3 facts to strictly adhere to <= 3 sentences
+        f_field = f["field"]
+        raw_val = f["value"]
+        formatted_val = format_indian_number(raw_val)
+        metric_title = FIELD_TITLES.get(f_field, f_field.replace("_", " ").title())
+        template = FACT_TEMPLATES.get(f_field, "{scheme_name} {field} is {value}.")
+        sent = template.format(scheme_name=scheme_name, value=formatted_val, field=f_field).strip()
+        if not sent.endswith("."):
+            sent += "."
+        narrative_sentences.append(sent)
+        stat_card_rows.append(f"| **{metric_title}** | **{formatted_val}** |")
+        d_date = normalize_iso_date(f.get("doc_date", ""))
+        if d_date > latest_doc_date:
+            latest_doc_date = d_date
+
+    if amfi_code:
+        stat_card_rows.append(f"| **AMFI Code** | {amfi_code} |")
+    if amc_url:
+        stat_card_rows.append(f"| **Official Source** | [HDFC AMC Factsheet]({amc_url}) |")
+
+    narrative = " ".join(narrative_sentences)
+    stat_card = "\n".join(stat_card_rows)
+    body = f"{narrative}\n\n{stat_card}".strip()
+    rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {latest_doc_date}"
+
+    return {
+        "text": body,
+        "citation_url": citation_url,
+        "last_updated": latest_doc_date,
+        "rendered": rendered,
+        "source": "fact_store",
+        "scheme_id": scheme_id,
+        "field": "multi_field",
+        "fields": [f["field"] for f in facts],
+        "raw_value": ", ".join(f"{f['field']}={f['value']}" for f in facts),
+    }
+
+
 def lookup_fact(
     query: str, session_scheme_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
@@ -185,6 +242,18 @@ def lookup_fact(
     if entity_res.is_ambiguous or not entity_res.scheme_id or not entity_res.field:
         from app.rag.procedures import lookup_procedure
         return lookup_procedure(query)
+
+    # Multi-field fast path (EC-AUDIT-4.1)
+    if entity_res.fields and len(entity_res.fields) > 1:
+        matched_facts = []
+        for f in entity_res.fields:
+            row = get_fact_from_db(entity_res.scheme_id, f)
+            if row:
+                matched_facts.append(row)
+        if len(matched_facts) > 1:
+            return format_multi_fact_response(matched_facts, entity_res.scheme_id)
+        elif len(matched_facts) == 1:
+            return format_fact_response(matched_facts[0])
 
     fact_row = get_fact_from_db(entity_res.scheme_id, entity_res.field)
     if fact_row:

@@ -1,7 +1,9 @@
-# 🚀 Railway Production Deployment Plan
+# 🚀 Production Deployment Architecture & Guide
 # Mutual Fund FAQ Assistant
 
-> **Target Platform**: [Railway.app](https://railway.app)  
+> **Active Production URL (Frontend)**: [Vercel Deployment](https://mutual-fund-faq-assistant-chi.vercel.app/)  
+> **Active Production URL (Backend / Full-Stack Space)**: [Hugging Face Space](https://deamonizer-mutual-fund-faq-assistant.hf.space/)  
+> **Alternative Container Platform**: [Railway.app](https://railway.app) / Docker  
 > **Repository**: `mutual-fund-faq-assistant`  
 > **Core Architecture**: FastAPI + ChromaDB/SQLite RAG Backend & React 18 / Tailwind CSS Frontend  
 > **LLM Provider**: Groq (`openai/gpt-oss-120b`)  
@@ -11,43 +13,24 @@
 
 ## 1. Executive Deployment Architecture
 
-Railway supports two battle-tested deployment architectures for this application. **Option 1 (Unified Container)** is recommended for simplest setup, zero CORS overhead, and maximum cost efficiency ($5/month developer tier).
+The assistant is architected for dual-stack production redundancy across Vercel (Frontend SPA) and Hugging Face Spaces (FastAPI + ChromaDB backend), with unified Docker/Railway container configurations available for self-hosting.
 
 ```
                       [ USER BROWSER ]
                              │
-                             ▼ (HTTPS)
-                 https://<app>.up.railway.app
-                             │
-                 ┌───────────▼───────────┐
-                 │  Railway Edge Router  │
-                 └───────────┬───────────┘
-                             │
-       ┌─────────────────────┴─────────────────────┐
-       │                                           │
-┌──────▼─────────────────────────┐   ┌─────────────▼──────────────────┐
-│ OPTION 1: Unified Container    │   │ OPTION 2: Split Microservices  │
-│ (Dockerfile.railway)           │   │                                │
-│                                │   │ ┌────────────────────────────┐ │
-│ ┌────────────────────────────┐ │   │ │ Frontend Service (Nginx)   │ │
-│ │ Vite React SPA (Static)    │ │   │ │ Port 80 (Public Domain)    │ │
-│ └──────────────┬─────────────┘ │   │ └─────────────┬──────────────┘ │
-│                │ Internal      │   │               │ Private DNS    │
-│ ┌──────────────▼─────────────┐ │   │ ┌─────────────▼──────────────┐ │
-│ │ FastAPI Python Engine      │ │   │ │ Backend Service (FastAPI)  │ │
-│ │ Port $PORT (Dynamic)       │ │   │ │ Port 8000 (Internal/Public)│ │
-│ └──────────────┬─────────────┘ │   │ └─────────────┬──────────────┘ │
-│                │               │   │               │                │
-└────────────────┼───────────────┘   └───────────────┼────────────────┘
-                 │                                   │
-                 ▼                                   ▼
-        ┌──────────────────────────────────────────────────┐
-        │        Railway Persistent Volume Mount           │
-        │               Path: /app/data                    │
-        │   ├── index/facts.db       (SQLite Fact Store)   │
-        │   ├── index/chroma/        (Dense Vector DB)     │
-        │   └── index/bm25.pkl       (Lexical Search)      │
-        └──────────────────────────────────────────────────┘
+              ┌──────────────┴──────────────┐
+              ▼                             ▼ (Direct API / Standalone)
+   [ Vercel Edge CDN ]           [ Hugging Face Space ]
+   mutual-fund-faq-assistant     deamonizer-mutual-fund-faq-assistant
+   (React 18 + Tailwind SPA)     (FastAPI + Gradio 5.x + ChromaDB)
+              │                             │
+              └──────────────┬──────────────┘
+                             ▼
+                 [ FastAPI RAG Engine ]
+                 ├── O(1) SQLite Fact Store (facts.db)
+                 ├── Dense ChromaDB Vector Index (MiniLM-L6-v2)
+                 ├── Lexical BM25 Search (bm25.pkl)
+                 └── Guardrails & Validator (5-Point Output Contract)
 ```
 
 ---

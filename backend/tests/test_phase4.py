@@ -134,6 +134,31 @@ class TestNumericGroundingEC_LLM_02:
         assert res.is_valid is False
         assert any("UNGROUNDED_NUMBERS" in r for r in res.violation_reasons)
 
+    def test_substring_numbers_rejected_prevent_leakage(self):
+        """EC-AUDIT-2.2: Substring matches like '0.7%' in '0.74%' or '1' in '100' are rejected."""
+        chunks = ["The expense ratio is 0.74% and minimum lumpsum is ₹100."]
+
+        # 0.7% should NOT pass against 0.74%
+        draft_ter = "The expense ratio is 0.7%."
+        is_grounded, ungrounded = verify_numeric_grounding(draft_ter, chunks)
+        assert is_grounded is False
+        assert any("0.7" in u for u in ungrounded)
+
+        # Stray 1 should NOT pass against 100
+        draft_stray = "The lock-in period is 1 year."
+        is_grounded, ungrounded = verify_numeric_grounding(draft_stray, chunks)
+        assert is_grounded is False
+        assert "1" in ungrounded
+
+    def test_normalized_float_equivalence_passes(self):
+        """EC-AUDIT-2.2: Number format normalization (0.80 == 0.8, 5,000 == 5000) passes."""
+        chunks = ["The expense ratio is 0.8% and minimum investment is ₹5,000."]
+        draft = "The expense ratio is 0.80% and minimum investment is 5000."
+
+        is_grounded, ungrounded = verify_numeric_grounding(draft, chunks)
+        assert is_grounded is True
+        assert ungrounded == []
+
 
 class TestURLStrippingAndAttachmentEC_LLM_03:
     """EC-LLM-03: Model-generated URLs stripped; exactly 1 canonical URL attached."""

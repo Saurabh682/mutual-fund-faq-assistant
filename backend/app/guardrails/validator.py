@@ -32,7 +32,7 @@ URL_PATTERN = re.compile(
 )
 
 # Regex to identify numbers and percentages (e.g., 100, 0.74%, 20, 1.25, 5,000)
-NUMBER_PATTERN = re.compile(r"\b\d+(?:,\d+)*(?:\.\d+)?%?\b")
+NUMBER_PATTERN = re.compile(r"\b\d+(?:,\d+)*(?:\.\d+)?%?")
 
 # Date footer validation pattern
 DATE_FOOTER_PATTERN = re.compile(r"^Last updated from sources: \d{4}-\d{2}-\d{2}$")
@@ -91,10 +91,36 @@ def strip_urls(text: str) -> str:
     return clean
 
 
+def extract_normalized_numbers(text: str) -> Tuple[set, set]:
+    """Extracts numbers from text and normalizes them for whole-number and float set matching.
+
+    Eliminates substring false-positives (e.g. '0.7%' passing against '0.74%',
+    or '1' passing against '100').
+    """
+    matches = NUMBER_PATTERN.findall(text)
+    float_vals: set = set()
+    raw_tokens: set = set()
+
+    for m in matches:
+        clean_m = m.strip().lower()
+        raw_tokens.add(clean_m)
+        raw_num = clean_m.replace(",", "").rstrip("%")
+        try:
+            val = float(raw_num)
+            float_vals.add(round(val, 6))
+        except ValueError:
+            pass
+
+    return float_vals, raw_tokens
+
+
 def verify_numeric_grounding(
     draft_text: str, context_chunks: List[Any]
 ) -> Tuple[bool, List[str]]:
     """Verifies that every number or percentage in draft_text exists in source context (EC-LLM-02).
+
+    Uses strict numeric set comparison to prevent substring leakage
+    (e.g., '0.7' will not pass against '0.74', and stray '1' will not pass against '100').
 
     Args:
         draft_text: Model generated text draft.
@@ -120,20 +146,30 @@ def verify_numeric_grounding(
     if not draft_numbers:
         return True, []
 
+    ctx_floats, ctx_raw = extract_normalized_numbers(context_str)
+
     ungrounded = []
     for num in draft_numbers:
-        # Normalize: check both exact match and raw numeric string (e.g. without commas)
-        raw_num = num.replace(",", "").strip("%")
-        has_match = (
-            (num in context_str)
-            or (raw_num in context_str)
-            or (f"{raw_num}%" in context_str)
-            or (f"₹{raw_num}" in context_str)
-            or (f"Rs. {raw_num}" in context_str)
-            or (f"Rs.{raw_num}" in context_str)
-        )
-        if not has_match:
-            ungrounded.append(num)
+        clean_num = num.strip().lower()
+        raw_num = clean_num.replace(",", "").rstrip("%")
+
+        # 1. Exact token match in context (e.g. '0.74%' or '15')
+        if clean_num in ctx_raw or raw_num in ctx_raw:
+            continue
+
+        # 2. Strict float equality (e.g. 0.80 == 0.8, 5000.0 == 5,000)
+        try:
+            val = round(float(raw_num), 6)
+            if val in ctx_floats:
+                continue
+        except ValueError:
+            pass
+
+        # 3. Currency and symbol prefix equivalents (e.g. ₹500 in context matches 500)
+        if f"₹{raw_num}" in ctx_raw or f"rs.{raw_num}" in ctx_raw or f"rs. {raw_num}" in ctx_raw:
+            continue
+
+        ungrounded.append(num)
 
     return len(ungrounded) == 0, ungrounded
 

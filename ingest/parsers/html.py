@@ -39,16 +39,39 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         if years:
             lock_in = f"{years} Years"
 
-    # Riskometer
+    # Riskometer - Longest label wins; prioritize pill/badge elements with whitespace separation
     riskometer = "Very High Risk"
-    # Search DOM for Riskometer label
-    for span in soup.find_all(["span", "div"]):
-        txt = span.get_text(strip=True)
-        if re.search(r"\b(Very High|High|Moderately High|Moderate|Moderately Low|Low)\s+Risk\b", txt, re.I):
-            m = re.search(r"\b(Very High|High|Moderately High|Moderate|Moderately Low|Low)\s+Risk\b", txt, re.I)
-            if m:
-                riskometer = m.group(0).title()
+    # Order patterns longest-label first so "High Risk" never shadows "Very High Risk" or "Moderately High Risk"
+    RISK_PATTERN = re.compile(
+        r"\b(Very High|Moderately High|Moderately Low|Moderate|High|Low)\s+Risk\b",
+        re.I,
+    )
+
+    # 1. First check dedicated pill / badge elements
+    found_risk = None
+    for el in soup.find_all(class_=re.compile(r"(?:pill|badge|riskometer)", re.I)):
+        txt = el.get_text(separator=" ", strip=True)
+        m = RISK_PATTERN.search(txt)
+        if m:
+            found_risk = m.group(0).title()
+            # If the element text is exclusively the risk label, stop immediately
+            if len(txt) <= 30:
                 break
+
+    # 2. Fallback to leaf text elements (<= 35 chars) to prevent matching full navbar menus
+    if not found_risk:
+        for tag in soup.find_all(["span", "div", "p"]):
+            if tag.find_all(["span", "div", "p"]):
+                continue  # skip non-leaf containers
+            txt = tag.get_text(separator=" ", strip=True)
+            if len(txt) <= 35:
+                m = RISK_PATTERN.search(txt)
+                if m:
+                    found_risk = m.group(0).title()
+                    break
+
+    if found_risk:
+        riskometer = found_risk
 
     # NAV & AUM
     nav = str(next_data.get("nav", ""))

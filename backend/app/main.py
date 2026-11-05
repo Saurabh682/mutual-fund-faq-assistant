@@ -11,8 +11,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration
-origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else [settings.CORS_ORIGINS]
+# CORS configuration - robust handling of list, comma-separated string, or wildcard
+if isinstance(settings.CORS_ORIGINS, list):
+    origins = settings.CORS_ORIGINS
+elif isinstance(settings.CORS_ORIGINS, str):
+    origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+else:
+    origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

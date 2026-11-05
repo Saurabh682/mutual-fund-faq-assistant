@@ -46,10 +46,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-hf-minilm-
 
-      - name: Install Dependencies
+      - name: Install Dependencies & Headless Browser
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
+          python -m playwright install --with-deps chromium
 
       - name: Execute Ingestion Pipeline (Scrape -> Clean -> Chunk -> Embed -> Store)
         run: |
@@ -85,7 +86,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/index/ data/raw/ data/ingestion_report.json
+          git add data/index/ data/documents/ data/corpus_manifest.yaml data/ingestion_report.json
           if git diff --staged --quiet; then
             echo "No corpus changes detected. Repository is already up to date."
           else

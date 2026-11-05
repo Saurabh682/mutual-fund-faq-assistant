@@ -68,6 +68,47 @@ class TestThreadCRUD:
         resp = client.get("/api/v1/threads/th_nonexistent999")
         assert resp.status_code == 404
 
+    def test_client_id_authorization_scoping(self):
+        """EC-AUDIT-2.4: Thread access, deletion, and message posting are strictly scoped to the owner."""
+        # Alice creates a thread
+        create_resp = client.post("/api/v1/threads", json={"client_id": "alice_sec_1", "title": "Alice Thread"})
+        assert create_resp.status_code == 201
+        thread_id = create_resp.json()["id"]
+
+        # Bob tries to access Alice's thread -> 403 Forbidden
+        bob_get = client.get(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "bob_intruder"})
+        assert bob_get.status_code == 403
+        assert "Access denied" in bob_get.json()["detail"]
+
+        # Bob tries to post to Alice's thread -> 403 Forbidden
+        bob_post = client.post(
+            f"/api/v1/threads/{thread_id}/messages",
+            json={"text": "Hello from Bob"},
+            headers={"X-Client-Id": "bob_intruder"},
+        )
+        assert bob_post.status_code == 403
+        assert "Access denied" in bob_post.json()["detail"]
+
+        # Bob tries to delete Alice's thread -> 403 Forbidden
+        bob_del = client.delete(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "bob_intruder"})
+        assert bob_del.status_code == 403
+        assert "Access denied" in bob_del.json()["detail"]
+
+        # Alice accesses, posts, and deletes successfully
+        alice_get = client.get(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "alice_sec_1"})
+        assert alice_get.status_code == 200
+        assert alice_get.json()["id"] == thread_id
+
+        alice_post = client.post(
+            f"/api/v1/threads/{thread_id}/messages",
+            json={"text": "What is the exit load for HDFC Mid-Cap?"},
+            headers={"X-Client-Id": "alice_sec_1"},
+        )
+        assert alice_post.status_code == 200
+
+        alice_del = client.delete(f"/api/v1/threads/{thread_id}", headers={"X-Client-Id": "alice_sec_1"})
+        assert alice_del.status_code == 204
+
 
 class TestSessionIsolationEC_SES_01:
     """EC-SES-01: Verifies that conversation context never leaks between parallel threads."""

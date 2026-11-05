@@ -336,7 +336,7 @@ OFFICIAL_DOCUMENTS: List[Dict[str, Any]] = [
                 "content": (
                     "Benchmark: Domestic Price of Physical Silver (based on LBMA Silver daily spot fixing). "
                     "Portfolio allocation: HDFC Silver ETF units 98.50%, Debt and Money Market instruments 1.50%. "
-                    "Riskometer: High Risk. Investors do not need a demat account to invest via SIP."
+                    "Riskometer: Very High Risk. Investors do not need a demat account to invest via SIP."
                 ),
             },
         ],

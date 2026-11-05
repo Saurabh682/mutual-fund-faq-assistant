@@ -60,20 +60,46 @@ def list_threads(
 
 
 @router.get("/{thread_id}", response_model=ThreadDTO)
-def get_thread(thread_id: str):
-    """Retrieves full conversation history for a given thread."""
+def get_thread(
+    thread_id: str,
+    client_id: Optional[str] = Query(None),
+    x_client_id: Optional[str] = Header(None, alias="X-Client-Id"),
+):
+    """Retrieves full conversation history for a given thread, scoped to the client."""
     thread = _store.get_thread(thread_id)
     if not thread:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Thread '{thread_id}' not found.",
         )
+    effective_cid = client_id or x_client_id
+    if effective_cid and thread.client_id not in (effective_cid, "default_client") and effective_cid != "default_client":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this conversation thread.",
+        )
     return thread
 
 
 @router.delete("/{thread_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_thread(thread_id: str):
-    """Deletes a thread and its messages."""
+def delete_thread(
+    thread_id: str,
+    client_id: Optional[str] = Query(None),
+    x_client_id: Optional[str] = Header(None, alias="X-Client-Id"),
+):
+    """Deletes a thread and its messages, scoped to the client."""
+    thread = _store.get_thread(thread_id)
+    if not thread:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Thread '{thread_id}' not found.",
+        )
+    effective_cid = client_id or x_client_id
+    if effective_cid and thread.client_id not in (effective_cid, "default_client") and effective_cid != "default_client":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this conversation thread.",
+        )
     deleted = _store.delete_thread(thread_id)
     if not deleted:
         raise HTTPException(
@@ -93,7 +119,7 @@ async def post_message(
 
     Enforces per-thread lock serialization, session scheme continuity,
     upstream PII/intent guardrails, structured facts, hybrid retrieval,
-    and output contract enforcement.
+    and output contract enforcement. Scoped to the owning client_id.
     """
     lock = await get_thread_lock(thread_id)
     async with lock:
@@ -106,6 +132,11 @@ async def post_message(
                 client_id=effective_cid,
                 title="Conversation",
                 thread_id=thread_id,
+            )
+        elif x_client_id and thread.client_id not in (x_client_id, "default_client") and x_client_id != "default_client":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied to this conversation thread.",
             )
 
         client_id = (x_client_id if isinstance(x_client_id, str) else None) or thread.client_id

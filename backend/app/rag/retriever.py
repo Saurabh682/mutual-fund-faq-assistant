@@ -199,7 +199,7 @@ class HybridRetriever:
 
         # 4. Confidence Threshold Check (EC-RET-02 & EVAL-P3.3)
         # When scheme_id is None (unindexed AMC or unrelated domain query), enforce strict
-        # dense cosine similarity >= self.tau (0.70) to prevent false retrieval.
+        # dense cosine similarity >= self.tau (0.58) to prevent false retrieval.
         # When scheme_id is provided, the query is bounded to a verified in-corpus scheme;
         # only reject if similarity is negligible (< 0.30) and lexical search finds no keyword match.
         if scheme_id is None:

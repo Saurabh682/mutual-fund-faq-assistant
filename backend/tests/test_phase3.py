@@ -103,6 +103,22 @@ class TestEVAL_P3_2_StructuredFactPath:
         assert res["last_updated"] == "2026-10-23"
         assert "Source: https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth" in res["rendered"]
 
+    def test_multi_field_query_deterministic_response(self):
+        """EC-AUDIT-4.1: Multi-field fact query yields compound deterministic fact card under 3 sentences."""
+        query = "What is the TER and exit load of HDFC Small Cap?"
+        res = lookup_fact(query)
+
+        assert res is not None
+        assert res["source"] == "fact_store"
+        assert res["field"] == "multi_field"
+        assert "ter_direct" in res["fields"]
+        assert "exit_load" in res["fields"]
+        assert "0.8%" in res["text"]
+        assert "1%" in res["text"]
+        assert "HDFC Small Cap Fund" in res["text"]
+        assert "Source: " in res["rendered"]
+        assert "Last updated from sources:" in res["rendered"]
+
 
 class TestEVAL_P3_1_CrossSchemeContamination:
     """EVAL-P3.1: 0% Cross-Scheme Contamination."""
