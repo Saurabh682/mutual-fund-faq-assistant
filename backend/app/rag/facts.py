@@ -240,6 +240,10 @@ def lookup_fact(
     entity_res = resolve_entities(query, session_scheme_id=session_scheme_id)
 
     if entity_res.is_ambiguous or not entity_res.scheme_id or not entity_res.field:
+        from app.rag.glossary import lookup_glossary
+        glossary_match = lookup_glossary(query)
+        if glossary_match:
+            return glossary_match
         from app.rag.procedures import lookup_procedure
         return lookup_procedure(query)
 

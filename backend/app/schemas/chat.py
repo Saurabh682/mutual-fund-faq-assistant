@@ -19,6 +19,7 @@ class MessageDTO(BaseModel):
     citation_url: Optional[str] = Field(None, description="Canonical single citation URL")
     last_updated: Optional[str] = Field(None, description="Document freshness timestamp (YYYY-MM-DD)")
     rendered: Optional[str] = Field(None, description="Complete rendered message with citation and footer")
+    suggested_followups: List[str] = Field(default_factory=list, description="Grounded follow-up query suggestions")
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     latency_ms: Optional[float] = Field(None, description="Processing latency in milliseconds")
 

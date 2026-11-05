@@ -226,7 +226,7 @@ class TestProceduralQueries:
 
         fact = lookup_fact(query)
         assert fact is not None, f"lookup_fact returned None for procedural query: {query}"
-        assert fact.get("source") == "procedural_store"
+        assert fact.get("source") in ("procedural_store", "glossary_store")
         assert "Source: " in fact.get("rendered", "")
         assert "Last updated from sources:" in fact.get("rendered", "")
 
@@ -250,5 +250,63 @@ class TestOfficialSourcingContract:
         assert "HDFC AMC Factsheet" in fact["rendered"]
         assert "118989" in fact["rendered"]  # AMFI Scheme Code for HDFC Mid-Cap
         assert "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund" in fact["rendered"]
+
+
+class TestEducationalGlossaryStore:
+    """EC-AUDIT-4.4: Verifies educational definitions for financial terms without advisory refusals."""
+
+    @pytest.mark.parametrize(
+        "query,expected_id,expected_citation",
+        [
+            ("What is Total Expense Ratio?", "ter", "amfiindia.com"),
+            ("What does TER mean?", "ter", "amfiindia.com"),
+            ("What is exit load?", "exit_load", "amfiindia.com"),
+            ("Explain exit load", "exit_load", "amfiindia.com"),
+            ("What does NAV mean?", "nav", "amfiindia.com"),
+            ("What is a Systematic Investment Plan?", "sip", "amfiindia.com"),
+            ("What is a Riskometer?", "riskometer", "sebi.gov.in"),
+            ("What is a benchmark in mutual funds?", "benchmark", "amfiindia.com"),
+            ("What is lock-in period?", "lock_in", "amfiindia.com"),
+            ("What is AUM?", "aum", "amfiindia.com"),
+        ],
+    )
+    def test_glossary_definitions(self, query: str, expected_id: str, expected_citation: str):
+        from app.rag.facts import lookup_fact
+        from app.guardrails.validator import split_sentences
+
+        res = lookup_fact(query)
+        assert res is not None, f"Glossary lookup failed for '{query}'"
+        assert res.get("source") == "glossary_store"
+        assert res.get("glossary_id") == expected_id
+        assert expected_citation in res.get("citation_url", "")
+        assert "Last updated from sources:" in res.get("rendered", "")
+        # Strict 3-sentence contract
+        sentences = split_sentences(res["text"].split("\n\n|")[0])
+        assert len(sentences) <= 3, f"Definition exceeded 3 sentences: {len(sentences)}"
+
+
+class TestBenignNonAdvisoryQueries:
+    """EC-AUDIT-2.5: Verifies that benign 'trick' queries are not falsely classified as ADVISORY refusals."""
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "How do I enter a SIP amount?",
+            "Can you explain what a mutual fund benchmark is?",
+            "How does riskometer work?",
+            "What does SEBI stand for?",
+            "Explain exit load",
+            "What is a Systematic Investment Plan?",
+            "How to download capital gains statement",
+        ],
+    )
+    def test_benign_trick_queries_not_refused_as_advisory(self, query: str):
+        from app.guardrails.intent import classify_intent
+
+        res = classify_intent(query)
+        assert res.intent != "ADVISORY", f"Benign query '{query}' was falsely classified as ADVISORY"
+        assert res.intent != "RECOMMENDATION", f"Benign query '{query}' was falsely classified as RECOMMENDATION"
+        assert res.intent != "COMPARISON", f"Benign query '{query}' was falsely classified as COMPARISON"
+
 
 

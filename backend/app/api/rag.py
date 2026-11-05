@@ -15,8 +15,14 @@ from app.guardrails.refusal import (
     get_default_corpus_date,
 )
 from app.guardrails.validator import split_sentences
-from app.rag.entities import get_disambiguation_response, resolve_entities
+from app.rag.entities import (
+    get_disambiguation_response,
+    get_external_amc_response,
+    get_unsupported_plan_response,
+    resolve_entities,
+)
 from app.rag.facts import lookup_fact
+from app.rag.followups import generate_followup_suggestions
 from app.rag.retriever import HybridRetriever, get_not_found_response
 from app.rag.synthesizer import ConstrainedSynthesizer
 from app.schemas.rag import RetrievalQueryRequest, RetrievalQueryResponse
@@ -105,26 +111,66 @@ def retrieve_query(request: RetrievalQueryRequest):
     # 3. Entity Resolution
     entity_res = resolve_entities(request.query, session_scheme_id=request.session_scheme_id)
 
-    # External AMC check (strictly out-of-corpus)
-    if entity_res.is_external_amc:
-        not_found = get_not_found_response()
+    # Unsupported Plan check (Regular Plan, IDCW)
+    if entity_res.is_unsupported_plan:
+        plan_resp = get_unsupported_plan_response(request.query)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return RetrievalQueryResponse(
             query=request.query,
-            resolution_type="not_found",
+            resolution_type="unsupported_plan",
+            scheme_id=entity_res.scheme_id,
+            scheme_name=entity_res.scheme_name,
+            field=entity_res.field,
+            text=plan_resp["text"],
+            citation_url=plan_resp["citation_url"],
+            last_updated=plan_resp["last_updated"],
+            rendered=plan_resp["rendered"],
+            chunks=[],
+            latency_ms=elapsed_ms,
+        )
+
+    # External AMC check (strictly out-of-corpus)
+    if entity_res.is_external_amc:
+        external_resp = get_external_amc_response(request.query)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        return RetrievalQueryResponse(
+            query=request.query,
+            resolution_type="external_amc",
             scheme_id=None,
             scheme_name=None,
             field=entity_res.field,
-            text=not_found["text"],
-            citation_url=not_found["citation_url"],
-            last_updated=not_found["last_updated"],
-            rendered=not_found["rendered"],
+            text=external_resp["text"],
+            citation_url=external_resp["citation_url"],
+            last_updated=external_resp["last_updated"],
+            rendered=external_resp["rendered"],
             chunks=[],
             latency_ms=elapsed_ms,
         )
 
     # Ambiguity check (EC-ENT-01)
     if entity_res.is_ambiguous:
+        from app.rag.glossary import lookup_glossary
+        glossary_match = lookup_glossary(request.query)
+        if glossary_match:
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(glossary_match["text"])
+            return SynthesisQueryResponse(
+                query=request.query,
+                resolution_type="glossary",
+                scheme_id=None,
+                scheme_name=None,
+                field=glossary_match.get("field"),
+                text=glossary_match["text"],
+                sentence_count=len(sentences),
+                citation_url=glossary_match["citation_url"],
+                last_updated=glossary_match["last_updated"],
+                rendered=glossary_match["rendered"],
+                repaired=False,
+                repair_count=0,
+                chunks=[],
+                latency_ms=elapsed_ms,
+            )
+
         clarification = get_disambiguation_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return RetrievalQueryResponse(
@@ -256,6 +302,7 @@ def ask_query(request: SynthesisQueryRequest):
         refusal = generate_refusal(intent_res.intent)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(refusal["text"])
+        followups = generate_followup_suggestions(intent=intent_res.intent, is_refusal=True)
         return SynthesisQueryResponse(
             query=request.query,
             resolution_type="refusal",
@@ -271,6 +318,7 @@ def ask_query(request: SynthesisQueryRequest):
             repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     # 2b. Help / Capabilities Stage
@@ -278,6 +326,7 @@ def ask_query(request: SynthesisQueryRequest):
         help_resp = generate_help_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(help_resp["text"])
+        followups = generate_followup_suggestions(intent=intent_res.intent)
         return SynthesisQueryResponse(
             query=request.query,
             resolution_type="help",
@@ -293,37 +342,99 @@ def ask_query(request: SynthesisQueryRequest):
             repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     # 3. Entity Resolution
     entity_res = resolve_entities(request.query, session_scheme_id=request.session_scheme_id)
 
-    # External AMC check (strictly out-of-corpus)
-    if entity_res.is_external_amc:
-        not_found = get_not_found_response()
+    # Unsupported Plan check (Regular Plan, IDCW)
+    if entity_res.is_unsupported_plan:
+        plan_resp = get_unsupported_plan_response(request.query)
         elapsed_ms = (time.perf_counter() - t0) * 1000
-        sentences = split_sentences(not_found["text"])
+        sentences = split_sentences(plan_resp["text"])
+        followups = generate_followup_suggestions(
+            scheme_id=entity_res.scheme_id,
+            field=entity_res.field,
+            intent="FACTUAL",
+            is_refusal=True,
+        )
         return SynthesisQueryResponse(
             query=request.query,
-            resolution_type="not_found",
-            scheme_id=None,
-            scheme_name=None,
+            resolution_type="unsupported_plan",
+            scheme_id=entity_res.scheme_id,
+            scheme_name=entity_res.scheme_name,
             field=entity_res.field,
-            text=not_found["text"],
+            text=plan_resp["text"],
             sentence_count=len(sentences),
-            citation_url=not_found["citation_url"],
-            last_updated=not_found["last_updated"],
-            rendered=not_found["rendered"],
+            citation_url=plan_resp["citation_url"],
+            last_updated=plan_resp["last_updated"],
+            rendered=plan_resp["rendered"],
             repaired=False,
             repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
+            suggested_followups=followups,
+        )
+
+    # External AMC check (strictly out-of-corpus)
+    if entity_res.is_external_amc:
+        external_resp = get_external_amc_response(request.query)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(external_resp["text"])
+        followups = generate_followup_suggestions(
+            scheme_id=None,
+            field=entity_res.field,
+            intent="FACTUAL",
+            is_refusal=True,
+        )
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="external_amc",
+            scheme_id=None,
+            scheme_name=None,
+            field=entity_res.field,
+            text=external_resp["text"],
+            sentence_count=len(sentences),
+            citation_url=external_resp["citation_url"],
+            last_updated=external_resp["last_updated"],
+            rendered=external_resp["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     if entity_res.is_ambiguous:
+        from app.rag.glossary import lookup_glossary
+        glossary_match = lookup_glossary(request.query)
+        if glossary_match:
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(glossary_match["text"])
+            followups = generate_followup_suggestions(field=glossary_match.get("field"))
+            return SynthesisQueryResponse(
+                query=request.query,
+                resolution_type="glossary",
+                scheme_id=None,
+                scheme_name=None,
+                field=glossary_match.get("field"),
+                text=glossary_match["text"],
+                sentence_count=len(sentences),
+                citation_url=glossary_match["citation_url"],
+                last_updated=glossary_match["last_updated"],
+                rendered=glossary_match["rendered"],
+                repaired=False,
+                repair_count=0,
+                chunks=[],
+                latency_ms=elapsed_ms,
+                suggested_followups=followups,
+            )
+
         clarification = get_disambiguation_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(clarification["text"])
+        followups = generate_followup_suggestions(intent="HELP")
         return SynthesisQueryResponse(
             query=request.query,
             resolution_type="clarification",
@@ -339,6 +450,7 @@ def ask_query(request: SynthesisQueryRequest):
             repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     # 4. Structured Fact Store Fast Path
@@ -346,6 +458,11 @@ def ask_query(request: SynthesisQueryRequest):
     if fact_resp:
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(fact_resp["text"])
+        followups = generate_followup_suggestions(
+            scheme_id=fact_resp.get("scheme_id"),
+            field=fact_resp.get("field"),
+            intent="FACTUAL",
+        )
         return SynthesisQueryResponse(
             query=request.query,
             resolution_type="fact_store",
@@ -361,6 +478,7 @@ def ask_query(request: SynthesisQueryRequest):
             repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     # 5. Hybrid Retrieval
@@ -374,6 +492,11 @@ def ask_query(request: SynthesisQueryRequest):
         not_found = get_not_found_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(not_found["text"])
+        followups = generate_followup_suggestions(
+            scheme_id=entity_res.scheme_id,
+            field=entity_res.field,
+            is_refusal=True,
+        )
         return SynthesisQueryResponse(
             query=request.query,
             resolution_type="not_found",
@@ -389,6 +512,7 @@ def ask_query(request: SynthesisQueryRequest):
             repair_count=0,
             chunks=[],
             latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     # 6. Constrained LLM Synthesis with Output Contract Validation
@@ -412,6 +536,12 @@ def ask_query(request: SynthesisQueryRequest):
         for c in retrieval_res.chunks
     ]
 
+    followups = generate_followup_suggestions(
+        scheme_id=entity_res.scheme_id,
+        field=entity_res.field,
+        intent="FACTUAL",
+    )
+
     return SynthesisQueryResponse(
         query=request.query,
         resolution_type="llm_synthesis",
@@ -427,4 +557,5 @@ def ask_query(request: SynthesisQueryRequest):
         repair_count=syn_res.repair_count,
         chunks=chunk_details,
         latency_ms=elapsed_ms,
+        suggested_followups=followups,
     )

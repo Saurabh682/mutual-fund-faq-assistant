@@ -255,6 +255,7 @@ class EntityResolutionResult:
     fields: List[str] = dc_field(default_factory=list)
     is_ambiguous: bool = False
     is_external_amc: bool = False
+    is_unsupported_plan: bool = False
     matched_scheme_alias: Optional[str] = None
     matched_field_alias: Optional[str] = None
 
@@ -322,10 +323,17 @@ def resolve_entities(
         detected_scheme_id = None
         detected_scheme_alias = None
 
+    # Check Unsupported Plan / Option (Regular Plan or IDCW/Dividend) (EC-AUDIT-4.5)
+    is_unsupported_plan = bool(
+        re.search(r"\b(?:regular\s+plan|regular\s+growth|regular\s+scheme)\b", clean_query)
+        or re.search(r"\b(?:idcw|dividend\s+plan|dividend\s+option|dividend\s+payout)\b", clean_query)
+    )
+
     is_ambiguous = (
         detected_scheme_id is None
         and detected_field is not None
         and not has_external_amc
+        and not is_unsupported_plan
     )
 
     scheme_name = None
@@ -343,9 +351,49 @@ def resolve_entities(
         fields=detected_fields,
         is_ambiguous=is_ambiguous,
         is_external_amc=has_external_amc,
+        is_unsupported_plan=is_unsupported_plan,
         matched_scheme_alias=detected_scheme_alias,
         matched_field_alias=detected_field_alias,
     )
+
+
+def get_unsupported_plan_response() -> Dict[str, Any]:
+    """Returns compliant response when user queries Regular plans or IDCW options (EC-AUDIT-4.5)."""
+    doc_date = get_default_corpus_date()
+    citation = "https://www.hdfcfund.com"
+    text = (
+        "This assistant strictly indexes Direct Plan (Growth Option) schemes. "
+        "Regular plans and IDCW (Income Distribution cum Capital Withdrawal) options are not part of our verified records. "
+        "Please query Direct Plan (Growth Option) metrics across our 5 supported HDFC funds."
+    )
+    rendered = f"{text}\n\nSource: {citation}\nLast updated from sources: {doc_date}"
+    return {
+        "text": text,
+        "citation_url": citation,
+        "last_updated": doc_date,
+        "rendered": rendered,
+        "is_unsupported_plan": True,
+    }
+
+
+def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, Any]:
+    """Returns compliant response when user asks about a non-HDFC AMC (EC-AUDIT-4.5)."""
+    doc_date = get_default_corpus_date()
+    citation = "https://www.amfiindia.com/investor-corner/knowledge-center"
+    amc_label = f"'{detected_amc.title()}'" if detected_amc else "external fund houses"
+    text = (
+        f"I can only provide official records for 5 selected HDFC Mutual Fund schemes. "
+        f"Information regarding {amc_label} or external fund houses is not available in our verified corpus. "
+        f"You can explore comprehensive scheme information on the official AMFI portal."
+    )
+    rendered = f"{text}\n\nSource: {citation}\nLast updated from sources: {doc_date}"
+    return {
+        "text": text,
+        "citation_url": citation,
+        "last_updated": doc_date,
+        "rendered": rendered,
+        "is_external_amc": True,
+    }
 
 
 def get_disambiguation_response(last_updated: Optional[str] = None) -> Dict[str, Any]:

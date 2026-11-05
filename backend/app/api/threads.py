@@ -18,8 +18,14 @@ from app.guardrails.refusal import (
     get_default_corpus_date,
 )
 from app.guardrails.validator import split_sentences
-from app.rag.entities import get_disambiguation_response, resolve_entities
+from app.rag.entities import (
+    get_disambiguation_response,
+    get_external_amc_response,
+    get_unsupported_plan_response,
+    resolve_entities,
+)
 from app.rag.facts import lookup_fact
+from app.rag.followups import generate_followup_suggestions
 from app.rag.retriever import HybridRetriever, get_not_found_response
 from app.rag.synthesizer import ConstrainedSynthesizer
 from app.schemas.chat import (
@@ -262,11 +268,117 @@ async def post_message(
             user_query, session_scheme_id=thread.last_scheme_id
         )
 
-        # Ambiguity Handling (EC-ENT-01)
+        # Check Unsupported Plans (Regular plans / IDCW options) (EC-AUDIT-4.5)
+        if entity_res.is_unsupported_plan:
+            plan_resp = get_unsupported_plan_response()
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(plan_resp["text"])
+            followups = generate_followup_suggestions(resolution_type="unsupported_plan")
+
+            asst_msg = MessageDTO(
+                id=f"msg_{uuid.uuid4().hex[:12]}",
+                role="assistant",
+                type="unsupported_plan",
+                text=plan_resp["text"],
+                sentence_count=len(sentences),
+                citation_url=plan_resp["citation_url"],
+                last_updated=plan_resp["last_updated"],
+                rendered=plan_resp["rendered"],
+                suggested_followups=followups,
+                latency_ms=elapsed_ms,
+            )
+            _store.append_message(thread_id, asst_msg)
+
+            record_audit_entry(
+                thread_id=thread_id,
+                client_id=client_id,
+                redacted_query=user_query,
+                resolution_type="unsupported_plan",
+                intent="UNSUPPORTED_PLAN",
+                field=entity_res.field,
+                citation_url=plan_resp["citation_url"],
+                sentence_count=len(sentences),
+                latency_ms=elapsed_ms,
+            )
+            return asst_msg
+
+        # Check External AMC (EC-RET-02 & EC-AUDIT-4.5)
+        if entity_res.is_external_amc:
+            amc_resp = get_external_amc_response()
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(amc_resp["text"])
+            followups = generate_followup_suggestions(resolution_type="out_of_scope")
+
+            asst_msg = MessageDTO(
+                id=f"msg_{uuid.uuid4().hex[:12]}",
+                role="assistant",
+                type="external_amc",
+                text=amc_resp["text"],
+                sentence_count=len(sentences),
+                citation_url=amc_resp["citation_url"],
+                last_updated=amc_resp["last_updated"],
+                rendered=amc_resp["rendered"],
+                suggested_followups=followups,
+                latency_ms=elapsed_ms,
+            )
+            _store.append_message(thread_id, asst_msg)
+
+            record_audit_entry(
+                thread_id=thread_id,
+                client_id=client_id,
+                redacted_query=user_query,
+                resolution_type="external_amc",
+                intent="EXTERNAL_AMC",
+                field=entity_res.field,
+                citation_url=amc_resp["citation_url"],
+                sentence_count=len(sentences),
+                latency_ms=elapsed_ms,
+            )
+            return asst_msg
+
+        # Ambiguity & Educational Glossary Handling (EC-ENT-01 & EC-AUDIT-4.4)
         if entity_res.is_ambiguous:
+            from app.rag.glossary import lookup_glossary
+            glossary_match = lookup_glossary(user_query)
+            if glossary_match:
+                elapsed_ms = (time.perf_counter() - t0) * 1000
+                sentences = split_sentences(glossary_match["text"])
+                followups = generate_followup_suggestions(
+                    resolution_type="glossary",
+                    glossary_id=glossary_match.get("glossary_id"),
+                )
+
+                asst_msg = MessageDTO(
+                    id=f"msg_{uuid.uuid4().hex[:12]}",
+                    role="assistant",
+                    type="glossary",
+                    text=glossary_match["text"],
+                    sentence_count=len(sentences),
+                    citation_url=glossary_match["citation_url"],
+                    last_updated=glossary_match["last_updated"],
+                    rendered=glossary_match["rendered"],
+                    suggested_followups=followups,
+                    latency_ms=elapsed_ms,
+                )
+                _store.append_message(thread_id, asst_msg)
+
+                record_audit_entry(
+                    thread_id=thread_id,
+                    client_id=client_id,
+                    redacted_query=user_query,
+                    resolution_type="glossary",
+                    intent="GLOSSARY",
+                    field=glossary_match.get("field"),
+                    citation_url=glossary_match["citation_url"],
+                    sentence_count=len(sentences),
+                    latency_ms=elapsed_ms,
+                )
+                return asst_msg
+
             clarification = get_disambiguation_response()
             elapsed_ms = (time.perf_counter() - t0) * 1000
             sentences = split_sentences(clarification["text"])
+            followups = generate_followup_suggestions(resolution_type="clarification")
 
             asst_msg = MessageDTO(
                 id=f"msg_{uuid.uuid4().hex[:12]}",
@@ -277,6 +389,7 @@ async def post_message(
                 citation_url=clarification["citation_url"],
                 last_updated=clarification["last_updated"],
                 rendered=clarification["rendered"],
+                suggested_followups=followups,
                 latency_ms=elapsed_ms,
             )
             _store.append_message(thread_id, asst_msg)
@@ -306,15 +419,23 @@ async def post_message(
             if matched_scheme:
                 _store.update_thread_scheme(thread_id, matched_scheme)
 
+            followups = generate_followup_suggestions(
+                resolution_type=fact_resp.get("source", "fact_store"),
+                scheme_id=matched_scheme,
+                field=fact_resp.get("field"),
+                glossary_id=fact_resp.get("glossary_id"),
+            )
+
             asst_msg = MessageDTO(
                 id=f"msg_{uuid.uuid4().hex[:12]}",
                 role="assistant",
-                type="fact_store",
+                type=fact_resp.get("source", "fact_store"),
                 text=fact_resp["text"],
                 sentence_count=len(sentences),
                 citation_url=fact_resp["citation_url"],
                 last_updated=fact_resp["last_updated"],
                 rendered=fact_resp["rendered"],
+                suggested_followups=followups,
                 latency_ms=elapsed_ms,
             )
             _store.append_message(thread_id, asst_msg)
@@ -344,6 +465,7 @@ async def post_message(
             not_found = get_not_found_response()
             elapsed_ms = (time.perf_counter() - t0) * 1000
             sentences = split_sentences(not_found["text"])
+            followups = generate_followup_suggestions(resolution_type="not_found")
 
             asst_msg = MessageDTO(
                 id=f"msg_{uuid.uuid4().hex[:12]}",
@@ -354,6 +476,7 @@ async def post_message(
                 citation_url=not_found["citation_url"],
                 last_updated=not_found["last_updated"],
                 rendered=not_found["rendered"],
+                suggested_followups=followups,
                 latency_ms=elapsed_ms,
             )
             _store.append_message(thread_id, asst_msg)
@@ -384,6 +507,12 @@ async def post_message(
         )
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
+        followups = generate_followup_suggestions(
+            resolution_type="llm_synthesis",
+            scheme_id=entity_res.scheme_id,
+            field=entity_res.field,
+        )
+
         asst_msg = MessageDTO(
             id=f"msg_{uuid.uuid4().hex[:12]}",
             role="assistant",
@@ -393,6 +522,7 @@ async def post_message(
             citation_url=syn_res.citation_url,
             last_updated=syn_res.last_updated,
             rendered=syn_res.rendered,
+            suggested_followups=followups,
             latency_ms=elapsed_ms,
         )
         _store.append_message(thread_id, asst_msg)
@@ -403,12 +533,12 @@ async def post_message(
             client_id=client_id,
             redacted_query=user_query,
             resolution_type="llm_synthesis",
-            intent="PROCEDURAL_OR_FACTUAL",
+            intent="FACTUAL",
             scheme_id=entity_res.scheme_id,
             field=entity_res.field,
             retrieved_chunk_ids=retrieved_ids,
-            sentence_count=syn_res.sentence_count,
             citation_url=syn_res.citation_url,
+            sentence_count=syn_res.sentence_count,
             latency_ms=elapsed_ms,
             repaired=syn_res.repaired,
             repair_count=syn_res.repair_count,

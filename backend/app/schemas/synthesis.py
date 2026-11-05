@@ -32,4 +32,5 @@ class SynthesisQueryResponse(BaseModel):
     repaired: bool = False
     repair_count: int = 0
     latency_ms: float
+    suggested_followups: List[str] = Field(default_factory=list)
     chunks: List[ChunkDetail] = Field(default_factory=list)

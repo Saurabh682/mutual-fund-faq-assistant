@@ -9,12 +9,16 @@ export interface Message {
     | 'refusal'
     | 'clarification'
     | 'not_found'
+    | 'glossary'
+    | 'unsupported_plan'
+    | 'external_amc'
     | 'pii_block';
   text: string;
   sentence_count?: number;
   citation_url?: string;
   last_updated?: string;
   rendered?: string;
+  suggested_followups?: string[];
   timestamp: string;
   latency_ms?: number;
 }

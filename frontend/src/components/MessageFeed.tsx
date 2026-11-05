@@ -4,7 +4,7 @@ import { MessageBubble } from './MessageBubble';
 import { StarterQuestions } from './StarterQuestions';
 
 export const MessageFeed: React.FC = () => {
-  const { activeThread, isSending, isLoadingMessages } = useChatStore();
+  const { activeThread, isSending, isLoadingMessages, sendUserMessage } = useChatStore();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,7 +31,11 @@ export const MessageFeed: React.FC = () => {
           <StarterQuestions />
         ) : (
           messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              onSelectSuggestion={(q) => sendUserMessage(q)}
+            />
           ))
         )}
 

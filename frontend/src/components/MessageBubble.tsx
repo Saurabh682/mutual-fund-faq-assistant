@@ -13,9 +13,10 @@ import type { Message } from '../types/chat';
 
 interface Props {
   message: Message;
+  onSelectSuggestion?: (query: string) => void;
 }
 
-export const MessageBubble: React.FC<Props> = ({ message }) => {
+export const MessageBubble: React.FC<Props> = ({ message, onSelectSuggestion }) => {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'user';
 
@@ -236,9 +237,16 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
 
   // 4. Assistant Factual / RAG Answer Bubble
   const isFactStore = message.type === 'fact_store';
-  const badgeLabel = isFactStore
-    ? 'Facts Grounded: Official Fact Store'
-    : 'Facts Grounded: Official AMC & AMFI Records';
+  let badgeLabel = 'Facts Grounded: Official AMC & AMFI Records';
+  if (isFactStore) {
+    badgeLabel = 'Facts Grounded: Official Fact Store';
+  } else if (message.type === 'glossary') {
+    badgeLabel = 'AMFI Investor Education: Concept Glossary';
+  } else if (message.type === 'unsupported_plan') {
+    badgeLabel = 'Plan Scope: Direct-Growth Mandate';
+  } else if (message.type === 'external_amc') {
+    badgeLabel = 'Fund Scope: 5 Official HDFC Schemes';
+  }
 
   return (
     <div className="flex justify-start items-start gap-3 mb-4">
@@ -295,6 +303,27 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
               </button>
             </div>
           </div>
+
+          {/* Grounded Follow-up Suggestion Chips (EC-AUDIT-4.6) */}
+          {message.suggested_followups && message.suggested_followups.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-[#28323E]/80">
+              <span className="text-[11px] text-slate-400 flex items-center gap-1.5 mb-2 font-medium">
+                <Sparkles className="w-3 h-3 text-[#00D09C]" />
+                Suggested Follow-ups:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {message.suggested_followups.map((chip, chipIdx) => (
+                  <button
+                    key={chipIdx}
+                    onClick={() => onSelectSuggestion?.(chip)}
+                    className="text-xs bg-[#12161A] hover:bg-[#00D09C]/15 text-slate-300 hover:text-[#00D09C] border border-[#28323E] hover:border-[#00D09C]/40 px-3 py-1.5 rounded-full transition cursor-pointer text-left shadow-xs"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Freshness Footer Invariant */}
