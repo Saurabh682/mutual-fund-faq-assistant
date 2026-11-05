@@ -199,3 +199,32 @@ class TestHelpQueries:
         assert res.intent == IntentType.HELP.value, f"Query '{query}' did not resolve to HELP intent (got {res.intent})"
         assert res.is_refusal is False
 
+
+class TestProceduralQueries:
+    """Verifies that procedural queries resolve to PROCEDURAL intent and return verified steps."""
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "How do I download my Capital Gains statement on Groww?",
+            "how to download capital gains statement",
+            "Where can I find my capital gains report on Groww?",
+            "How do I redeem my mutual fund units on Groww?",
+            "How to start a SIP on Groww?",
+            "What documents are required for KYC?",
+        ],
+    )
+    def test_procedural_intent_and_lookup(self, query: str):
+        from app.rag.facts import lookup_fact
+
+        res = classify_intent(query)
+        assert res.intent == IntentType.PROCEDURAL.value, f"Query '{query}' intent: {res.intent}"
+        assert res.is_refusal is False
+
+        fact = lookup_fact(query)
+        assert fact is not None, f"lookup_fact returned None for procedural query: {query}"
+        assert fact.get("source") == "procedural_store"
+        assert "Source: " in fact.get("rendered", "")
+        assert "Last updated from sources:" in fact.get("rendered", "")
+
+

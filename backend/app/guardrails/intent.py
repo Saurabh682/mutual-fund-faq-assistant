@@ -115,9 +115,10 @@ TAX_LEGAL_PATTERNS = [
 
 # 5. Procedural Query Patterns
 PROCEDURAL_PATTERNS = [
-    re.compile(r"\bhow\s+(?:to|can\s+i|do\s+i)\s+(?:start\s+(?:a\s+)?sip|invest|redeem|withdraw|switch|change|update|complete|apply)\b", re.I),
-    re.compile(r"\b(?:step\s+by\s+step|process\s+to|procedure\s+(?:for|to)|kyc\s+process|documents\s+required)\b", re.I),
-    re.compile(r"\bhow\s+can\s+i\s+(?:invest|apply|register|open\s+an\s+account|redeem)\b", re.I),
+    re.compile(r"\bhow\s+(?:to|can\s+i|do\s+i)\s+(?:start\s+(?:a\s+)?sip|invest|redeem|withdraw|switch|change|update|complete|apply|download|get|obtain)\b", re.I),
+    re.compile(r"\b(?:step\s+by\s+step|process\s+to|procedure\s+(?:for|to)|kyc\s+process|kyc\s+documents|kyc\s+verification|documents\s+required)\b", re.I),
+    re.compile(r"\bhow\s+can\s+i\s+(?:invest|apply|register|open\s+an\s+account|redeem|download)\b", re.I),
+    re.compile(r"\b(?:capital\s+gains?|tax\s+statement|p&l\s+statement|account\s+statement|kyc)\b", re.I),
 ]
 
 # 6. Help / Capabilities Query Patterns

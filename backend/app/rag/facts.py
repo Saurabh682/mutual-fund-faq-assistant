@@ -166,18 +166,21 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
 def lookup_fact(
     query: str, session_scheme_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
-    """End-to-end fact path lookup.
+    """End-to-end fact and procedural path lookup.
 
     Resolves scheme and field entities from query, queries facts.db, and formats
-    a 100% deterministic response if hit. Returns None if query requires RAG retrieval.
+    a 100% deterministic response if hit. If not a specific fund metric, checks
+    standard mutual fund and Groww procedures (e.g. Capital Gains, Redemption).
     """
     entity_res = resolve_entities(query, session_scheme_id=session_scheme_id)
 
     if entity_res.is_ambiguous or not entity_res.scheme_id or not entity_res.field:
-        return None
+        from app.rag.procedures import lookup_procedure
+        return lookup_procedure(query)
 
     fact_row = get_fact_from_db(entity_res.scheme_id, entity_res.field)
     if fact_row:
         return format_fact_response(fact_row)
 
-    return None
+    from app.rag.procedures import lookup_procedure
+    return lookup_procedure(query)
