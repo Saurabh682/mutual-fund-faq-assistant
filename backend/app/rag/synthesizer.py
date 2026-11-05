@@ -59,28 +59,38 @@ class ConstrainedSynthesizer:
         self.client: Optional[Groq] = None
         if self.api_key:
             try:
-                self.client = Groq(api_key=self.api_key)
+                self.client = Groq(api_key=self.api_key, timeout=3.0)
             except Exception as e:
                 logger.warning(f"Could not initialize Groq client: {e}")
 
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
-        """Executes a single constrained completion call to Groq with rate-limit protection."""
+        """Executes a single constrained completion call to Groq with rate-limit protection and reasoning_effort: low."""
         if not self.client:
             raise RuntimeError("Groq client not configured or API key missing.")
 
-        # openai/gpt-oss-120b produces ~80-140 reasoning tokens before generating content,
-        # so budget 260 tokens to accommodate reasoning + <= 3 sentence answer
-        token_ceiling = 260 if ("oss" in self.model or "120b" in self.model) else 120
+        token_ceiling = 200 if ("oss" in self.model or "120b" in self.model) else 120
 
-        resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
+        call_kwargs = {
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0.0,
-            max_tokens=token_ceiling,
-        )
+            "temperature": 0.0,
+            "max_tokens": token_ceiling,
+        }
+        if "oss" in self.model or "120b" in self.model:
+            call_kwargs["extra_body"] = {"reasoning_effort": "low"}
+
+        try:
+            resp = self.client.chat.completions.create(**call_kwargs)
+        except Exception as e:
+            if "reasoning_effort" in str(e):
+                call_kwargs.pop("extra_body", None)
+                resp = self.client.chat.completions.create(**call_kwargs)
+            else:
+                raise e
+
         content = resp.choices[0].message.content or ""
         return content.strip()
 

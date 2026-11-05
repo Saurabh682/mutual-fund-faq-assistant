@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeftRight, ChevronDown, ExternalLink, FileText, HelpCircle, Menu, Trash2 } from 'lucide-react';
+import { ChevronDown, ExternalLink, FileText, HelpCircle, Menu, Trash2 } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
 
 interface Props {
@@ -57,11 +57,12 @@ export const Header: React.FC<Props> = ({ onOpenCompare }) => {
         <button
           onClick={onOpenCompare}
           className="flex items-center gap-1.5 text-xs font-semibold text-[#00D09C] bg-[#00D09C]/10 hover:bg-[#00D09C]/20 border border-[#00D09C]/40 px-3 py-1.5 rounded-lg transition shadow-sm hover:shadow-[0_0_12px_rgba(0,208,156,0.25)] cursor-pointer"
+          title="Inspect statutory factsheet parameters for each scheme"
         >
-          <ArrowLeftRight className="w-3.5 h-3.5 stroke-[2.2]" />
-          <span>Compare Schemes</span>
+          <FileText className="w-3.5 h-3.5 stroke-[2.2]" />
+          <span>Scheme Fact Sheet</span>
           <span className="px-1.5 py-0.2 text-[9px] font-mono bg-[#00D09C]/20 text-[#00D09C] rounded border border-[#00D09C]/30 uppercase">
-            Diff
+            Facts
           </span>
         </button>
 

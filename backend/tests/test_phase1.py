@@ -71,6 +71,32 @@ def test_riskometer_hand_verified_against_amc_factsheets():
             f"Scheme {sid} riskometer mismatch: expected {expected_val}, got {results.get(sid)}"
         )
 
+def test_ground_truth_yaml_matches_facts_db():
+    """Verifies that facts.db matches hand-audited data/ground_truth.yaml from official AMC factsheets."""
+    gt_path = os.path.join(BASE_DIR, "data", "ground_truth.yaml")
+    assert os.path.exists(gt_path), "Missing data/ground_truth.yaml"
+    with open(gt_path, "r", encoding="utf-8") as f:
+        gt = yaml.safe_load(f)
+
+    conn = sqlite3.connect(FACTS_DB_PATH)
+    cursor = conn.cursor()
+
+    for sid, expected in gt["schemes"].items():
+        cursor.execute("SELECT field, value FROM facts WHERE scheme_id = ?", (sid,))
+        db_facts = dict(cursor.fetchall())
+        # Normalize TER: e.g. 0.8% and 0.80%
+        ter_db = db_facts.get("ter_direct", "").rstrip("%")
+        ter_gt = expected["ter_direct"].rstrip("%")
+        assert float(ter_db) == float(ter_gt), f"{sid} TER mismatch: DB={ter_db} vs GT={ter_gt}"
+        assert db_facts.get("min_sip") == expected["min_sip"]
+        assert db_facts.get("riskometer") == expected["riskometer"]
+        if "fund_manager" in db_facts:
+            # Check primary lead manager is in the DB value
+            lead_mgr = expected["fund_manager"].split(",")[0].strip()
+            assert lead_mgr.lower() in db_facts["fund_manager"].lower(), f"{sid} manager mismatch: {db_facts['fund_manager']} vs {lead_mgr}"
+
+    conn.close()
+
 def test_chroma_index():
     from ingest.embed import get_embedder
     assert os.path.exists(CHROMA_DIR)

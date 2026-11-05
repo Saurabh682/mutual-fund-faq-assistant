@@ -42,7 +42,10 @@ class Settings(BaseSettings):
         if not self.CHROMA_DIR or not os.path.isabs(self.CHROMA_DIR):
             self.CHROMA_DIR = os.path.join(self.DATA_DIR, "index", "chroma")
         if not self.SESSIONS_DB_PATH or not os.path.isabs(self.SESSIONS_DB_PATH):
-            self.SESSIONS_DB_PATH = os.path.join(self.DATA_DIR, "sessions.db")
+            if os.path.exists("/data") and os.access("/data", os.W_OK):
+                self.SESSIONS_DB_PATH = "/data/sessions.db"
+            else:
+                self.SESSIONS_DB_PATH = os.path.join(self.DATA_DIR, "sessions.db")
 
     @field_validator("DATA_DIR", mode="after")
     @classmethod

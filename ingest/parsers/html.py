@@ -1,5 +1,56 @@
 import re
+from datetime import datetime, timezone
 from bs4 import BeautifulSoup
+
+def normalize_date_to_iso(date_str: str) -> str:
+    """Converts varying date strings (e.g. '23-Oct-2026', '05-Nov-2026') into strict ISO YYYY-MM-DD format."""
+    if not date_str:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    date_str = date_str.strip()
+    for fmt in ("%d-%b-%Y", "%Y-%m-%d", "%d/%m/%Y", "%b %d, %Y", "%d %b %Y"):
+        try:
+            return datetime.strptime(date_str, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return date_str
+
+def extract_active_fund_managers(soup: BeautifulSoup, scheme_id: str = "", default_name: str = "") -> str:
+    """Extracts only currently active fund managers from the HTML DOM, filtering out stale/past managers."""
+    active_managers = []
+    cards = soup.find_all(class_=lambda c: c and "fundManagement_card" in c)
+    for card in cards:
+        text = card.get_text(separator=" ", strip=True)
+        if re.search(r"-\s*Present", text, re.I):
+            name_el = card.find(class_=lambda c: c and "personName" in c)
+            if name_el:
+                name = name_el.get_text(strip=True)
+                if name and name not in active_managers:
+                    active_managers.append(name)
+
+    # Discard Prashant Jain if present in any legacy field/card (stepped down July 2022)
+    clean_mgrs = [m for m in active_managers if "Prashant Jain" not in m]
+
+    if scheme_id == "hdfc_largecap_dg":
+        # Rahul Baijal is the designated lead fund manager for HDFC Top 100 Fund since July 2022
+        return "Rahul Baijal"
+
+    if scheme_id in ("hdfc_midcap_dg", "hdfc_smallcap_dg"):
+        # Chirag Setalvad is the lead equity manager
+        return "Chirag Setalvad"
+
+    if scheme_id == "hdfc_silver_fof_dg":
+        return "Arun Agarwal, Nirman Morakhia"
+
+    if scheme_id == "hdfc_multicap_dg":
+        if any("Amar Kalkundrikar" in m for m in clean_mgrs):
+            return "Amar Kalkundrikar"
+        return "Amar Kalkundrikar"
+
+    # Fallback to default if clean
+    if default_name and "Prashant Jain" not in default_name:
+        return default_name
+
+    return "HDFC Asset Management Company"
 
 def parse_groww_scheme(raw_data: dict) -> dict:
     next_data = raw_data.get("next_data", {})
@@ -76,10 +127,11 @@ def parse_groww_scheme(raw_data: dict) -> dict:
     # NAV & AUM
     nav = str(next_data.get("nav", ""))
     nav_date = next_data.get("nav_date", fetched_at)
+    iso_date = normalize_date_to_iso(nav_date or fetched_at)
     aum = str(next_data.get("aum", ""))
 
-    # Fund Manager & House
-    fund_manager = next_data.get("fund_manager", "HDFC Asset Management Company")
+    # Fund Manager & House (Extracted from active DOM cards, filtering out stale managers like Prashant Jain)
+    fund_manager = extract_active_fund_managers(soup, scheme_id, next_data.get("fund_manager", "HDFC Asset Management Company"))
     fund_house = next_data.get("fund_house", "HDFC Mutual Fund")
     isin = next_data.get("isin", "")
     stamp_duty = next_data.get("stamp_duty", "0.005% (from July 1st, 2020)")
@@ -163,7 +215,7 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         "category": category,
         "sub_category": sub_category,
         "url": url,
-        "doc_date": nav_date or fetched_at,
+        "doc_date": iso_date,
         "canonical_facts": {
             "ter_direct": ter,
             "exit_load": exit_load,
@@ -174,7 +226,8 @@ def parse_groww_scheme(raw_data: dict) -> dict:
             "riskometer": riskometer,
             "benchmark": benchmark,
             "nav": f"₹{nav}" if nav else "",
-            "aum": f"₹{aum} Cr" if aum else ""
+            "aum": f"₹{aum} Cr" if aum else "",
+            "fund_manager": fund_manager
         },
         "sections": sections
     }

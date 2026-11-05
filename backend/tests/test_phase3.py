@@ -82,7 +82,7 @@ class TestEVAL_P3_2_StructuredFactPath:
         ("hdfc_silver_fof_dg", "ter_direct", "0.21%"),
         ("hdfc_multicap_dg", "ter_direct", "0.96%"),
         ("hdfc_smallcap_dg", "fund_manager", "Chirag Setalvad"),
-        ("hdfc_largecap_dg", "fund_manager", "Prashant Jain"),
+        ("hdfc_largecap_dg", "fund_manager", "Rahul Baijal"),
     ]
 
     @pytest.mark.parametrize("scheme_id,field,expected_val", CANONICAL_TEST_CASES)
@@ -100,7 +100,7 @@ class TestEVAL_P3_2_StructuredFactPath:
         assert res is not None
         assert elapsed_ms < 50.0, f"Fact lookup exceeded 50ms: {elapsed_ms:.2f}ms"
         assert "0.74%" in res["text"]
-        assert res["last_updated"] == "2026-10-23"
+        assert res["last_updated"] == "2026-11-05"
         assert "Source: https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth" in res["rendered"]
 
     def test_multi_field_query_deterministic_response(self):

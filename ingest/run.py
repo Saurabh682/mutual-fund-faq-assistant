@@ -113,4 +113,6 @@ def run_ingestion(force_refresh: bool = False):
     print(f"{'='*70}")
 
 if __name__ == "__main__":
-    run_ingestion()
+    import sys
+    force = "--force" in sys.argv or "-f" in sys.argv
+    run_ingestion(force_refresh=force)
