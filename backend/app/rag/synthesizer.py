@@ -8,6 +8,7 @@ targeted repair iterations before failing closed to a verified fallback.
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -18,6 +19,7 @@ from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
 from app.guardrails.validator import (
     ValidationResult,
     safe_contract_fallback,
+    split_sentences,
     validate_response,
 )
 from app.rag.prompts import (
@@ -59,7 +61,7 @@ class ConstrainedSynthesizer:
         self.client: Optional[Groq] = None
         if self.api_key:
             try:
-                self.client = Groq(api_key=self.api_key, timeout=3.0)
+                self.client = Groq(api_key=self.api_key, timeout=2.0)
             except Exception as e:
                 logger.warning(f"Could not initialize Groq client: {e}")
 
@@ -102,6 +104,7 @@ class ConstrainedSynthesizer:
         doc_date: Optional[str] = None,
     ) -> SynthesisResult:
         """Synthesizes a contract-compliant factual answer from retrieved chunks.
+        start_t = time.perf_counter()
 
         Args:
             query: User question.
@@ -114,6 +117,7 @@ class ConstrainedSynthesizer:
         """
         citation_url = primary_url or CANONICAL_LINKS["ADVISORY"]
         effective_date = doc_date or get_default_corpus_date()
+        start_t = time.perf_counter()
 
         # Fail closed immediately if no context is provided
         if not context_chunks:
@@ -170,6 +174,47 @@ class ConstrainedSynthesizer:
                 repaired=val_res.repaired,
                 repair_count=0,
                 violation_reasons=val_res.violation_reasons,
+                raw_draft=raw_draft,
+            )
+
+        # Fast deterministic truncation: If draft only exceeded sentence count, truncate to 3 sentences in O(1)
+        if any("SENTENCE_COUNT" in v or "EXCEEDED" in v for v in val_res.violation_reasons) and not any(
+            "BANNED" in v or "HALLUCINATED" in v or "REFUSAL" in v for v in val_res.violation_reasons
+        ):
+            sents = split_sentences(raw_draft)
+            if len(sents) > 3:
+                truncated_draft = " ".join(sents[:3])
+                val_res_trunc = validate_response(
+                    truncated_draft, context_chunks, primary_url=citation_url, doc_date=effective_date
+                )
+                if val_res_trunc.is_valid:
+                    return SynthesisResult(
+                        text=val_res_trunc.text,
+                        sentence_count=val_res_trunc.sentence_count,
+                        citation_url=val_res_trunc.citation_url,
+                        last_updated=val_res_trunc.last_updated,
+                        rendered=val_res_trunc.rendered,
+                        is_valid=True,
+                        repaired=True,
+                        repair_count=0,
+                        violation_reasons=val_res_trunc.violation_reasons,
+                        raw_draft=raw_draft,
+                    )
+
+        # Hard latency deadline: fail-closed to prevent slow tail latency
+        if (time.perf_counter() - start_t) > 1.8:
+            logger.info("Latency deadline approaching; returning safe fallback.")
+            fallback = safe_contract_fallback(citation_url, effective_date, reason="DEADLINE_TIMEOUT")
+            return SynthesisResult(
+                text=fallback.text,
+                sentence_count=fallback.sentence_count,
+                citation_url=fallback.citation_url,
+                last_updated=fallback.last_updated,
+                rendered=fallback.rendered,
+                is_valid=True,
+                repaired=True,
+                repair_count=0,
+                violation_reasons=fallback.violation_reasons,
                 raw_draft=raw_draft,
             )
 

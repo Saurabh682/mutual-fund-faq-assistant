@@ -113,6 +113,52 @@ def get_fact_from_db(
     return None
 
 
+def get_all_scheme_facts_from_db(
+    db_path: str = settings.FACTS_DB_PATH,
+) -> List[Dict[str, Any]]:
+    """Fetches all verified facts for all schemes from facts.db grouped by scheme."""
+    if not os.path.exists(db_path):
+        return []
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT scheme_id, field, value, unit, doc_date, as_of, source_url FROM facts ORDER BY scheme_id, field"
+        )
+        rows = cursor.fetchall()
+        conn.close()
+
+        schemes_map: Dict[str, Dict[str, Any]] = {}
+        for r in rows:
+            sid = r["scheme_id"]
+            if sid not in schemes_map:
+                meta = SCHEME_REGISTRY.get(sid, {})
+                schemes_map[sid] = {
+                    "scheme_id": sid,
+                    "name": meta.get("official_name", meta.get("name", sid)),
+                    "plan": "Direct - Growth",
+                    "category": meta.get("category", "Equity"),
+                    "amfi_code": meta.get("amfi_code", ""),
+                    "factsheet_url": meta.get(
+                        "url",
+                        f"https://www.hdfcfund.com/our-products/{sid.replace('_', '-')}",
+                    ),
+                    "as_of": r["as_of"] or r["doc_date"],
+                    "source_url": r["source_url"] or meta.get("url", ""),
+                    "metrics": {},
+                }
+            schemes_map[sid]["metrics"][r["field"]] = r["value"]
+            if r["as_of"]:
+                schemes_map[sid]["as_of"] = r["as_of"]
+
+        return list(schemes_map.values())
+    except Exception as e:
+        logger.error(f"Error fetching scheme facts: {e}")
+        return []
+
+
 def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     """Formats a verified fact row into a response complying with the Response Contract."""
     scheme_id = fact["scheme_id"]

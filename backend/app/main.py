@@ -44,6 +44,12 @@ def health_check():
         "schemes_count": 5
     }
 
+@app.get("/api/v1/facts/schemes")
+def get_scheme_facts_list():
+    """Returns verified statutory scheme facts directly from facts.db."""
+    from app.rag.facts import get_all_scheme_facts_from_db
+    return {"schemes": get_all_scheme_facts_from_db()}
+
 @app.get("/api/v1/meta")
 def get_metadata():
     return {
