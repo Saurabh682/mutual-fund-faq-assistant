@@ -206,9 +206,9 @@ class TestProceduralQueries:
     @pytest.mark.parametrize(
         "query,is_supported",
         [
-            ("How do I download my Capital Gains statement on Groww?", False),
-            ("how to download capital gains statement", False),
-            ("Where can I find my capital gains report on Groww?", False),
+            ("How do I download my Capital Gains statement on Groww?", True),
+            ("how to download capital gains statement", True),
+            ("Where can I find my capital gains report on Groww?", True),
             ("How do I redeem my mutual fund units on Groww?", False),
             ("How to start a SIP on Groww?", False),
             ("What documents are required for KYC?", False),

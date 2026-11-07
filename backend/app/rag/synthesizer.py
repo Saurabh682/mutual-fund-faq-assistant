@@ -43,6 +43,7 @@ class SynthesisResult:
     repair_count: int = 0
     violation_reasons: List[str] = field(default_factory=list)
     raw_draft: str = ""
+    deadline_fallback_used: bool = False
 
 
 class ConstrainedSynthesizer:
@@ -61,7 +62,7 @@ class ConstrainedSynthesizer:
         self.client: Optional[Groq] = None
         if self.api_key:
             try:
-                self.client = Groq(api_key=self.api_key, timeout=2.0)
+                self.client = Groq(api_key=self.api_key, timeout=1.8)
             except Exception as e:
                 logger.warning(f"Could not initialize Groq client: {e}")
 
@@ -137,13 +138,20 @@ class ConstrainedSynthesizer:
                 raw_draft="NOT_FOUND",
             )
 
-        # 1. Primary LLM Generation
+        # 1. Primary LLM Generation with strict 1.8s deadline
         raw_draft = ""
+        groq_t0 = time.perf_counter()
+        deadline_triggered = False
         try:
+            if time.perf_counter() - start_t >= 1.8:
+                deadline_triggered = True
+                raise TimeoutError("Deadline exceeded prior to Groq call")
             user_prompt = build_synthesis_user_prompt(query, context_chunks)
             raw_draft = self._call_llm(SYSTEM_SYNTHESIS_PROMPT, user_prompt)
         except Exception as e:
-            logger.warning(f"Groq generation failed: {e}. Falling back to safe response.")
+            groq_elapsed = (time.perf_counter() - groq_t0) * 1000
+            is_timeout = "timeout" in str(e).lower() or deadline_triggered
+            logger.warning(f"Groq generation failed/timed out ({groq_elapsed:.1f}ms): {e}. Falling back to safe response.")
             fallback = safe_contract_fallback(citation_url, effective_date, reason=f"API_ERROR_{type(e).__name__}")
             return SynthesisResult(
                 text=fallback.text,
@@ -156,6 +164,7 @@ class ConstrainedSynthesizer:
                 repair_count=0,
                 violation_reasons=fallback.violation_reasons,
                 raw_draft=raw_draft,
+                deadline_fallback_used=is_timeout,
             )
 
         # 2. Contract Validation Gate

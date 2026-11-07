@@ -8,6 +8,7 @@ on scheme_id to eliminate cross-scheme contamination.
 from __future__ import annotations
 
 import os
+import re
 import pickle
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -211,8 +212,23 @@ class HybridRetriever:
                     max_similarity=max_dense_sim,
                 )
         else:
+            # Low-similarity fast path & missing unindexed entity early exit (e.g. Tesla, Apple, Bitcoin, ESG)
+            UNINDEXED_ENTITIES = {
+                "tesla", "apple", "bitcoin", "ethereum", "crypto", "cryptocurrency",
+                "doge", "nvidia", "microsoft", "amazon", "google", "meta", "esg",
+                "dogecoin", "solana", "bnb", "usdt", "xrp", "cardano",
+            }
+            chunks_text = " ".join([d["text"].lower() for d in dense_docs.values()]) if dense_docs else ""
+            query_lower = clean_query.lower()
+            
+            # Check if query specifically targets an unindexed external entity absent from chunks
+            has_unindexed_target = any(
+                ent in query_lower and ent not in chunks_text
+                for ent in UNINDEXED_ENTITIES
+            )
             has_bm25_hit = bool(bm25_scores and max(bm25_scores.values()) > 0.0)
-            if max_dense_sim < 0.30 and not has_bm25_hit:
+
+            if has_unindexed_target or (max_dense_sim < 0.38 and not has_bm25_hit):
                 return RetrievalResult(
                     chunks=[],
                     primary_citation_url=CANONICAL_LINKS["ADVISORY"],

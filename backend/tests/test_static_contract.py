@@ -118,6 +118,7 @@ class TestProceduresStaticContract:
             "What are the mutual fund cutoff timings for same day nav?",
             "What is the daily NAV disclosure timing?",
             "What is mutual fund settlement cycle for redemptions?",
+            "How do I download my Capital Gains statement on Groww?",
         ]
         for q in test_queries:
             resp = lookup_procedure(q)
@@ -132,7 +133,6 @@ class TestProceduresStaticContract:
     def test_unsupported_procedures_not_served(self):
         """Verifies that client-rendered JS help procedures marked unsupported are NOT served."""
         unsupported_queries = [
-            "How do I download my Capital Gains statement on Groww?",
             "How do I redeem my mutual fund units on Groww?",
             "How to start a SIP on Groww?",
             "What documents are required for KYC verification on Groww?",

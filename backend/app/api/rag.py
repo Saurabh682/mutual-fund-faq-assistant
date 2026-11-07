@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
-from app.guardrails.intent import classify_intent
+from app.guardrails.intent import classify_intent, classify_clause_level_intent
 from app.guardrails.refusal import (
     CANONICAL_LINKS,
     generate_refusal,
@@ -67,6 +67,24 @@ def retrieve_query(request: RetrievalQueryRequest):
                 "redacted_text": redacted,
                 "rendered": rendered_warning,
             },
+        )
+
+    # 1b. Clause-Level Intent Check for Compound Factual-plus-Advisory Queries
+    compound_resp = classify_clause_level_intent(request.query, session_scheme_id=request.session_scheme_id)
+    if compound_resp:
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        return RetrievalQueryResponse(
+            query=request.query,
+            resolution_type="compound",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=compound_resp["text"],
+            citation_url=compound_resp["citation_url"],
+            last_updated=compound_resp["last_updated"],
+            rendered=compound_resp["rendered"],
+            chunks=[],
+            latency_ms=elapsed_ms,
         )
 
     # 2. Intent Classifier (Compliance Firewall)
@@ -316,6 +334,30 @@ def ask_query(request: SynthesisQueryRequest):
                 "redacted_text": redacted,
                 "rendered": rendered_warning,
             },
+        )
+
+    # 1b. Clause-Level Intent Check for Compound Factual-plus-Advisory Queries
+    compound_resp = classify_clause_level_intent(request.query, session_scheme_id=request.session_scheme_id)
+    if compound_resp:
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(compound_resp["text"])
+        followups = generate_followup_suggestions(intent=compound_resp.get("intent", "ADVISORY"), is_refusal=True)
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="compound",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=compound_resp["text"],
+            sentence_count=len(sentences),
+            citation_url=compound_resp["citation_url"],
+            last_updated=compound_resp["last_updated"],
+            rendered=compound_resp["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=followups,
         )
 
     # 2. Intent Classifier
@@ -608,6 +650,7 @@ def ask_query(request: SynthesisQueryRequest):
         rendered=syn_res.rendered,
         repaired=syn_res.repaired,
         repair_count=syn_res.repair_count,
+        deadline_fallback_used=syn_res.deadline_fallback_used,
         chunks=chunk_details,
         latency_ms=elapsed_ms,
         suggested_followups=followups,

@@ -26,8 +26,8 @@ from app.guardrails.validator import validate_response
 PROCEDURE_ITEMS: List[Dict[str, Any]] = [
     {
         "id": "capital_gains_statement",
-        "supported": False,
-        "status": "unsupported",
+        "supported": True,
+        "status": "supported",
         "patterns": [
             re.compile(r"\bcapital\s+gains?\s+(?:statement|report|tax\s+statement|p&l)\b", re.I),
             re.compile(r"\bdownload\s+(?:my\s+)?(?:capital\s+gains?|tax\s+statement|p&l)\b", re.I),
@@ -35,20 +35,20 @@ PROCEDURE_ITEMS: List[Dict[str, Any]] = [
             re.compile(r"\bcapital\s+gains?\b.*\b(?:groww|statement|download)\b", re.I),
         ],
         "procedure_title": "Download Capital Gains Statement",
-        "platform": "Groww Web & Mobile App",
-        "navigation": "Profile → Reports → Mutual Funds → Capital Gains (P&L)",
+        "platform": "Groww Mobile App & Web",
+        "navigation": "You → SIP & Reports → Capital Gain → Download",
         "narrative": (
-            "To download your Capital Gains statement on Groww, tap your profile avatar and navigate to 'Reports'. "
-            "Under Mutual Funds, select 'Capital Gains (P&L) Statement', choose the relevant financial year, and download in Excel or PDF format."
+            "To download your mutual fund capital gains statement on Groww, open the Groww app and navigate to the 'You' tab at the bottom right. "
+            "Select 'SIP & Reports', tap 'Capital Gain', choose the relevant financial year, and download your statement."
         ),
         "table_rows": [
             ("Procedure", "Download Capital Gains Statement"),
-            ("Platform", "Groww Web & Mobile App"),
-            ("Navigation", "Profile → Reports → Mutual Funds → Capital Gains (P&L)"),
-            ("Formats", "PDF & Excel (.xlsx)"),
+            ("Platform", "Groww Mobile App & Web"),
+            ("Navigation", "You → SIP & Reports → Capital Gain → Download"),
+            ("Available Formats", "PDF & Excel (.xlsx)"),
         ],
-        "source_url": "https://groww.in/help/reports",
-        "citation_url": "https://groww.in/help/reports",
+        "source_url": "https://groww.in/blog/how-to-get-capital-gains-statement-for-mutual-fund-investments",
+        "citation_url": "https://groww.in/blog/how-to-get-capital-gains-statement-for-mutual-fund-investments",
         "verified_on": "2026-11-05",
     },
     {

@@ -1,8 +1,8 @@
 {
   "generated_at": "2026-11-07T10:39:53.908164+00:00",
   "total_items": 25,
-  "supported_count": 15,
-  "unsupported_count": 10,
+  "supported_count": 16,
+  "unsupported_count": 9,
   "snapshots": {
     "glossary_ter": {
       "status": "supported",
@@ -200,12 +200,17 @@
       "fetched_at": "2026-11-07T10:39:59.462733+00:00"
     },
     "procedure_capital_gains_statement": {
-      "status": "unsupported",
+      "status": "supported",
       "category": "procedure",
       "concept": "Download Capital Gains Statement",
-      "url": "https://groww.in/help/reports",
-      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
-      "verified_on": "2026-11-05"
+      "url": "https://groww.in/blog/how-to-get-capital-gains-statement-for-mutual-fund-investments",
+      "http_status": 200,
+      "sha256": "ed531f8dc6227b3de0e1e45cf758880ccd3660c8562d2291cfdfe3bba3b16a84",
+      "bytes": 165688,
+      "snapshot_file": "procedure_capital_gains_statement.html",
+      "supporting_sentence": "Individuals who use platforms such as Groww and wonder how to download mutual fund statement from Groww, can access capital gains statements by following these steps:",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T11:53:55.000000+00:00"
     },
     "procedure_redeem_mutual_fund": {
       "status": "unsupported",
