@@ -21,7 +21,9 @@ from app.rag.entities import (
     get_unsupported_plan_response,
     resolve_entities,
 )
-from app.rag.facts import lookup_fact
+from app.rag.facts import lookup_fact, get_all_facts_for_scheme
+from app.rag.glossary import lookup_glossary
+from app.rag.procedures import lookup_procedure
 from app.rag.followups import generate_followup_suggestions
 from app.rag.retriever import HybridRetriever, get_not_found_response
 from app.rag.synthesizer import ConstrainedSynthesizer
@@ -147,30 +149,50 @@ def retrieve_query(request: RetrievalQueryRequest):
             latency_ms=elapsed_ms,
         )
 
-    # Ambiguity check (EC-ENT-01)
-    if entity_res.is_ambiguous:
-        from app.rag.glossary import lookup_glossary
-        glossary_match = lookup_glossary(request.query)
-        if glossary_match:
+    # Non-scheme procedures and glossary routing
+    if entity_res.scheme_id is None:
+        proc_match = lookup_procedure(request.query)
+        if proc_match:
             elapsed_ms = (time.perf_counter() - t0) * 1000
-            sentences = split_sentences(glossary_match["text"])
-            return SynthesisQueryResponse(
+            return RetrievalQueryResponse(
                 query=request.query,
-                resolution_type="glossary",
+                resolution_type="fact_store",
                 scheme_id=None,
                 scheme_name=None,
-                field=glossary_match.get("field"),
-                text=glossary_match["text"],
-                sentence_count=len(sentences),
-                citation_url=glossary_match["citation_url"],
-                last_updated=glossary_match["last_updated"],
-                rendered=glossary_match["rendered"],
-                repaired=False,
-                repair_count=0,
+                field="procedure",
+                text=proc_match["text"],
+                citation_url=proc_match["citation_url"],
+                last_updated=proc_match["last_updated"],
+                rendered=proc_match["rendered"],
                 chunks=[],
                 latency_ms=elapsed_ms,
             )
 
+        glossary_match = lookup_glossary(request.query)
+        if glossary_match:
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(glossary_match["text"])
+            followups = generate_followup_suggestions(
+                scheme_id=None,
+                field=glossary_match.get("field"),
+                intent="FACTUAL",
+            )
+            return RetrievalQueryResponse(
+                query=request.query,
+                resolution_type="fact_store",
+                scheme_id=None,
+                scheme_name=None,
+                field=glossary_match.get("field"),
+                text=glossary_match["text"],
+                citation_url=glossary_match["citation_url"],
+                last_updated=glossary_match["last_updated"],
+                rendered=glossary_match["rendered"],
+                chunks=[],
+                latency_ms=elapsed_ms,
+            )
+
+    # Ambiguity check (EC-ENT-01)
+    if entity_res.is_ambiguous:
         clarification = get_disambiguation_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return RetrievalQueryResponse(
@@ -243,7 +265,7 @@ def retrieve_query(request: RetrievalQueryRequest):
         for c in retrieval_res.chunks
     ]
 
-    rendered_text = f"{top_chunk.text}\n\nSource: {retrieval_res.primary_citation_url}\nLast updated from sources: {retrieval_res.primary_doc_date}"
+    rendered_text = f"{top_chunk.text}\n\nSource: {retrieval_res.primary_citation_url}\nLast updated from sources: {get_default_corpus_date()}"
 
     return RetrievalQueryResponse(
         query=request.query,
@@ -253,7 +275,7 @@ def retrieve_query(request: RetrievalQueryRequest):
         field=entity_res.field,
         text=top_chunk.text,
         citation_url=retrieval_res.primary_citation_url,
-        last_updated=retrieval_res.primary_doc_date,
+        last_updated=get_default_corpus_date(),
         rendered=rendered_text,
         chunks=chunk_details,
         latency_ms=elapsed_ms,
@@ -406,8 +428,31 @@ def ask_query(request: SynthesisQueryRequest):
             suggested_followups=followups,
         )
 
-    if entity_res.is_ambiguous:
-        from app.rag.glossary import lookup_glossary
+    # Non-scheme procedures and glossary routing
+    if entity_res.scheme_id is None:
+        proc_match = lookup_procedure(request.query)
+        if proc_match:
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            sentences = split_sentences(proc_match["text"])
+            followups = generate_followup_suggestions(field="procedure")
+            return SynthesisQueryResponse(
+                query=request.query,
+                resolution_type="fact_store",
+                scheme_id=None,
+                scheme_name=None,
+                field="procedure",
+                text=proc_match["text"],
+                sentence_count=len(sentences),
+                citation_url=proc_match["citation_url"],
+                last_updated=proc_match["last_updated"],
+                rendered=proc_match["rendered"],
+                repaired=False,
+                repair_count=0,
+                chunks=[],
+                latency_ms=elapsed_ms,
+                suggested_followups=followups,
+            )
+
         glossary_match = lookup_glossary(request.query)
         if glossary_match:
             elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -415,7 +460,7 @@ def ask_query(request: SynthesisQueryRequest):
             followups = generate_followup_suggestions(field=glossary_match.get("field"))
             return SynthesisQueryResponse(
                 query=request.query,
-                resolution_type="glossary",
+                resolution_type="fact_store",
                 scheme_id=None,
                 scheme_name=None,
                 field=glossary_match.get("field"),
@@ -431,6 +476,7 @@ def ask_query(request: SynthesisQueryRequest):
                 suggested_followups=followups,
             )
 
+    if entity_res.is_ambiguous:
         clarification = get_disambiguation_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(clarification["text"])
@@ -516,11 +562,18 @@ def ask_query(request: SynthesisQueryRequest):
         )
 
     # 6. Constrained LLM Synthesis with Output Contract Validation
+    context_texts = [c.text for c in retrieval_res.chunks]
+    if entity_res.scheme_id:
+        scheme_facts = get_all_facts_for_scheme(entity_res.scheme_id)
+        if scheme_facts:
+            fact_summary = f"Verified AMC Facts: TER={scheme_facts.get('ter_direct', '')}, Exit Load={scheme_facts.get('exit_load', '')}, Min SIP=Rs {scheme_facts.get('min_sip', '')}, Risk={scheme_facts.get('riskometer', '')}, Manager={scheme_facts.get('fund_manager', '')}."
+            context_texts.insert(0, fact_summary)
+
     syn_res = _synthesizer.synthesize(
         query=request.query,
-        context_chunks=retrieval_res.chunks,
+        context_chunks=context_texts,
         primary_url=retrieval_res.primary_citation_url,
-        doc_date=retrieval_res.primary_doc_date,
+        doc_date=get_default_corpus_date(),
     )
 
     elapsed_ms = (time.perf_counter() - t0) * 1000

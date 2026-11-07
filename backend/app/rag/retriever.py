@@ -278,12 +278,13 @@ def get_not_found_response(last_updated: Optional[str] = None) -> Dict[str, Any]
     )
     url = CANONICAL_LINKS["ADVISORY"]
     doc_date = last_updated or get_default_corpus_date()
-    rendered = f"{body}\n\nSource: {url}\nLast updated from sources: {doc_date}"
+    from app.guardrails.validator import validate_response
+    val_res = validate_response(body, None, url, doc_date)
 
     return {
-        "text": body,
-        "citation_url": url,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
         "is_not_found": True,
     }

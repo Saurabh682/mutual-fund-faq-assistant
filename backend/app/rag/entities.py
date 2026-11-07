@@ -1,15 +1,18 @@
 """Entity Resolution Engine for Mutual Fund FAQ Assistant.
 
 Extracts scheme and field entities from user input, resolves pronouns/anaphora
-using session state, and detects ambiguous queries requiring scheme clarification.
+using session state, performs fuzzy matching for typos/abbreviations, and detects
+ambiguous queries requiring scheme clarification.
 """
 
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Dict, List, Optional
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
+from app.guardrails.validator import validate_response
 
 SCHEME_REGISTRY: Dict[str, Dict[str, Any]] = {
     "hdfc_midcap_dg": {
@@ -33,6 +36,11 @@ SCHEME_REGISTRY: Dict[str, Dict[str, Any]] = {
             "mid cap opportunities",
             "hdfc mid-cap fund",
             "hdfc mid cap fund",
+            "hdfc midcap opp fund",
+            "hdfc mid cap opp",
+            "hdfc midcap opp",
+            "mid cap opp",
+            "midcap opp",
             "hdfc mid cap",
             "hdfc midcap",
             "mid cap fund",
@@ -54,6 +62,14 @@ SCHEME_REGISTRY: Dict[str, Dict[str, Any]] = {
         "aliases": [
             "hdfc small cap fund",
             "hdfc small-cap fund",
+            "hdfc small-cap opportunities",
+            "small-cap opportunities",
+            "hdfc sml cap direct growth",
+            "hdfc sml cap",
+            "sml cap direct growth",
+            "sml cap fund",
+            "sml cap",
+            "smlcap",
             "hdfc small cap",
             "hdfc smallcap",
             "small cap fund",
@@ -101,14 +117,17 @@ SCHEME_REGISTRY: Dict[str, Dict[str, Any]] = {
         "publisher": "HDFC Asset Management Company Limited",
         "aliases": [
             "hdfc silver etf fund of fund",
+            "hdfc silver etf fund of funds",
+            "silver etf fund of funds",
+            "hdfc silver fof growth",
             "hdfc silver etf fof",
+            "hdfc silver fof",
+            "silver etf fof",
+            "silver fof",
             "hdfc silver etf",
             "hdfc silver fund",
             "hdfc silver",
-            "silver etf fund of fund",
-            "silver etf fof",
             "silver etf",
-            "silver fof",
             "silver fund",
             "silver",
         ],
@@ -127,131 +146,95 @@ SCHEME_REGISTRY: Dict[str, Dict[str, Any]] = {
             "hdfc multi cap fund",
             "hdfc multi-cap fund",
             "hdfc multi cap",
+            "hdfc multi-cap",
             "hdfc multicap",
+            "multicap direct growth",
+            "hdfc multicap direct growth",
+            "multicap scheme",
+            "multicap fund",
+            "multicap",
             "multi cap fund",
             "multi-cap fund",
             "multi cap",
-            "multicap",
+            "multi-cap",
         ],
     },
 }
 
+EXTERNAL_AMCS = [
+    "sbi", "icici", "axis", "kotak", "nippon", "mirae", "tata",
+    "parag parikh", "uti", "aditya birla", "dsp", "motilal", "quant",
+    "bandhan", "canara robeco", "edelweiss", "franklin", "invesco",
+    "hsbc", "sundaram", "pgim", "baroda bnp", "navi", "zerodha"
+]
+
 FIELD_GLOSSARY: Dict[str, List[str]] = {
     "ter_direct": [
-        "total expense ratio",
-        "expense ratio",
-        "ter",
-        "management fee",
-        "management fees",
-        "annual fee",
-        "annual fees",
-        "charges",
+        "ter", "expense ratio", "total expense ratio", "expenses",
+        "management fee", "charges", "annual charge", "direct ter"
     ],
     "exit_load": [
-        "exit load structure",
-        "exit load",
-        "exit penalty",
-        "redemption penalty",
-        "redemption fee",
-        "redemption charges",
-        "penalty for withdrawal",
-        "withdrawal fee",
-        "load structure",
+        "exit load", "exit fee", "exit penalty", "redemption fee",
+        "redemption penalty", "exit load period", "exit charge"
     ],
     "min_sip": [
-        "minimum sip investment",
-        "minimum sip amount",
-        "minimum sip",
-        "min sip amount",
-        "min sip",
-        "sip installment",
-        "minimum monthly investment",
-        "start sip",
-    ],
-    "min_lumpsum": [
-        "minimum lumpsum investment",
-        "minimum lumpsum",
-        "min lumpsum",
-        "minimum investment amount",
-        "minimum investment",
-        "initial investment",
-        "minimum purchase",
-        "lumpsum",
-    ],
-    "min_additional": [
-        "minimum additional investment",
-        "mini additional investment",
-        "minimum additional purchase",
-        "additional purchase",
-        "additional investment",
-    ],
-    "lock_in": [
-        "lock in period",
-        "lock-in period",
-        "lock in",
-        "lock-in",
-        "lockin",
-        "holding period",
-    ],
-    "riskometer": [
-        "riskometer classification",
-        "riskometer rating",
-        "riskometer level",
-        "riskometer",
-        "risk category",
-        "risk level",
-        "risk profile",
-        "risk rating",
+        "minimum sip", "min sip", "sip minimum", "starting sip",
+        "sip limit", "sip amount", "minimum sip investment",
+        "minimum sip installment"
     ],
     "benchmark": [
-        "benchmark index",
-        "underlying benchmark",
-        "tracking index",
-        "reference index",
-        "benchmark",
+        "benchmark", "benchmark index", "index", "tracks",
+        "tracking index", "target index", "benchmark name"
+    ],
+    "riskometer": [
+        "riskometer", "risk level", "risk grade", "risk category",
+        "risk", "risk meter", "sebi riskometer"
     ],
     "nav": [
-        "net asset value",
-        "current nav",
-        "nav price",
-        "nav",
+        "nav", "net asset value", "unit price", "price per unit",
+        "current nav", "latest nav", "nav date"
     ],
     "aum": [
-        "assets under management",
-        "asset under management",
-        "fund size",
-        "corpus size",
-        "aum",
+        "aum", "assets under management", "fund size", "asset size",
+        "total assets", "corpus", "market cap of fund"
+    ],
+    "lock_in": [
+        "lock-in", "lock in", "lockin", "lock-in period", "lock in period",
+        "mandatory holding", "holding period", "lock in duration"
     ],
     "fund_manager": [
-        "who is the manager",
-        "who manages",
-        "fund manager details",
-        "fund manager",
-        "portfolio manager",
-        "managed by",
-        "manager",
+        "fund manager", "manager", "portfolio manager", "who manages",
+        "who is managing", "managing", "managed by", "fund management"
+    ],
+    "factsheet": [
+        "factsheet", "scheme factsheet", "monthly factsheet", "download factsheet", "download the factsheet",
+        "standard procedure to check fund manager tenure", "procedure to check fund manager tenure",
+        "where to check fund manager tenure", "check fund manager tenure"
+    ],
+    "nav_source": [
+        "official source where unitholders can verify", "where unitholders can verify the nav",
+        "where to verify the nav", "source where unitholders can verify the nav"
+    ],
+    "portfolio_turnover": [
+        "portfolio turnover", "portfolio turnover ratio", "turnover ratio"
+    ],
+    "amc_name": [
+        "amc name", "confirm the amc name", "amc", "fund house", "fund house name", "asset management company"
     ],
 }
 
-EXTERNAL_AMCS = [
-    "sbi", "icici", "axis", "kotak", "nippon", "mirae", "tata", "dsp",
-    "quant", "parag parikh", "motilal", "uti", "aditya birla", "franklin",
-    "canara robeco", "bandhan", "invesco", "hsbc", "sundaram", "edelweiss",
-]
-
 PRONOUN_PATTERN = re.compile(
-    r"\b(it|its|this fund|this scheme|the fund|the scheme|said fund|above fund)\b",
-    re.I,
+    r"\b(it|this\s+fund|this\s+scheme|the\s+fund|the\s+scheme|its|that\s+fund|that\s+scheme)\b",
+    re.I
 )
 
 
 @dataclass
 class EntityResolutionResult:
-    scheme_id: Optional[str] = None
-    scheme_name: Optional[str] = None
-    citation_url: Optional[str] = None
-    field: Optional[str] = None
+    scheme_id: Optional[str]
+    scheme_name: Optional[str]
+    citation_url: Optional[str]
+    field: Optional[str]
     fields: List[str] = dc_field(default_factory=list)
     is_ambiguous: bool = False
     is_external_amc: bool = False
@@ -265,18 +248,13 @@ def resolve_entities(
 ) -> EntityResolutionResult:
     """Resolves target scheme and field entities from a user query string.
 
-    Args:
-        query: User input query.
-        session_scheme_id: Optional active scheme_id from thread history.
-
-    Returns:
-        EntityResolutionResult detailing matched scheme, field, and ambiguity status.
+    Supports exact alias matching, multi-token colloquial variants,
+    pronoun/anaphora resolution, and fuzzy string similarity for typos.
     """
     clean_query = query.lower()
-    # Normalized query with uniform spacing across hyphens (e.g. 'mid-cap' -> 'mid cap')
     norm_query = re.sub(r"[-\s]+", " ", clean_query)
 
-    # 1. Match Scheme Entity (Longest alias match first)
+    # 1. Match Scheme Entity (Longest exact alias match first)
     detected_scheme_id = None
     detected_scheme_alias = None
 
@@ -289,6 +267,34 @@ def resolve_entities(
                 if detected_scheme_alias is None or len(alias) > len(detected_scheme_alias):
                     detected_scheme_id = sid
                     detected_scheme_alias = alias
+
+    # 1b. Fuzzy Matching for Typos & Abbreviations (e.g. 'sml cap', 'midcap opp')
+    if not detected_scheme_id:
+        words = norm_query.split()
+        candidate_ngrams = []
+        for n in (1, 2, 3):
+            for i in range(len(words) - n + 1):
+                candidate_ngrams.append(" ".join(words[i:i+n]))
+
+        best_score = 0.0
+        best_sid = None
+        best_alias = None
+
+        for sid, info in SCHEME_REGISTRY.items():
+            for alias in info["aliases"]:
+                norm_alias = re.sub(r"[-\s]+", " ", alias.lower())
+                for ngram in candidate_ngrams:
+                    if len(ngram) < 4:
+                        continue
+                    sim = difflib.SequenceMatcher(None, ngram, norm_alias).ratio()
+                    if sim > best_score and sim >= 0.78:
+                        best_score = sim
+                        best_sid = sid
+                        best_alias = alias
+
+        if best_sid:
+            detected_scheme_id = best_sid
+            detected_scheme_alias = best_alias
 
     # 2. Pronoun / Anaphora Resolution (EC-ENT-02)
     if not detected_scheme_id and session_scheme_id in SCHEME_REGISTRY:
@@ -315,7 +321,6 @@ def resolve_entities(
                 break
 
     # 4. Check External AMC & Ambiguity (EC-ENT-01 & EC-RET-02)
-    # If the user explicitly mentions an external AMC, it is strictly out-of-corpus (not HDFC).
     has_external_amc = any(
         re.search(r"\b" + re.escape(amc) + r"\b", clean_query) for amc in EXTERNAL_AMCS
     )
@@ -323,7 +328,7 @@ def resolve_entities(
         detected_scheme_id = None
         detected_scheme_alias = None
 
-    # Check Unsupported Plan / Option (Regular Plan or IDCW/Dividend) (EC-AUDIT-4.5)
+    # Check Unsupported Plan / Option (Regular Plan or IDCW/Dividend)
     is_unsupported_plan = bool(
         re.search(r"\b(?:regular\s+plan|regular\s+growth|regular\s+scheme)\b", clean_query)
         or re.search(r"\b(?:idcw|dividend\s+plan|dividend\s+option|dividend\s+payout)\b", clean_query)
@@ -357,41 +362,41 @@ def resolve_entities(
     )
 
 
-def get_unsupported_plan_response() -> Dict[str, Any]:
-    """Returns compliant response when user queries Regular plans or IDCW options (EC-AUDIT-4.5)."""
+def get_unsupported_plan_response(query: Optional[str] = None) -> Dict[str, Any]:
+    """Returns compliant response when user queries Regular plans or IDCW options."""
     doc_date = get_default_corpus_date()
     citation = "https://www.hdfcfund.com"
     text = (
         "This assistant strictly indexes Direct Plan (Growth Option) schemes. "
-        "Regular plans and IDCW (Income Distribution cum Capital Withdrawal) options are not part of our verified records. "
+        "Regular plans and IDCW options are not part of our verified records. "
         "Please query Direct Plan (Growth Option) metrics across our 5 supported HDFC funds."
     )
-    rendered = f"{text}\n\nSource: {citation}\nLast updated from sources: {doc_date}"
+    val_res = validate_response(text, None, citation, doc_date)
     return {
-        "text": text,
-        "citation_url": citation,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
         "is_unsupported_plan": True,
     }
 
 
 def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, Any]:
-    """Returns compliant response when user asks about a non-HDFC AMC (EC-AUDIT-4.5)."""
+    """Returns compliant response when user asks about a non-HDFC AMC."""
     doc_date = get_default_corpus_date()
     citation = "https://www.amfiindia.com/investor-corner/knowledge-center"
     amc_label = f"'{detected_amc.title()}'" if detected_amc else "external fund houses"
     text = (
         f"I can only provide official records for 5 selected HDFC Mutual Fund schemes. "
-        f"Information regarding {amc_label} or external fund houses is not available in our verified corpus. "
+        f"Information regarding {amc_label} is not available in our verified corpus. "
         f"You can explore comprehensive scheme information on the official AMFI portal."
     )
-    rendered = f"{text}\n\nSource: {citation}\nLast updated from sources: {doc_date}"
+    val_res = validate_response(text, None, citation, doc_date)
     return {
-        "text": text,
-        "citation_url": citation,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
         "is_external_amc": True,
     }
 
@@ -405,13 +410,13 @@ def get_disambiguation_response(last_updated: Optional[str] = None) -> Dict[str,
     )
     url = CANONICAL_LINKS["ADVISORY"]
     doc_date = last_updated or get_default_corpus_date()
-    rendered = f"{body}\n\nSource: {url}\nLast updated from sources: {doc_date}"
+    val_res = validate_response(body, None, url, doc_date)
 
     return {
-        "text": body,
-        "citation_url": url,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
         "is_clarification": True,
     }
 

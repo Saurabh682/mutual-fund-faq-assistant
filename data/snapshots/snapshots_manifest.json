@@ -1,0 +1,283 @@
+{
+  "generated_at": "2026-11-07T10:39:53.908164+00:00",
+  "total_items": 25,
+  "supported_count": 15,
+  "unsupported_count": 10,
+  "snapshots": {
+    "glossary_ter": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Total Expense Ratio (TER)",
+      "url": "https://groww.in/p/expense-ratio",
+      "http_status": 200,
+      "sha256": "944a3c16aba9db6151c5d6c89a363259d4a41bd587704128aa38d54fb6117c8d",
+      "bytes": 142607,
+      "snapshot_file": "glossary_ter.html",
+      "supporting_sentence": "Expense ratio is the annual maintenance charge levied by mutual funds to finance its expenses.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:54.270178+00:00"
+    },
+    "glossary_exit_load": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Exit Load",
+      "url": "https://groww.in/p/exit-load-in-mutual-funds",
+      "http_status": 200,
+      "sha256": "ae4ca24cdd5be7888e032309ea70e952b7603ccd849e54c81746818c2de26b32",
+      "bytes": 153914,
+      "snapshot_file": "glossary_exit_load.html",
+      "supporting_sentence": "An exit load is the fee AMCs (Asset management companies) charge the investor at the time of exiting or retrieving the units of the fund.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:54.560840+00:00"
+    },
+    "glossary_nav": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Net Asset Value (NAV)",
+      "url": "https://www.amfiindia.com/investor/knowledge-center-info?zoneName=NetAssetValueNAV",
+      "http_status": 200,
+      "sha256": "088c049c1cf756d60ce60906a215d2a13125ecd153df21db69ddcf7d09e7e69c",
+      "bytes": 201656,
+      "snapshot_file": "glossary_nav.html",
+      "supporting_sentence": "NAV per unit is the market value of securities of a scheme divided by the total number of units of the scheme on a given date.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:55.116218+00:00"
+    },
+    "glossary_sip": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Systematic Investment Plan (SIP)",
+      "url": "https://groww.in/p/sip-systematic-investment-plan",
+      "http_status": 200,
+      "sha256": "1d929cff69c4443d3e28735a823f3c83e5425638173c11b8300947e4a290c15a",
+      "bytes": 190393,
+      "snapshot_file": "glossary_sip.html",
+      "supporting_sentence": "SIP or Systematic Investment Plan is a process of investing a fixed amount of money in a mutual funds/stocks on a daily, weekly, monthly or quarterly basis.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:55.416610+00:00"
+    },
+    "glossary_riskometer": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "SEBI Riskometer",
+      "url": "https://groww.in/p/riskometer",
+      "http_status": 200,
+      "sha256": "201fc9f18cd56018a4bef540dbf41411edf8786daa8bb2f1d380dacabb0aa5c6",
+      "bytes": 138155,
+      "snapshot_file": "glossary_riskometer.html",
+      "supporting_sentence": "History of Riskometer The current version of the meter was introduced on 1st July 2015 by SEBI.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:55.704007+00:00"
+    },
+    "glossary_benchmark": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Benchmark Index",
+      "url": "https://groww.in/p/benchmark",
+      "http_status": 200,
+      "sha256": "179e905d078e93ffd12e2e16a97f376b67429367b5ce021cb13c9e44e1709cbd",
+      "bytes": 142607,
+      "snapshot_file": "glossary_benchmark.html",
+      "supporting_sentence": "Benchmark is an index that is used to Measure a Mutual Fund\u2019s overall performance.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:55.996957+00:00"
+    },
+    "glossary_lock_in": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Lock-in Period",
+      "url": "https://groww.in/p/elss-mutual-funds",
+      "http_status": 200,
+      "sha256": "648967fd609dda4ed0f123333e6cc25591027ddd71803641337031861dc201c9",
+      "bytes": 148679,
+      "snapshot_file": "glossary_lock_in.html",
+      "supporting_sentence": "As the name suggests, an ELSS fund is an equity-oriented scheme with a mandatory lock-in period of three years.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:56.470699+00:00"
+    },
+    "glossary_aum": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Assets Under Management (AUM)",
+      "url": "https://groww.in/blog/asset-under-management",
+      "http_status": 200,
+      "sha256": "fccb19c9713c766ceb84a0bc9c501746c311f4c22379fefeaf74156e2ca2ae83",
+      "bytes": 158699,
+      "snapshot_file": "glossary_aum.html",
+      "supporting_sentence": "Assets under management are important because- Showcases the Size of a Fund",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:56.772596+00:00"
+    },
+    "glossary_direct_regular": {
+      "status": "supported",
+      "category": "glossary",
+      "concept": "Direct vs Regular Plans",
+      "url": "https://groww.in/blog/direct-vs-regular-mutual-fund-reasons",
+      "http_status": 200,
+      "sha256": "77c23e4b8fef4f468947d2ecb9f580026f6e89fab3d44f3fed1c3898b5ba8750",
+      "bytes": 152504,
+      "snapshot_file": "glossary_direct_regular.html",
+      "supporting_sentence": "One of the key distinctions between them is that regular mutual funds (MFs) have a distribution commission, while direct mutual funds do not.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:57.060253+00:00"
+    },
+    "procedure_sebi_categorization": {
+      "status": "supported",
+      "category": "procedure",
+      "concept": "SEBI Scheme Categorization Framework",
+      "url": "https://www.amfiindia.com/investor/knowledge-center-info?zoneName=CategorizationOfMutualFundSchemes",
+      "http_status": 200,
+      "sha256": "e8960b803675170424235f8a5b357326aa0fdbe330a1de04908acab3f9d0e1b5",
+      "bytes": 261526,
+      "snapshot_file": "procedure_sebi_categorization.html",
+      "supporting_sentence": "As per SEBI guidelines on Categorization and Rationalization of schemes issued in October 2017, mutual fund schemes are classified as \u2013Equity SchemesDebt SchemesHybrid SchemesSolution Oriented Schemes \u2013 For Retirement and ChildrenOther Schemes \u2013 Index Funds & ETFs and Fund of Funds",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:57.655137+00:00"
+    },
+    "procedure_cutoff_timings": {
+      "status": "supported",
+      "category": "procedure",
+      "concept": "SEBI Uniform NAV Cut-Off Timings",
+      "url": "https://www.amfiindia.com/investor/knowledge-center-info?zoneName=CutOffTimingsAndNewRuleOnApplicableNAV",
+      "http_status": 200,
+      "sha256": "1c1a782e1ba37052a264752b01ad6ac84b26d0618ece59a6e2f429bb53336433",
+      "bytes": 204212,
+      "snapshot_file": "procedure_cutoff_timings.html",
+      "supporting_sentence": "For determining applicable Net Asset Value (NAV) for subscription and redemption transactions",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:58.140828+00:00"
+    },
+    "procedure_nav_disclosure": {
+      "status": "supported",
+      "category": "procedure",
+      "concept": "Daily NAV Disclosure Timelines",
+      "url": "https://www.amfiindia.com/uploads/Reviewoftimelimitfordisclosureof_NAV_f5ebc65062.pdf",
+      "http_status": 200,
+      "sha256": "6128cb9dd1d9ab9cad229da6f100df7798cf3317b9f67426a689f3148fca7399",
+      "bytes": 402098,
+      "snapshot_file": "procedure_nav_disclosure.pdf",
+      "supporting_sentence": "Review of time limit for disclosure of NAV of Mutual fund schemes investing overseas",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:58.854778+00:00"
+    },
+    "procedure_sebi_riskometer": {
+      "status": "supported",
+      "category": "procedure",
+      "concept": "SEBI 6-Tier Mutual Fund Riskometer Framework",
+      "url": "https://www.sebi.gov.in/legal/circulars/oct-2020/circular-on-product-labeling-in-mutual-fund-schemes-risk-o-meter_47796.html",
+      "http_status": 200,
+      "sha256": "f67db485479b98ebe87ba1490e23641be4973efd2a0332871ce29ee3d2fbe4d9",
+      "bytes": 8247,
+      "snapshot_file": "procedure_sebi_riskometer.html",
+      "supporting_sentence": "Circular on Product Labeling in Mutual Fund schemes \u2013 Risk-o-meter",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:59.003814+00:00"
+    },
+    "procedure_settlement_cycle": {
+      "status": "supported",
+      "category": "procedure",
+      "concept": "Mutual Fund Redemption Settlement Timelines",
+      "url": "https://www.sebi.gov.in/legal/circulars/nov-2022/timelines-for-transfer-of-dividend-and-redemption-proceeds-to-unitholders_65455.html",
+      "http_status": 200,
+      "sha256": "74227bf5fa7f92e7d30cbd0f9bbff0da34dca306977a558479983e6c843fbb43",
+      "bytes": 8272,
+      "snapshot_file": "procedure_settlement_cycle.html",
+      "supporting_sentence": "Timelines for transfer of dividend and redemption proceeds to unitholders",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:59.148977+00:00"
+    },
+    "procedure_elss_lock_in": {
+      "status": "supported",
+      "category": "procedure",
+      "concept": "ELSS Mutual Fund Statutory Lock-in Period",
+      "url": "https://groww.in/blog/3-steps-follow-elss-lock-period-ends",
+      "http_status": 200,
+      "sha256": "84d01b847bc2be7d023418886022e790a26675ffbf1bbf48f95bea398da9254f",
+      "bytes": 156392,
+      "snapshot_file": "procedure_elss_lock_in.html",
+      "supporting_sentence": "Like most investments under Section 80C, ELSS funds also have a mandatory lock-in.",
+      "verified_on": "2026-11-05",
+      "fetched_at": "2026-11-07T10:39:59.462733+00:00"
+    },
+    "procedure_capital_gains_statement": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Download Capital Gains Statement",
+      "url": "https://groww.in/help/reports",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_redeem_mutual_fund": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Redeem Mutual Fund Units",
+      "url": "https://groww.in/help/mutual-funds/order/redemption",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_start_sip": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Start Systematic Investment Plan (SIP)",
+      "url": "https://groww.in/help/mutual-funds/sip",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_kyc_process": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Mutual Fund KYC Verification",
+      "url": "https://groww.in/help/mutual-funds/kyc",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_autopay_mandate": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Set Up SIP AutoPay / Bank Mandate",
+      "url": "https://groww.in/help/mutual-funds/sip/autopay",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_switch_procedure": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Switch from Regular to Direct Plan",
+      "url": "https://groww.in/switch",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_sip_bounce": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "SIP Installment Insufficient Balance / Bounce Policy",
+      "url": "https://groww.in/help/mutual-funds/sip/missed-installment",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_sip_pause": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Pause Active SIP Installments",
+      "url": "https://groww.in/help/mutual-funds/sip/pause",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_bank_update": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Update Registered Bank Account in Mutual Funds",
+      "url": "https://groww.in/help/account/bank-account",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    },
+    "procedure_order_tracking": {
+      "status": "unsupported",
+      "category": "procedure",
+      "concept": "Track Mutual Fund Order Status",
+      "url": "https://groww.in/help/mutual-funds/order/track",
+      "reason": "Client-rendered JS shell lacking static DOM article text; stopped from being served per compliance specification.",
+      "verified_on": "2026-11-05"
+    }
+  }
+}

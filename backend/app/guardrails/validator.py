@@ -3,18 +3,71 @@
 Enforces the strict 5-point Output Response Contract:
 1. Sentence count ceiling (<= 3 sentences) with decimal & currency punctuation protection.
 2. Banned evaluative lexicon check (zero opinion words: good, best, safe, lucrative, etc.).
-3. Numeric Grounding Verification: All numbers and percentages must exist verbatim in source context.
+3. Numeric Grounding Verification: All numbers and percentages in LLM drafts must exist verbatim in source context.
 4. Programmatic single-citation URL attachment (strips any model-generated URLs).
 5. Mandatory date footer invariant: 'Last updated from sources: <YYYY-MM-DD>'.
 """
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple
+import yaml
 
-from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date, normalize_date_footer
+# Canonical regulatory and educational citation URLs
+CANONICAL_LINKS: Dict[str, str] = {
+    "ADVISORY": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "COMPARATIVE": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "PROJECTION": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "TAX_LEGAL": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "OUT_OF_SCOPE": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "SMALLTALK": "https://www.amfiindia.com/investor-corner/knowledge-center",
+    "HELP": "https://www.amfiindia.com/investor-corner/knowledge-center",
+}
+
+_DEFAULT_MANIFEST_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../../data/corpus_manifest.yaml")
+)
+
+
+def get_default_corpus_date(manifest_path: str = _DEFAULT_MANIFEST_PATH) -> str:
+    """Retrieve corpus last_refreshed date from manifest or fall back to current date."""
+    if os.path.exists(manifest_path):
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+                if data and "last_refreshed" in data:
+                    return str(data["last_refreshed"])
+        except Exception:
+            pass
+    return date.today().isoformat()
+
+
+def normalize_date_footer(date_str: Optional[str]) -> str:
+    """Normalizes any date string to ISO YYYY-MM-DD format."""
+    if not date_str:
+        return get_default_corpus_date()
+    clean = str(date_str).strip()
+    try:
+        # Handles 23-Oct-2026 or 23-OCT-2026
+        return datetime.strptime(clean, "%d-%b-%Y").strftime("%Y-%m-%d")
+    except Exception:
+        pass
+    try:
+        # Handles YYYY-MM-DD
+        return datetime.strptime(clean, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except Exception:
+        pass
+    for fmt in ("%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(clean, fmt).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    return get_default_corpus_date()
+
 
 # Comprehensive Banned Lexicon (Evaluative, speculative, or advisory words)
 BANNED_LEXICON = {
@@ -119,13 +172,6 @@ def verify_numeric_grounding(
 ) -> Tuple[bool, List[str]]:
     """Verifies that every number or percentage in draft_text exists in source context (EC-LLM-02).
 
-    Uses strict numeric set comparison to prevent substring leakage
-    (e.g., '0.7' will not pass against '0.74', and stray '1' will not pass against '100').
-
-    Args:
-        draft_text: Model generated text draft.
-        context_chunks: List of retrieved context chunks or texts.
-
     Returns:
         Tuple of (is_grounded, ungrounded_numbers).
     """
@@ -211,16 +257,16 @@ def safe_contract_fallback(
 
 def validate_response(
     draft_text: str,
-    context_chunks: List[Any],
-    primary_url: str,
+    context_chunks: Optional[List[Any]] = None,
+    primary_url: str = CANONICAL_LINKS["ADVISORY"],
     doc_date: Optional[str] = None,
 ) -> ValidationResult:
     """Executes the full 5-point contract validation gate on model output.
 
     Args:
-        draft_text: Raw output from the synthesizer.
-        context_chunks: Context chunks supplied to the model.
-        primary_url: Verified canonical URL for the winning scheme.
+        draft_text: Raw output from synthesizer or static template.
+        context_chunks: Context chunks supplied to the model (None for deterministic static templates).
+        primary_url: Verified canonical URL for the winning scheme or regulatory authority.
         doc_date: Document update timestamp (YYYY-MM-DD).
 
     Returns:
@@ -247,11 +293,20 @@ def validate_response(
             violation_reasons=["NOT_FOUND_IN_CORPUS"],
         )
 
+    # Separate narrative prose from optional markdown table
+    if "\n\n|" in clean_draft:
+        parts = clean_draft.split("\n\n|", 1)
+        narrative = parts[0].strip()
+        table = "|" + parts[1]
+    else:
+        narrative = clean_draft
+        table = None
+
     # 1. Strip unauthorized model-generated URLs (EC-LLM-03)
-    stripped_text = strip_urls(clean_draft)
+    stripped_narrative = strip_urls(narrative)
 
     # 2. Split sentences and enforce <= 3 sentence ceiling (EC-LLM-01 & EC-VAL-01)
-    sentences = split_sentences(stripped_text)
+    sentences = split_sentences(stripped_narrative)
     repaired = False
     violation_reasons: List[str] = []
 
@@ -260,19 +315,22 @@ def validate_response(
         repaired = True
         violation_reasons.append("SENTENCE_CEILING_EXCEEDED_TRUNCATED")
 
-    valid_text = " ".join(sentences).strip()
+    valid_narrative = " ".join(sentences).strip()
+    valid_text = f"{valid_narrative}\n\n{table}" if table else valid_narrative
 
     # 3. Check for banned evaluative lexicon
-    banned_hits = check_banned_words(valid_text)
+    banned_hits = check_banned_words(valid_narrative)
     if banned_hits:
         violation_reasons.append(f"BANNED_WORDS:{','.join(banned_hits)}")
 
     # 4. Numeric Grounding Verification (EC-LLM-02)
-    is_grounded, ungrounded_numbers = verify_numeric_grounding(
-        valid_text, context_chunks
-    )
-    if not is_grounded:
-        violation_reasons.append(f"UNGROUNDED_NUMBERS:{','.join(ungrounded_numbers)}")
+    # Only enforced when context_chunks is provided (dynamic LLM synthesis)
+    if context_chunks is not None:
+        is_grounded, ungrounded_numbers = verify_numeric_grounding(
+            valid_narrative, context_chunks
+        )
+        if not is_grounded:
+            violation_reasons.append(f"UNGROUNDED_NUMBERS:{','.join(ungrounded_numbers)}")
 
     # If any fatal violation occurred (banned words or ungrounded numbers)
     fatal_violations = [r for r in violation_reasons if not r.startswith("SENTENCE_CEILING")]

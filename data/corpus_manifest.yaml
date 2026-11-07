@@ -1,5 +1,5 @@
 version: 1
-last_refreshed: '2026-10-25'
+last_refreshed: '2026-11-05'
 allowed_domains:
 - groww.in
 official_allowed_domains:
@@ -7,6 +7,9 @@ official_allowed_domains:
 - amfiindia.com
 - sebi.gov.in
 - groww.in
+- camsonline.com
+- kfintech.com
+- npci.org.in
 schemes:
 - id: hdfc_midcap_dg
   name: HDFC Mid-Cap Opportunities Fund
@@ -210,6 +213,36 @@ official_sources:
   type: sebi_circular
   publisher: sebi
   title: SEBI Circular on Product Labeling in Mutual Fund Schemes on Riskometer
+- id: cams_autopay_mandate
+  url: https://www.camsonline.com/Investors/Service-requests/e-Mandate
+  type: rta_procedure
+  publisher: cams
+  title: NPCI e-NACH & CAMS SIP AutoPay Mandate Setup Guide
+- id: amfi_cutoff_timings
+  url: https://www.amfiindia.com/research-information/other-data/nav-cut-off-timings
+  type: regulatory_standard
+  publisher: amfi
+  title: SEBI & AMFI Official Daily NAV Subscription and Redemption Cut-off Timings
+- id: hdfc_switch_procedure
+  url: https://www.hdfcfund.com/investor-services/how-to-switch
+  type: amc_procedure
+  publisher: hdfc_amc
+  title: HDFC Mutual Fund Scheme Switch Between Plans Procedure
+- id: cams_sip_bounce
+  url: https://www.camsonline.com/Investors/FAQ/SIP
+  type: rta_procedure
+  publisher: cams
+  title: CAMS Mutual Fund SIP Auto-Debit Insufficient Funds & Bounce Policy
+- id: cams_bank_update
+  url: https://www.camsonline.com/Investors/Service-requests/Bank-Change
+  type: rta_procedure
+  publisher: cams
+  title: CAMS & KFintech Mutual Fund Change of Bank Account Mandate
+- id: sebi_settlement_cycle
+  url: https://www.sebi.gov.in/legal/circulars/mar-2023/mutual-funds-settlement-cycle_69384.html
+  type: sebi_circular
+  publisher: sebi
+  title: SEBI Operational Framework for Mutual Fund Redemption Settlement Cycle (T+2/T+1)
 verified_public_documents_count: 20
 verified_public_documents:
 - id: doc_01_hdfc_midcap_factsheet

@@ -93,7 +93,7 @@ class TestPhase2RefusalCompliance:
         # Verify response contract
         ref = data["refusal_response"]
         assert ref["citation_url"] == "https://www.amfiindia.com/investor-corner/knowledge-center"
-        assert "Last updated from sources: 2026-10-25" in ref["rendered"]
+        assert "Last updated from sources: 2026-11-05" in ref["rendered"]
 
         # Sentence count verification (must be <= 3)
         sentences = [s.strip() for s in ref["text"].split(".") if s.strip()]

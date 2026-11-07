@@ -204,20 +204,20 @@ class TestProceduralQueries:
     """Verifies that procedural queries resolve to PROCEDURAL intent and return verified steps."""
 
     @pytest.mark.parametrize(
-        "query",
+        "query,is_supported",
         [
-            "How do I download my Capital Gains statement on Groww?",
-            "how to download capital gains statement",
-            "Where can I find my capital gains report on Groww?",
-            "How do I redeem my mutual fund units on Groww?",
-            "How to start a SIP on Groww?",
-            "What documents are required for KYC?",
-            "What is the lock-in period for ELSS mutual funds?",
-            "Explain the SEBI riskometer framework",
-            "What is the SEBI categorization for large cap funds?",
+            ("How do I download my Capital Gains statement on Groww?", False),
+            ("how to download capital gains statement", False),
+            ("Where can I find my capital gains report on Groww?", False),
+            ("How do I redeem my mutual fund units on Groww?", False),
+            ("How to start a SIP on Groww?", False),
+            ("What documents are required for KYC?", False),
+            ("What is the lock-in period for ELSS mutual funds?", True),
+            ("Explain the SEBI riskometer framework", True),
+            ("What is the SEBI categorization for large cap funds?", True),
         ],
     )
-    def test_procedural_intent_and_lookup(self, query: str):
+    def test_procedural_intent_and_lookup(self, query: str, is_supported: bool):
         from app.rag.facts import lookup_fact
 
         res = classify_intent(query)
@@ -225,10 +225,13 @@ class TestProceduralQueries:
         assert res.is_refusal is False
 
         fact = lookup_fact(query)
-        assert fact is not None, f"lookup_fact returned None for procedural query: {query}"
-        assert fact.get("source") in ("procedural_store", "glossary_store")
-        assert "Source: " in fact.get("rendered", "")
-        assert "Last updated from sources:" in fact.get("rendered", "")
+        if is_supported:
+            assert fact is not None, f"lookup_fact returned None for supported procedural query: {query}"
+            assert fact.get("source") in ("procedural_store", "glossary_store")
+            assert "Source: " in fact.get("rendered", "")
+            assert "Last updated from sources:" in fact.get("rendered", "")
+        else:
+            assert fact is None, f"Unsupported procedural query '{query}' should return None, got: {fact}"
 
 
 class TestOfficialSourcingContract:
@@ -247,9 +250,10 @@ class TestOfficialSourcingContract:
 
         fact = lookup_fact("What is the expense ratio of HDFC Mid-Cap Opportunities Fund?")
         assert fact is not None
-        assert "HDFC AMC Factsheet" in fact["rendered"]
+        assert "HDFC Asset Management Company Limited" in fact["rendered"]
         assert "118989" in fact["rendered"]  # AMFI Scheme Code for HDFC Mid-Cap
-        assert "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund" in fact["rendered"]
+        assert "Groww scheme page" in fact["rendered"]
+        assert "Source: https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth" in fact["rendered"]
 
 
 class TestEducationalGlossaryStore:
@@ -258,16 +262,16 @@ class TestEducationalGlossaryStore:
     @pytest.mark.parametrize(
         "query,expected_id,expected_citation",
         [
-            ("What is Total Expense Ratio?", "ter", "amfiindia.com"),
-            ("What does TER mean?", "ter", "amfiindia.com"),
-            ("What is exit load?", "exit_load", "amfiindia.com"),
-            ("Explain exit load", "exit_load", "amfiindia.com"),
+            ("What is Total Expense Ratio?", "ter", "groww.in"),
+            ("What does TER mean?", "ter", "groww.in"),
+            ("What is exit load?", "exit_load", "groww.in"),
+            ("Explain exit load", "exit_load", "groww.in"),
             ("What does NAV mean?", "nav", "amfiindia.com"),
-            ("What is a Systematic Investment Plan?", "sip", "amfiindia.com"),
-            ("What is a Riskometer?", "riskometer", "sebi.gov.in"),
-            ("What is a benchmark in mutual funds?", "benchmark", "amfiindia.com"),
-            ("What is lock-in period?", "lock_in", "amfiindia.com"),
-            ("What is AUM?", "aum", "amfiindia.com"),
+            ("What is a Systematic Investment Plan?", "sip", "groww.in"),
+            ("What is a Riskometer?", "riskometer", "groww.in"),
+            ("What is a benchmark in mutual funds?", "benchmark", "groww.in"),
+            ("What is lock-in period?", "lock_in", "groww.in"),
+            ("What is AUM?", "aum", "groww.in"),
         ],
     )
     def test_glossary_definitions(self, query: str, expected_id: str, expected_citation: str):

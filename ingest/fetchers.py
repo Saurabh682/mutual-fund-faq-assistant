@@ -6,6 +6,16 @@ from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
+OFFICIAL_ALLOWED_DOMAINS = [
+    "groww.in",
+    "hdfcfund.com",
+    "amfiindia.com",
+    "sebi.gov.in",
+    "camsonline.com",
+    "kfintech.com",
+    "npci.org.in",
+]
+
 def check_domain_allowlist(url: str, allowed_domains: list[str]) -> bool:
     parsed = urlparse(url)
     domain = parsed.netloc.lower()

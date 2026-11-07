@@ -16,10 +16,14 @@ Adheres strictly to the Response Contract:
 
 from __future__ import annotations
 
-import os
-from datetime import date, datetime
 from typing import Any, Dict, Optional
-import yaml
+
+from app.guardrails.validator import (
+    CANONICAL_LINKS,
+    get_default_corpus_date,
+    normalize_date_footer,
+    validate_response,
+)
 
 REFUSAL_TEMPLATES: Dict[str, str] = {
     "ADVISORY": (
@@ -58,56 +62,6 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
     ),
 }
 
-CANONICAL_LINKS: Dict[str, str] = {
-    "ADVISORY": "https://www.amfiindia.com/investor-corner/knowledge-center",
-    "COMPARATIVE": "https://www.amfiindia.com/investor-corner/knowledge-center",
-    "PROJECTION": "https://www.amfiindia.com/investor-corner/knowledge-center",
-    "TAX_LEGAL": "https://www.amfiindia.com/investor-corner/knowledge-center",
-    "OUT_OF_SCOPE": "https://www.amfiindia.com/investor-corner/knowledge-center",
-    "SMALLTALK": "https://www.amfiindia.com/investor-corner/knowledge-center",
-    "HELP": "https://www.amfiindia.com/investor-corner/knowledge-center",
-}
-
-_DEFAULT_MANIFEST_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../../data/corpus_manifest.yaml")
-)
-
-
-def get_default_corpus_date(manifest_path: str = _DEFAULT_MANIFEST_PATH) -> str:
-    """Retrieve corpus last_refreshed date from manifest or fall back to current date."""
-    if os.path.exists(manifest_path):
-        try:
-            with open(manifest_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
-                if data and "last_refreshed" in data:
-                    return str(data["last_refreshed"])
-        except Exception:
-            pass
-    return date.today().isoformat()
-
-
-def normalize_date_footer(date_str: Optional[str]) -> str:
-    """Normalizes any date string to ISO YYYY-MM-DD format."""
-    if not date_str:
-        return get_default_corpus_date()
-    clean = str(date_str).strip()
-    try:
-        # Handles 23-Oct-2026 or 23-OCT-2026
-        return datetime.strptime(clean, "%d-%b-%Y").strftime("%Y-%m-%d")
-    except Exception:
-        pass
-    try:
-        # Handles YYYY-MM-DD
-        return datetime.strptime(clean, "%Y-%m-%d").strftime("%Y-%m-%d")
-    except Exception:
-        pass
-    for fmt in ("%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d"):
-        try:
-            return datetime.strptime(clean, fmt).strftime("%Y-%m-%d")
-        except Exception:
-            pass
-    return get_default_corpus_date()
-
 
 def generate_refusal(
     intent: str,
@@ -135,13 +89,14 @@ def generate_refusal(
         )
 
     doc_date = normalize_date_footer(last_updated)
-    rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
+    val_res = validate_response(body, None, citation_url, doc_date)
 
     return {
-        "text": body,
-        "citation_url": citation_url,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
+        "sentence_count": val_res.sentence_count,
         "is_refusal": True,
         "intent": normalized_intent,
     }
@@ -164,7 +119,7 @@ def generate_compound_refusal(
         clean_fact += "."
 
     if intent == "ADVISORY":
-        compliance_sentence = "I cannot provide investment advice or recommendations on whether you should invest in this fund."
+        compliance_sentence = "I cannot provide investment advice or recommendations regarding investments in this fund."
     elif intent == "COMPARATIVE":
         compliance_sentence = "I cannot compare or rank mutual fund schemes against each other."
     elif intent == "PROJECTION":
@@ -174,13 +129,14 @@ def generate_compound_refusal(
 
     body = f"{clean_fact} {compliance_sentence}"
     doc_date = normalize_date_footer(last_updated)
-    rendered = f"{body}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
+    val_res = validate_response(body, None, citation_url, doc_date)
 
     return {
-        "text": body,
-        "citation_url": citation_url,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
+        "sentence_count": val_res.sentence_count,
         "is_compound": True,
         "is_refusal": True,
         "intent": intent,
@@ -205,13 +161,14 @@ def generate_help_response(last_updated: Optional[str] = None) -> Dict[str, Any]
     full_text = prose + HELP_TABLE
     doc_date = normalize_date_footer(last_updated)
     citation_url = CANONICAL_LINKS["HELP"]
-    rendered = f"{full_text}\n\nSource: {citation_url}\nLast updated from sources: {doc_date}"
+    val_res = validate_response(full_text, None, citation_url, doc_date)
 
     return {
-        "text": full_text,
-        "citation_url": citation_url,
-        "last_updated": doc_date,
-        "rendered": rendered,
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
+        "sentence_count": val_res.sentence_count,
         "is_help": True,
         "intent": "HELP",
     }
