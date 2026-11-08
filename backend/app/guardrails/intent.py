@@ -338,7 +338,24 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
             matched_triggers=["factual_keyword"],
         )
 
-    # 9. Check if mutual fund related
+    # 9. Embedding Prototype Guardrail (Fail closed on un-regexed advisory & projections)
+    if not is_exempt_from_advisory:
+        try:
+            from app.guardrails.intent_prototype import classify_clause_prototype
+            p_cat, p_adv, p_fac = classify_clause_prototype(clean_query)
+            if p_cat == "ADVISORY" or (p_cat == "UNCERTAIN" and p_adv >= 0.28 and p_adv > p_fac):
+                return IntentResult(
+                    intent=IntentType.ADVISORY.value,
+                    confidence=p_adv,
+                    is_refusal=True,
+                    is_compound=has_factual,
+                    secondary_intent=IntentType.FACTUAL.value if has_factual else None,
+                    matched_triggers=["prototype_advisory"],
+                )
+        except Exception:
+            pass
+
+    # 10. Check if mutual fund related
     is_mf_related = any(kw in clean_query.lower() for kw in MUTUAL_FUND_CONTEXT_KEYWORDS)
     if is_mf_related:
         return IntentResult(
@@ -349,7 +366,7 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
             matched_triggers=["mf_context"],
         )
 
-    # 10. Out of Scope
+    # 11. Out of Scope
     return IntentResult(
         intent=IntentType.OUT_OF_SCOPE.value,
         confidence=0.90,
@@ -439,6 +456,14 @@ def classify_clause_level_intent(
         i_res = classify_intent(c)
         if i_res.is_refusal and not refusal_intent:
             refusal_intent = i_res.intent
+        elif not refusal_intent:
+            try:
+                from app.guardrails.intent_prototype import classify_clause_prototype
+                p_cat, p_adv, p_fac = classify_clause_prototype(c)
+                if p_cat == "ADVISORY" or (p_cat == "UNCERTAIN" and p_adv >= 0.28 and p_adv > p_fac):
+                    refusal_intent = IntentType.ADVISORY.value
+            except Exception:
+                pass
 
     if fact_resp and refusal_intent:
         raw_text = fact_resp["text"].split("\n\n")[0]
