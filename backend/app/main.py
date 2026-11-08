@@ -24,7 +24,7 @@ _IP_REQUEST_TIMESTAMPS: dict[str, deque] = defaultdict(deque)
 async def rate_limit_and_input_guard_middleware(request: Request, call_next):
     # 1. Per-IP Rate Limiting (20 req/min on /api/ endpoints)
     if request.url.path.startswith("/api/") and not request.url.path.endswith("/health"):
-        client_ip = request.client.host if request.client else "127.0.0.1"
+        client_ip = request.headers.get("x-forwarded-for") or (request.client.host if request.client else "127.0.0.1")
         now = time.time()
         ts_queue = _IP_REQUEST_TIMESTAMPS[client_ip]
         while ts_queue and ts_queue[0] <= now - 60.0:
