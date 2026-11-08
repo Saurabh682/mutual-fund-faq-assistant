@@ -11,6 +11,11 @@ name: Scheduled Daily Data Ingestion
         required: true
         type: boolean
         default: true
+      smoke_test:
+        description: 'Run post-deploy smoke tests against live Space'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: daily-ingestion
@@ -20,8 +25,33 @@ permissions:
   contents: write
 
 jobs:
+  verify-no-manual-index-changes:
+    name: Verify No Manual Index Tampering
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Assert data/index/ single-writer policy
+        run: |
+          AUTHOR=$(git log -1 --format="%ae")
+          echo "Last commit author: $AUTHOR"
+          if [ "$AUTHOR" != "github-actions[bot]@users.noreply.github.com" ]; then
+            CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^data/index/" || true)
+            if [ -n "$CHANGED" ]; then
+              echo "ERROR: data/index/ modified in non-bot commit by $AUTHOR:"
+              echo "$CHANGED"
+              echo "data/index/ is single-writer and must only be committed by github-actions[bot]."
+              exit 1
+            fi
+          fi
+          echo "Index integrity verified: No illegal manual modifications."
+
   ingest:
     name: Scrape, Clean, Chunk & Index
+    needs: [verify-no-manual-index-changes]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -101,9 +131,42 @@ jobs:
             git push
           fi
 
+      # UNVERIFIED: HF sync not confirmed by user. Run workflow manually and paste logs.
       - name: Sync Updated Corpus & Backend to Hugging Face Space
         if: env.HF_TOKEN != ''
         run: |
           echo "Syncing latest commit to Hugging Face Space..."
           git remote add hf https://deamonizer:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/deamonizer/mutual-fund-faq-assistant.git || git remote set-url hf https://deamonizer:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/deamonizer/mutual-fund-faq-assistant.git
           git push hf main --force
+
+      - name: Execute Live Space Post-Deploy Smoke Tests
+        if: ${{ inputs.smoke_test == true }}
+        continue-on-error: true
+        run: |
+          echo "Waiting 30 seconds for Hugging Face Space container deployment..."
+          sleep 30
+          python -c "
+          import urllib.request, json
+          SPACE_URL = 'https://deamonizer-mutual-fund-faq-assistant.hf.space/api/v1/rag/ask'
+
+          test_cases = [
+              ('Fact Query', {'query': 'What is the TER of HDFC Top 100 Fund Direct Growth?'}, lambda r: '0.80%' in r.get('rendered', '') or 'ter' in r.get('rendered', '').lower()),
+              ('Refusal Query', {'query': 'Should I invest in HDFC Small Cap Fund?'}, lambda r: 'cannot' in r.get('rendered', '').lower() or 'advice' in r.get('rendered', '').lower()),
+              ('PII Query', {'query': 'My PAN is ABCPX1234Q — am I invested in HDFC Top 100?'}, lambda r: 'security warning' in r.get('message', '').lower() or 'pii' in str(r).lower()),
+          ]
+
+          print('\n=== LIVE SPACE POST-DEPLOY SMOKE TEST ===')
+          for name, payload, validator in test_cases:
+              try:
+                  req = urllib.request.Request(SPACE_URL, data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+                  with urllib.request.urlopen(req, timeout=15) as resp:
+                      data = json.loads(resp.read().decode('utf-8'))
+                      passed = validator(data)
+                      print(f'[{'PASS' if passed else 'FAIL'}] {name}: response code 200')
+              except urllib.error.HTTPError as e:
+                  err_data = json.loads(e.read().decode('utf-8')) if e.code == 400 else {}
+                  passed = validator(err_data)
+                  print(f'[{'PASS' if passed else 'FAIL'}] {name}: HTTP {e.code}')
+              except Exception as e:
+                  print(f'[FAIL] {name}: {e}')
+          "
