@@ -87,7 +87,6 @@ COMPARATIVE_PATTERNS = [
     re.compile(r"\bbetween\s+.*?\s+and\s+.*?\s+which\s+(?:one\s+)?(?:has|is|generates?)\b", re.I),
     re.compile(r"\bwhich\s+scheme\s+is\s+safer\s+.*?\s+(?:or|than)\b", re.I),
     re.compile(r"\bcomparison\s+of\s+.*?\s+cagr\b", re.I),
-    re.compile(r"\b(?:outperform|beat|out-perform)\b", re.I),
 ]
 
 # 4. Factual / Procedural Exemptions from Advisory
