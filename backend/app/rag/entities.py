@@ -239,6 +239,7 @@ class EntityResolutionResult:
     is_ambiguous: bool = False
     is_external_amc: bool = False
     is_unsupported_plan: bool = False
+    is_amc_out_of_scope: bool = False
     matched_scheme_alias: Optional[str] = None
     matched_field_alias: Optional[str] = None
 
@@ -285,6 +286,8 @@ def resolve_entities(
                 norm_alias = re.sub(r"[-\s]+", " ", alias.lower())
                 for ngram in candidate_ngrams:
                     if len(ngram) < 4:
+                        continue
+                    if ngram in ("hdfc mutual fund", "mutual fund", "hdfc mutual", "mutual fund amc", "hdfc mf", "hdfc amc", "asset management"):
                         continue
                     sim = difflib.SequenceMatcher(None, ngram, norm_alias).ratio()
                     if sim > best_score and sim >= 0.78:
@@ -334,11 +337,25 @@ def resolve_entities(
         or re.search(r"\b(?:idcw|dividend\s+plan|dividend\s+option|dividend\s+payout)\b", clean_query)
     )
 
+    # AMC-level out-of-scope check (Rule: AMC named, no scheme resolved, no scheme fact field matched)
+    is_amc_named = bool(
+        re.search(r"\b(?:hdfc|amc|asset\s+management(?:\s+company)?|fund\s+house)\b", clean_query, re.I)
+    )
+    is_amc_out_of_scope = (
+        is_amc_named
+        and detected_scheme_id is None
+        and detected_field in (None, "amc_name")
+        and not has_external_amc
+        and not is_unsupported_plan
+    )
+
     is_ambiguous = (
         detected_scheme_id is None
         and detected_field is not None
+        and detected_field != "amc_name"
         and not has_external_amc
         and not is_unsupported_plan
+        and not is_amc_out_of_scope
     )
 
     scheme_name = None
@@ -357,6 +374,7 @@ def resolve_entities(
         is_ambiguous=is_ambiguous,
         is_external_amc=has_external_amc,
         is_unsupported_plan=is_unsupported_plan,
+        is_amc_out_of_scope=is_amc_out_of_scope,
         matched_scheme_alias=detected_scheme_alias,
         matched_field_alias=detected_field_alias,
     )
@@ -424,3 +442,23 @@ def get_disambiguation_response(last_updated: Optional[str] = None) -> Dict[str,
 def get_scheme_meta(scheme_id: str) -> Optional[Dict[str, Any]]:
     """Retrieve metadata for a known scheme ID."""
     return SCHEME_REGISTRY.get(scheme_id)
+
+
+def get_amc_out_of_scope_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
+    """Generates deterministic out-of-scope response for AMC-level company inquiries without asking which scheme."""
+    body = (
+        "I could not find official information regarding this topic in our verified HDFC Mutual Fund records. "
+        "This assistant supports scheme facts (TER, NAV, exit load, fund managers, AUM, benchmark, riskometer, "
+        "minimum SIP) for 5 HDFC schemes. For corporate AMC information, please refer to official filings."
+    )
+    url = "https://www.hdfcfund.com"
+    doc_date = last_updated or get_default_corpus_date()
+    val_res = validate_response(body, None, url, doc_date)
+
+    return {
+        "text": val_res.text,
+        "citation_url": val_res.citation_url,
+        "last_updated": val_res.last_updated,
+        "rendered": val_res.rendered,
+        "is_out_of_scope": True,
+    }

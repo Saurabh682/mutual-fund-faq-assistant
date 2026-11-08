@@ -209,7 +209,50 @@ def retrieve_query(request: RetrievalQueryRequest):
                 latency_ms=elapsed_ms,
             )
 
+    # AMC-level out-of-scope check (Rule: AMC named, no scheme, no supported topic)
+    if entity_res.is_amc_out_of_scope:
+        from app.rag.entities import get_amc_out_of_scope_response
+        amc_resp = get_amc_out_of_scope_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        return RetrievalQueryResponse(
+            query=request.query,
+            resolution_type="not_found",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=amc_resp["text"],
+            citation_url=amc_resp["citation_url"],
+            last_updated=amc_resp["last_updated"],
+            rendered=amc_resp["rendered"],
+            chunks=[],
+            latency_ms=elapsed_ms,
+        )
+
     # Ambiguity check (EC-ENT-01)
+    # AMC-level out-of-scope check (Rule: AMC named, no scheme, no supported topic)
+    if entity_res.is_amc_out_of_scope:
+        from app.rag.entities import get_amc_out_of_scope_response
+        amc_resp = get_amc_out_of_scope_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(amc_resp["text"])
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="not_found",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=amc_resp["text"],
+            sentence_count=len(sentences),
+            citation_url=amc_resp["citation_url"],
+            last_updated=amc_resp["last_updated"],
+            rendered=amc_resp["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=[],
+        )
+
     if entity_res.is_ambiguous:
         clarification = get_disambiguation_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -517,6 +560,30 @@ def ask_query(request: SynthesisQueryRequest):
                 latency_ms=elapsed_ms,
                 suggested_followups=followups,
             )
+
+    # AMC-level out-of-scope check (Rule: AMC named, no scheme, no supported topic)
+    if entity_res.is_amc_out_of_scope:
+        from app.rag.entities import get_amc_out_of_scope_response
+        amc_resp = get_amc_out_of_scope_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(amc_resp["text"])
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="not_found",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=amc_resp["text"],
+            sentence_count=len(sentences),
+            citation_url=amc_resp["citation_url"],
+            last_updated=amc_resp["last_updated"],
+            rendered=amc_resp["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=[],
+        )
 
     if entity_res.is_ambiguous:
         clarification = get_disambiguation_response()
