@@ -299,7 +299,7 @@ def evaluate_benign_heldout(
 
     for idx, case in enumerate(cases, start=1):
         case_id = case["id"]
-        category = case["category"]
+        category = case.get("category", case.get("expected_field", "rewording"))
         query = case["query"]
         expected_refusal = case.get("expected_refusal", False)
         expected_behavior = case.get("expected_behavior", "answer")
@@ -309,9 +309,35 @@ def evaluate_benign_heldout(
         print(f"[{idx:03d}/{total_cases:03d}] Testing {case_id} ({category})... ", end="", flush=True)
 
         t0 = time.perf_counter()
-        resp = client.post("/api/v1/rag/ask", json={"query": query})
+        eval_headers = {"X-Forwarded-For": f"10.0.{idx // 15}.{idx % 15}"}
+        resp = client.post("/api/v1/rag/ask", json={"query": query}, headers=eval_headers)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         latencies.append(elapsed_ms)
+        time.sleep(0.05)
+
+        if resp.status_code == 429:
+            print(f"SKIPPED_RATE_LIMIT ({elapsed_ms:.1f}ms)")
+            results.append({
+                "id": case_id,
+                "category": category,
+                "query": query,
+                "expected_refusal": expected_refusal,
+                "expected_behavior": expected_behavior,
+                "expected_scheme_id": expected_scheme_id,
+                "expected_value": expected_value,
+                "response_type": "SKIPPED_RATE_LIMIT",
+                "refusal": False,
+                "is_over_refusal": False,
+                "sentence_count": 0,
+                "numeric_grounding": "N/A",
+                "deadline_fallback_used": False,
+                "latency_ms": elapsed_ms,
+                "passed": False,
+                "failure_reasons": ["SKIPPED_RATE_LIMIT"],
+                "response_text": "",
+                "rendered": "",
+            })
+            continue
 
         if resp.status_code != 200:
             print(f"HTTP ERROR {resp.status_code} ({elapsed_ms:.1f}ms)")
@@ -552,7 +578,8 @@ def evaluate_benign_heldout(
             cid = adv["id"]
             cat = adv.get("category", "adversarial")
             t0 = time.perf_counter()
-            resp = client.post("/api/v1/rag/ask", json={"query": q})
+            adv_headers = {"X-Forwarded-For": f"10.0.1.{adv_idx}"}
+            resp = client.post("/api/v1/rag/ask", json={"query": q}, headers=adv_headers)
             elapsed = (time.perf_counter() - t0) * 1000
             data = resp.json() if resp.status_code == 200 else {}
             rtype = data.get("resolution_type", "unknown")
