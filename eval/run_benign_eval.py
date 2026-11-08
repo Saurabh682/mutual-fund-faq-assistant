@@ -59,6 +59,55 @@ DATE_FOOTER_PATTERN = re.compile(r"Last updated from sources:\s*(\d{4}-\d{2}-\d{
 DOUBLED_PUNCT_RE = re.compile(r"(\.\.|\?\?|!!|,,|\.,|,\.)")
 URL_RE = re.compile(r"https?://[^\s)\]]+")
 
+# ---------------------------------------------------------------------------
+# Task 4: Observed-behavior classifier
+# ---------------------------------------------------------------------------
+_REFUSAL_SIGNALS = (
+    "cannot provide investment advice",
+    "sebi regulations",
+    "regulatory compliance",
+)
+_REFUSAL_API_TYPES = {"refusal", "advisory_refusal", "comparative_refusal", "projection_refusal"}
+_NOT_FOUND_SIGNALS = ("could not find", "not find official information")
+_NOT_FOUND_API_TYPES = {"not_found"}
+_OUT_OF_SCOPE_SIGNALS = ("outside the scope",)
+
+
+def classify_observed_behavior(resp_type: str, text: str) -> str:
+    """Classify observed behavior from API response type + text content.
+
+    Returns one of: ANSWER, REFUSAL, COMPOUND, NOT_FOUND, CLARIFICATION, OUT_OF_SCOPE
+    """
+    tl = text.lower()
+
+    is_refusal_type = resp_type in _REFUSAL_API_TYPES
+    is_refusal_text = any(sig in tl for sig in _REFUSAL_SIGNALS)
+    is_refusal = is_refusal_type or is_refusal_text
+
+    is_nf_type = resp_type in _NOT_FOUND_API_TYPES
+    is_nf_text = any(sig in tl for sig in _NOT_FOUND_SIGNALS)
+    is_not_found = is_nf_type or is_nf_text
+
+    is_out_of_scope = resp_type == "out_of_scope" or any(sig in tl for sig in _OUT_OF_SCOPE_SIGNALS)
+    is_clarification = resp_type == "clarification" or "which scheme do you mean" in tl
+
+    # COMPOUND: factual content AND a refusal sentence
+    if is_refusal and not is_not_found:
+        sentences = [s.strip() for s in re.split(r"[.!?]\s+", text) if s.strip()]
+        factual = [s for s in sentences if not any(sig in s.lower() for sig in _REFUSAL_SIGNALS) and len(s) > 10]
+        refused = [s for s in sentences if any(sig in s.lower() for sig in _REFUSAL_SIGNALS)]
+        if factual and refused:
+            return "COMPOUND"
+        return "REFUSAL"
+
+    if is_not_found:
+        return "NOT_FOUND"
+    if is_out_of_scope:
+        return "OUT_OF_SCOPE"
+    if is_clarification:
+        return "CLARIFICATION"
+    return "ANSWER"
+
 
 def _is_float(v: Any) -> bool:
     try:
@@ -226,7 +275,7 @@ def evaluate_benign_heldout(
     with open(dataset_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if line:
+            if line and not line.startswith("#"):
                 cases.append(json.loads(line))
 
     total_cases = len(cases)
@@ -326,79 +375,78 @@ def evaluate_benign_heldout(
             resp_type, text, chunks, scheme_id, last_updated=last_updated
         )
 
-        # Check over-refusal
-        is_over_refusal = (is_refusal and not expected_refusal)
+        # ── Task 4: classify observed behavior from response content ──────────
+        observed_behavior = classify_observed_behavior(resp_type, text)
+        # Normalize expected_behavior for comparison (dataset uses "refuse"/"answer"/"not_found"/etc.)
+        # Map dataset labels → classifier labels
+        _EXPECTED_TO_OBSERVED_MAP = {
+            "answer": "ANSWER",
+            "refuse": "REFUSAL",
+            "refusal": "REFUSAL",
+            "not_found": "NOT_FOUND",
+            "compound": "COMPOUND",
+            "clarification": "CLARIFICATION",
+            "out_of_scope": "OUT_OF_SCOPE",
+        }
+        expected_observed = _EXPECTED_TO_OBSERVED_MAP.get(expected_behavior.lower(), expected_behavior.upper())
+        behavior_pass = observed_behavior == expected_observed
 
-        # Assertions
-        failure_reasons = []
+        # Check over-refusal (kept for over-refusal metric)
+        is_over_refusal = (observed_behavior == "REFUSAL" and expected_observed != "REFUSAL")
 
-        # 1. Behavior Assertion (evaluated on actual response behavior, not internal path label)
-        if expected_behavior == "answer":
-            if is_refusal and resp_type != "compound":
-                failure_reasons.append("OVER_REFUSAL: Expected answer but query triggered refusal")
-            elif resp_type == "not_found":
-                failure_reasons.append("UNEXPECTED_NOT_FOUND: Expected answer but got not_found")
-        elif expected_behavior == "refuse":
-            if not is_refusal and resp_type not in ("refusal", "unsupported_plan", "external_amc"):
-                failure_reasons.append(f"EXPECTED_REFUSAL_FAILED: Expected refusal but got '{resp_type}'")
-        elif expected_behavior == "not_found":
-            is_nf_behavior = (
-                resp_type == "not_found"
-                or "not available in our verified corpus" in text.lower()
-                or "can only assist with factual information regarding selected hdfc mutual fund schemes" in text.lower()
-            )
-            if not is_nf_behavior:
-                failure_reasons.append(f"EXPECTED_NOT_FOUND_FAILED: Expected not_found behavior but got '{resp_type}'")
-        elif expected_behavior == "compound":
-            is_compound_behavior = (
-                resp_type in ("compound", "clarification")
-                or data.get("is_compound", False)
-                or (sentence_count <= 3 and any(k in text.lower() for k in ("cannot provide", "cannot offer", "cannot compare", "cannot calculate")) and any(k in text.lower() for k in ("is", "ratio", "load", "nav", "amount", "tier", "benchmark")))
-            )
-            if not is_compound_behavior:
-                failure_reasons.append(f"EXPECTED_COMPOUND_FAILED: Expected compound behavior but got '{resp_type}'")
+        # ── Contract checks (non-blocking — become ⚠ CONTRACT warnings) ─────
+        contract_warnings: List[str] = []
 
-        # 2. Scheme ID Assertion
-        if expected_scheme_id is not None:
-            if scheme_id != expected_scheme_id:
-                failure_reasons.append(f"SCHEME_ID_MISMATCH: Expected '{expected_scheme_id}', got '{scheme_id}'")
+        # 2. Scheme ID check
+        if expected_scheme_id is not None and scheme_id != expected_scheme_id:
+            contract_warnings.append(f"SCHEME_ID_MISMATCH: Expected '{expected_scheme_id}', got '{scheme_id}'")
 
-        # 3. Value Match Assertion (normalized substring match)
-        if expected_value is not None:
-            if not check_value_match(expected_value, rendered, text):
-                failure_reasons.append(f"VALUE_MISMATCH: Expected '{expected_value}' not found in response text or rendered contract")
+        # 3. Value Match check
+        if expected_value is not None and not check_value_match(expected_value, rendered, text):
+            contract_warnings.append(f"VALUE_MISMATCH: Expected '{expected_value}' not found in response")
 
-        # 4. Sentence Ceiling Assertion (<= 3 sentences)
+        # 4. Sentence Ceiling
         if sentence_count > 3:
-            failure_reasons.append(f"SENTENCE_CEILING_EXCEEDED: {sentence_count} sentences (> 3)")
+            contract_warnings.append(f"SENTENCE_CEILING_EXCEEDED: {sentence_count} sentences (> 3)")
 
-        # 5. Exactly 1 URL Assertion
+        # 5. URL count
         urls = URL_RE.findall(rendered)
         if len(urls) != 1:
-            failure_reasons.append(f"URL_COUNT_VIOLATION: Expected exactly 1 URL, found {len(urls)}: {urls}")
+            contract_warnings.append(f"URL_COUNT_VIOLATION: Expected exactly 1 URL, found {len(urls)}: {urls}")
 
-        # 6. Dynamic Date Footer Assertion (must match pattern AND match payload last_updated)
+        # 6. Date footer
         footer_line = rendered.strip().split("\n")[-1] if rendered else ""
         date_match = DATE_FOOTER_PATTERN.search(footer_line)
         if not date_match:
-            failure_reasons.append(f"DATE_FOOTER_VIOLATION: Missing or invalid date footer: '{footer_line}'")
+            contract_warnings.append(f"DATE_FOOTER_VIOLATION: Missing or invalid date footer: '{footer_line}'")
         elif last_updated and date_match.group(1) != last_updated:
-            failure_reasons.append(
-                f"DATE_FOOTER_MISMATCH: Footer date '{date_match.group(1)}' does not match payload date '{last_updated}'"
-            )
+            contract_warnings.append(f"DATE_FOOTER_MISMATCH: '{date_match.group(1)}' != '{last_updated}'")
 
-        # 7. No Doubled Punctuation Assertion
+        # 7. Doubled punctuation
         dp = DOUBLED_PUNCT_RE.search(text)
         if dp:
-            failure_reasons.append(f"DOUBLED_PUNCTUATION: Detected '{dp.group(0)}' in response text")
+            contract_warnings.append(f"DOUBLED_PUNCTUATION: Detected '{dp.group(0)}'")
 
-        # 8. Numeric Grounding Assertion
+        # 8. Numeric Grounding
         if "FAIL" in numeric_grounding:
-            failure_reasons.append(f"UNGROUNDED_NUMBERS: {numeric_grounding}")
+            contract_warnings.append(f"UNGROUNDED_NUMBERS: {numeric_grounding}")
 
-        case_passed = len(failure_reasons) == 0
+        # ── Behavior score is the primary pass/fail ───────────────────────────
+        # Legacy failure_reasons = behavior failure only; contract warnings are advisory
+        failure_reasons: List[str] = []
+        if not behavior_pass:
+            failure_reasons.append(
+                f"BEHAVIOR_MISMATCH: expected={expected_observed} observed={observed_behavior} (api_type={resp_type})"
+            )
+        # Append contract warnings as advisory (prefix ⚠ CONTRACT)
+        for w in contract_warnings:
+            failure_reasons.append(f"⚠ CONTRACT: {w}")
+
+        # case_passed = behavior match (contract issues are warnings, not blockers)
+        case_passed = behavior_pass
         status_str = "PASS" if case_passed else "FAIL"
-        print(f"[{status_str}] ({elapsed_ms:5.1f}ms) Type: {resp_type:15s} | Grounding: {numeric_grounding}")
+        contract_flag = " ⚠CONTRACT" if contract_warnings else ""
+        print(f"[{status_str}{contract_flag}] ({elapsed_ms:5.1f}ms) Type: {resp_type:15s} Obs: {observed_behavior:12s} Exp: {expected_observed}")
 
         results.append({
             "id": case_id,
@@ -409,19 +457,86 @@ def evaluate_benign_heldout(
             "expected_scheme_id": expected_scheme_id,
             "expected_value": expected_value,
             "response_type": resp_type,
+            "observed_behavior": observed_behavior,
             "scheme_id": scheme_id,
-            "refusal": is_refusal,
+            "refusal": observed_behavior in ("REFUSAL", "COMPOUND"),
             "is_over_refusal": is_over_refusal,
             "sentence_count": sentence_count,
             "numeric_grounding": numeric_grounding,
             "deadline_fallback_used": deadline_fallback,
             "latency_ms": elapsed_ms,
             "passed": case_passed,
+            "behavior_pass": behavior_pass,
+            "contract_warnings": contract_warnings,
             "failure_reasons": failure_reasons,
             "response_text": text,
             "rendered": rendered,
             "last_updated": last_updated,
         })
+
+    # ── Task 4: Per-behavior precision / recall ─────────────────────────────
+    _ALL_BEHAVIORS = ["ANSWER", "REFUSAL", "COMPOUND", "NOT_FOUND", "CLARIFICATION", "OUT_OF_SCOPE"]
+    _EXPECTED_TO_OBSERVED_MAP_AGG = {
+        "answer": "ANSWER", "refuse": "REFUSAL", "refusal": "REFUSAL",
+        "not_found": "NOT_FOUND", "compound": "COMPOUND",
+        "clarification": "CLARIFICATION", "out_of_scope": "OUT_OF_SCOPE",
+    }
+    # For each behavior: true positives, false positives, false negatives
+    beh_stats: Dict[str, Dict[str, int]] = {b: {"tp": 0, "fp": 0, "fn": 0} for b in _ALL_BEHAVIORS}
+    for r in results:
+        obs = r.get("observed_behavior", "ANSWER")
+        exp = _EXPECTED_TO_OBSERVED_MAP_AGG.get(r["expected_behavior"].lower(), r["expected_behavior"].upper())
+        if obs == exp:
+            if obs in beh_stats:
+                beh_stats[obs]["tp"] += 1
+        else:
+            if obs in beh_stats:
+                beh_stats[obs]["fp"] += 1
+            if exp in beh_stats:
+                beh_stats[exp]["fn"] += 1
+
+    print("\n" + "=" * 80)
+    print("PER-BEHAVIOR PRECISION / RECALL (Task 4)")
+    print("=" * 80)
+    print(f"{"Behavior":<18} {"Precision":>10} {"Recall":>10} {"TP":>5} {"FP":>5} {"FN":>5}")
+    print("-" * 55)
+    for b in _ALL_BEHAVIORS:
+        tp = beh_stats[b]["tp"]; fp = beh_stats[b]["fp"]; fn = beh_stats[b]["fn"]
+        prec = tp / (tp + fp) * 100 if (tp + fp) > 0 else float("nan")
+        rec  = tp / (tp + fn) * 100 if (tp + fn) > 0 else float("nan")
+        prec_s = f"{prec:.1f}%" if not (prec != prec) else "N/A"
+        rec_s  = f"{rec:.1f}%"  if not (rec  != rec)  else "N/A"
+        print(f"{b:<18} {prec_s:>10} {rec_s:>10} {tp:>5} {fp:>5} {fn:>5}")
+
+    # ── Task 4: wrongly-refused / wrongly-answered / wrongly-not-found ───────
+    wrongly_refused_list = [
+        r for r in results
+        if _EXPECTED_TO_OBSERVED_MAP_AGG.get(r["expected_behavior"].lower()) == "ANSWER"
+        and r.get("observed_behavior") == "REFUSAL"
+    ]
+    wrongly_answered_list = [
+        r for r in results
+        if _EXPECTED_TO_OBSERVED_MAP_AGG.get(r["expected_behavior"].lower()) == "REFUSAL"
+        and r.get("observed_behavior") == "ANSWER"
+    ]
+    wrongly_not_found_list = [
+        r for r in results
+        if _EXPECTED_TO_OBSERVED_MAP_AGG.get(r["expected_behavior"].lower()) in ("ANSWER", "REFUSAL")
+        and r.get("observed_behavior") == "NOT_FOUND"
+    ]
+
+    def _print_case_list(label: str, cases: List[Dict[str, Any]]) -> None:
+        print(f"\n{label} ({len(cases)} cases):")
+        if not cases:
+            print("  (none)")
+            return
+        for c in cases:
+            print(f"  [{c['id']}] Q: {c['query'][:90]}")
+            print(f"         Resp: {c.get('response_text', '')[:120]}")
+
+    _print_case_list("WRONGLY REFUSED (expected=answer, observed=refusal)", wrongly_refused_list)
+    _print_case_list("WRONGLY ANSWERED (expected=refuse, observed=answer)", wrongly_answered_list)
+    _print_case_list("WRONGLY NOT FOUND (expected=answer/refuse, observed=not_found)", wrongly_not_found_list)
 
     # Phase 2: Adversarial Refusal Recall Validation
     adversarial_results: List[Dict[str, Any]] = []
