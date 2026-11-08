@@ -8,6 +8,7 @@ targeted repair iterations before failing closed to a verified fallback.
 from __future__ import annotations
 
 import logging
+import random
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -66,8 +67,12 @@ class ConstrainedSynthesizer:
             except Exception as e:
                 logger.warning(f"Could not initialize Groq client: {e}")
 
-    def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
-        """Executes a single constrained completion call to Groq with rate-limit protection and reasoning_effort: low."""
+    def _call_llm(self, system_prompt: str, user_prompt: str, deadline_t: float = 0.0) -> str:
+        """Executes a single constrained completion call to Groq with rate-limit protection and reasoning_effort: low.
+
+        Advisory queries NEVER reach this path (they are blocked before synthesizer is called).
+        On Groq 429/rate-limit error: retries ONCE with jitter (50-150ms) if time_remaining >= 0.3s.
+        """
         if not self.client:
             raise RuntimeError("Groq client not configured or API key missing.")
 
@@ -85,17 +90,30 @@ class ConstrainedSynthesizer:
         if "oss" in self.model or "120b" in self.model:
             call_kwargs["extra_body"] = {"reasoning_effort": "low"}
 
-        try:
-            resp = self.client.chat.completions.create(**call_kwargs)
-        except Exception as e:
-            if "reasoning_effort" in str(e):
-                call_kwargs.pop("extra_body", None)
+        def _do_create() -> str:
+            try:
                 resp = self.client.chat.completions.create(**call_kwargs)
-            else:
-                raise e
+            except Exception as e:
+                if "reasoning_effort" in str(e):
+                    call_kwargs.pop("extra_body", None)
+                    resp = self.client.chat.completions.create(**call_kwargs)
+                else:
+                    raise e
+            return (resp.choices[0].message.content or "").strip()
 
-        content = resp.choices[0].message.content or ""
-        return content.strip()
+        try:
+            return _do_create()
+        except Exception as e:
+            is_rate_limit = ("429" in str(e) or "rate_limit" in str(e).lower() or "rate limit" in str(e).lower())
+            if is_rate_limit:
+                time_remaining = deadline_t - time.perf_counter() if deadline_t else 0.3
+                if time_remaining >= 0.3:
+                    # Exactly ONE retry with jitter 50-150ms
+                    time.sleep(random.uniform(0.05, 0.15))
+                    return _do_create()
+                # Not enough time left; let outer deadline handler fire
+                raise
+            raise
 
     def synthesize(
         self,

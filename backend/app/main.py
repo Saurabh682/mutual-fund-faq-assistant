@@ -11,6 +11,56 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from collections import defaultdict, deque
+import json
+import time
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+# Per-IP Rate Limiter: 20 requests per minute
+_IP_REQUEST_TIMESTAMPS: dict[str, deque] = defaultdict(deque)
+
+@app.middleware("http")
+async def rate_limit_and_input_guard_middleware(request: Request, call_next):
+    # 1. Per-IP Rate Limiting (20 req/min on /api/ endpoints)
+    if request.url.path.startswith("/api/") and not request.url.path.endswith("/health"):
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        now = time.time()
+        ts_queue = _IP_REQUEST_TIMESTAMPS[client_ip]
+        while ts_queue and ts_queue[0] <= now - 60.0:
+            ts_queue.popleft()
+        if len(ts_queue) >= 20:
+            return JSONResponse(
+                status_code=429,
+                content={"error": "rate limit exceeded", "retry_after": 60},
+                headers={"Retry-After": "60"},
+            )
+        ts_queue.append(now)
+
+    # 2. Max Input Length Guard (1,000 characters)
+    body_bytes = b""
+    if request.method in ("POST", "PUT", "PATCH") and request.url.path.startswith("/api/"):
+        body_bytes = await request.body()
+        if body_bytes:
+            try:
+                body_json = json.loads(body_bytes.decode("utf-8", errors="replace"))
+                query_val = body_json.get("query", "")
+                if isinstance(query_val, str) and len(query_val) > 1000:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"error": "query too long", "max_chars": 1000},
+                    )
+            except Exception:
+                pass
+
+        async def receive():
+            return {"type": "http.request", "body": body_bytes}
+
+        request = Request(request.scope, receive=receive)
+
+    return await call_next(request)
+
+
 # CORS configuration - robust handling of list, comma-separated string, or wildcard
 if isinstance(settings.CORS_ORIGINS, list):
     origins = settings.CORS_ORIGINS

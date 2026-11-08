@@ -237,7 +237,7 @@ def safe_contract_fallback(
 ) -> ValidationResult:
     """Generates the safe compliant fallback when a model draft violates the contract."""
     body = (
-        "Official details regarding this topic can be verified directly in the scheme records."
+        "Please try again shortly; real-time verification timed out."
     )
     url = primary_url or CANONICAL_LINKS["ADVISORY"]
     date_str = normalize_date_footer(doc_date)
