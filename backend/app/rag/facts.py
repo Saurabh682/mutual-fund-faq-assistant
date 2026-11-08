@@ -237,13 +237,8 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     if amfi_code:
         stat_card_rows.append(f"| **AMFI Code** | {amfi_code} |")
     stat_card_rows.append("| **Fund House** | HDFC Asset Management Company Limited |")
-    if field == "fund_manager":
-        stat_card_rows.append("| **Data Source** | HDFC AMC Scheme Factsheet (hdfcfund.com) |")
-        citation_url = amc_url or "https://www.hdfcfund.com"
-        doc_date = "2026-10-31"
-    else:
-        stat_card_rows.append("| **Data Source** | Groww scheme page |")
-        doc_date = normalize_iso_date(fact.get("as_of") or fact.get("doc_date", ""))
+    stat_card_rows.append("| **Data Source** | Groww scheme page |")
+    doc_date = normalize_iso_date(fact.get("as_of") or fact.get("doc_date", ""))
 
     stat_card = "\n".join(stat_card_rows)
     body = f"{narrative}\n\n{stat_card}".strip()

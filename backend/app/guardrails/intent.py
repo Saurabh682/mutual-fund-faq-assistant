@@ -87,6 +87,7 @@ COMPARATIVE_PATTERNS = [
     re.compile(r"\bbetween\s+.*?\s+and\s+.*?\s+which\s+(?:one\s+)?(?:has|is|generates?)\b", re.I),
     re.compile(r"\bwhich\s+scheme\s+is\s+safer\s+.*?\s+(?:or|than)\b", re.I),
     re.compile(r"\bcomparison\s+of\s+.*?\s+cagr\b", re.I),
+    re.compile(r"\b(?:outperform|beat|out-perform)\b", re.I),
 ]
 
 # 4. Factual / Procedural Exemptions from Advisory
@@ -359,10 +360,28 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
     )
 
 
+CLAUSE_SPLIT_PATTERN = re.compile(
+    r"(?:[?;]+\s*(?:also\s+)?|\s+(?:and|but|also)\s+(?=(?:should|can|could|would|will|is|are|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|outperform|grow|beat|switch|pick|choose)\b))",
+    re.I,
+)
+
+
 def split_clauses(query: str) -> List[str]:
-    """Splits a query into constituent clauses on conjunctions ('and', 'but', 'also') and punctuation ('?', ';')."""
-    parts = re.split(r"\s*(?:[?;]+\s*|\s+(?:and|but|also)\s+)\s*", query.strip(), flags=re.I)
-    return [p.strip() for p in parts if p.strip()]
+    """Splits a query into constituent clauses only on clause-level conjunctions or punctuation.
+
+    Conjunctions ('and', 'but', 'also') are only split when followed by clause-introducing
+    verbs/auxiliaries (e.g. 'should', 'can', 'is', 'invest', 'buy'), preserving coordinated
+    noun phrases like 'TER and exit load' or 'Direct and Regular plans'.
+    """
+    parts = CLAUSE_SPLIT_PATTERN.split(query.strip())
+    clean_parts: List[str] = []
+    for p in parts:
+        c = p.strip()
+        c = re.sub(r"^[,\s;?]+|[,\s;?]+$", "", c)
+        c = re.sub(r"^(?:also|and|but)\s+", "", c, flags=re.I).strip()
+        if c:
+            clean_parts.append(c)
+    return clean_parts
 
 
 def classify_clause_level_intent(

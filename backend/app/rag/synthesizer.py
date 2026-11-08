@@ -62,7 +62,7 @@ class ConstrainedSynthesizer:
         self.client: Optional[Groq] = None
         if self.api_key:
             try:
-                self.client = Groq(api_key=self.api_key, timeout=1.8)
+                self.client = Groq(api_key=self.api_key, timeout=1.8, max_retries=0)
             except Exception as e:
                 logger.warning(f"Could not initialize Groq client: {e}")
 
@@ -152,6 +152,48 @@ class ConstrainedSynthesizer:
             groq_elapsed = (time.perf_counter() - groq_t0) * 1000
             is_timeout = "timeout" in str(e).lower() or deadline_triggered
             logger.warning(f"Groq generation failed/timed out ({groq_elapsed:.1f}ms): {e}. Falling back to safe response.")
+
+            if is_timeout:
+                extractive_answer = None
+                if context_chunks:
+                    top_text = context_chunks[0] if isinstance(context_chunks[0], str) else getattr(context_chunks[0], "text", "")
+                    first_sent = split_sentences(top_text.split("\n")[0])[0] if top_text else ""
+                    if first_sent and len(first_sent) > 20:
+                        v_ext = validate_response(first_sent, context_chunks, primary_url=citation_url, doc_date=effective_date)
+                        if v_ext.is_valid:
+                            extractive_answer = v_ext
+
+                if extractive_answer:
+                    return SynthesisResult(
+                        text=extractive_answer.text,
+                        sentence_count=extractive_answer.sentence_count,
+                        citation_url=extractive_answer.citation_url,
+                        last_updated=extractive_answer.last_updated,
+                        rendered=extractive_answer.rendered,
+                        is_valid=True,
+                        repaired=True,
+                        repair_count=0,
+                        violation_reasons=["EXTRACTIVE_TIMEOUT_FALLBACK"],
+                        raw_draft=extractive_answer.text,
+                        deadline_fallback_used=True,
+                    )
+                else:
+                    timeout_msg = "Please try again shortly; real-time verification timed out."
+                    rendered = f"{timeout_msg}\n\nSource: {citation_url}\nLast updated from sources: {effective_date}"
+                    return SynthesisResult(
+                        text=timeout_msg,
+                        sentence_count=1,
+                        citation_url=citation_url,
+                        last_updated=effective_date,
+                        rendered=rendered,
+                        is_valid=True,
+                        repaired=True,
+                        repair_count=0,
+                        violation_reasons=["DEADLINE_TIMEOUT"],
+                        raw_draft=raw_draft,
+                        deadline_fallback_used=True,
+                    )
+
             fallback = safe_contract_fallback(citation_url, effective_date, reason=f"API_ERROR_{type(e).__name__}")
             return SynthesisResult(
                 text=fallback.text,
@@ -164,7 +206,7 @@ class ConstrainedSynthesizer:
                 repair_count=0,
                 violation_reasons=fallback.violation_reasons,
                 raw_draft=raw_draft,
-                deadline_fallback_used=is_timeout,
+                deadline_fallback_used=False,
             )
 
         # 2. Contract Validation Gate
@@ -213,19 +255,45 @@ class ConstrainedSynthesizer:
         # Hard latency deadline: fail-closed to prevent slow tail latency
         if (time.perf_counter() - start_t) > 1.8:
             logger.info("Latency deadline approaching; returning safe fallback.")
-            fallback = safe_contract_fallback(citation_url, effective_date, reason="DEADLINE_TIMEOUT")
-            return SynthesisResult(
-                text=fallback.text,
-                sentence_count=fallback.sentence_count,
-                citation_url=fallback.citation_url,
-                last_updated=fallback.last_updated,
-                rendered=fallback.rendered,
-                is_valid=True,
-                repaired=True,
-                repair_count=0,
-                violation_reasons=fallback.violation_reasons,
-                raw_draft=raw_draft,
-            )
+            extractive_answer = None
+            if context_chunks:
+                top_text = context_chunks[0] if isinstance(context_chunks[0], str) else getattr(context_chunks[0], "text", "")
+                first_sent = split_sentences(top_text.split("\n")[0])[0] if top_text else ""
+                if first_sent and len(first_sent) > 20:
+                    v_ext = validate_response(first_sent, context_chunks, primary_url=citation_url, doc_date=effective_date)
+                    if v_ext.is_valid:
+                        extractive_answer = v_ext
+
+            if extractive_answer:
+                return SynthesisResult(
+                    text=extractive_answer.text,
+                    sentence_count=extractive_answer.sentence_count,
+                    citation_url=extractive_answer.citation_url,
+                    last_updated=extractive_answer.last_updated,
+                    rendered=extractive_answer.rendered,
+                    is_valid=True,
+                    repaired=True,
+                    repair_count=0,
+                    violation_reasons=["EXTRACTIVE_TIMEOUT_FALLBACK"],
+                    raw_draft=raw_draft,
+                    deadline_fallback_used=True,
+                )
+            else:
+                timeout_msg = "Please try again shortly; real-time verification timed out."
+                rendered = f"{timeout_msg}\n\nSource: {citation_url}\nLast updated from sources: {effective_date}"
+                return SynthesisResult(
+                    text=timeout_msg,
+                    sentence_count=1,
+                    citation_url=citation_url,
+                    last_updated=effective_date,
+                    rendered=rendered,
+                    is_valid=True,
+                    repaired=True,
+                    repair_count=0,
+                    violation_reasons=["DEADLINE_TIMEOUT"],
+                    raw_draft=raw_draft,
+                    deadline_fallback_used=True,
+                )
 
         # 3. Targeted Repair Loop (up to max_repairs attempts)
         current_draft = raw_draft

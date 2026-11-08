@@ -637,9 +637,14 @@ def ask_query(request: SynthesisQueryRequest):
         intent="FACTUAL",
     )
 
+    res_type = (
+        "not_found"
+        if ("could not find official information" in syn_res.text.lower() or syn_res.raw_draft.strip().upper() == "NOT_FOUND")
+        else "llm_synthesis"
+    )
     return SynthesisQueryResponse(
         query=request.query,
-        resolution_type="llm_synthesis",
+        resolution_type=res_type,
         scheme_id=entity_res.scheme_id,
         scheme_name=entity_res.scheme_name,
         field=entity_res.field,
