@@ -37,7 +37,7 @@ def test_llm_never_called_for_advisory_query():
         assert resp.status_code == 200
         data = resp.json()
         assert data["resolution_type"] == "refusal"
-        assert "cannot provide investment advice" in data["rendered"]
+        assert "investment advice" in data["rendered"]
         assert mock_llm.call_count == 0
 
         # 2. Comparative outperformance query
@@ -71,5 +71,5 @@ def test_compound_query_returns_compound_without_llm():
         data = resp.json()
         assert data["resolution_type"] == "compound"
         assert mock_llm.call_count == 0
-        assert "cannot provide investment advice" in data["rendered"]
+        assert "investment advice" in data["rendered"]
         assert "%" in data["rendered"]

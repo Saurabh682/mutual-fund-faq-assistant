@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 _PROTOTYPES_CACHE: Optional[Dict[str, List[str]]] = None
 _CENTROIDS_CACHE: Optional[Dict[str, np.ndarray]] = None
+_VECTORS_CACHE: Optional[Dict[str, np.ndarray]] = None
 
 PROTOTYPES_PATH = Path(__file__).resolve().parents[3] / "data" / "intent_prototypes.yaml"
 
@@ -47,11 +48,11 @@ def load_prototypes(path: Optional[Path] = None) -> Dict[str, List[str]]:
         return {"advisory": [], "factual": []}
 
 
-def get_centroids() -> Optional[Dict[str, np.ndarray]]:
-    """Computes and caches normalized mean centroid vectors for each class."""
-    global _CENTROIDS_CACHE
-    if _CENTROIDS_CACHE is not None:
-        return _CENTROIDS_CACHE
+def get_prototype_data() -> Optional[Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray]]]:
+    """Returns (centroids, vectors) for advisory and factual prototypes."""
+    global _CENTROIDS_CACHE, _VECTORS_CACHE
+    if _CENTROIDS_CACHE is not None and _VECTORS_CACHE is not None:
+        return _CENTROIDS_CACHE, _VECTORS_CACHE
 
     try:
         from app.rag.retriever import get_embedder
@@ -77,22 +78,35 @@ def get_centroids() -> Optional[Dict[str, np.ndarray]]:
             "advisory": adv_centroid,
             "factual": fac_centroid,
         }
-        return _CENTROIDS_CACHE
+        _VECTORS_CACHE = {
+            "advisory": adv_vecs,
+            "factual": fac_vecs,
+        }
+        return _CENTROIDS_CACHE, _VECTORS_CACHE
     except Exception as e:
-        logger.warning(f"Could not compute prototype centroids: {e}")
+        logger.warning(f"Could not compute prototype data: {e}")
         return None
 
 
-def classify_clause_prototype(clause: str) -> Tuple[str, float, float]:
-    """Classifies a clause against embedding prototype centroids.
+def get_centroids() -> Optional[Dict[str, np.ndarray]]:
+    """Returns cached centroid vectors."""
+    data = get_prototype_data()
+    return data[0] if data else None
 
+
+def classify_clause_prototype(clause: str) -> Tuple[str, float, float]:
+    """Classifies a clause against embedding prototype vectors and centroids.
+
+    Uses nearest-neighbor and centroid cosine similarity.
     Returns:
         (category, advisory_sim, factual_sim)
         category is one of: "ADVISORY", "FACTUAL", "UNCERTAIN"
     """
-    centroids = get_centroids()
-    if not centroids:
+    data = get_prototype_data()
+    if not data:
         return ("UNCERTAIN", 0.0, 0.0)
+
+    centroids, vectors = data
 
     try:
         from app.rag.retriever import get_embedder
@@ -103,19 +117,39 @@ def classify_clause_prototype(clause: str) -> Tuple[str, float, float]:
             return ("UNCERTAIN", 0.0, 0.0)
 
         vec = embedder.encode([clean], normalize_embeddings=True)[0]
+
+        # Nearest-neighbor cosine similarities (max over individual prototypes)
+        nn_adv = float(np.max(np.dot(vectors["advisory"], vec)))
+        nn_fac = float(np.max(np.dot(vectors["factual"], vec)))
+
+        # Centroid cosine similarities
         sim_adv = float(np.dot(vec, centroids["advisory"]))
         sim_fac = float(np.dot(vec, centroids["factual"]))
 
-        # Fail closed towards advisory if advisory similarity is high or exceeds factual
-        if sim_adv >= 0.25 and sim_adv > sim_fac:
-            return ("ADVISORY", sim_adv, sim_fac)
-        elif sim_fac >= 0.35 and sim_fac > sim_adv:
-            return ("FACTUAL", sim_adv, sim_fac)
-        elif sim_adv >= 0.22:
-            # Uncertain with notable advisory lean -> fail-closed refusal
-            return ("UNCERTAIN", sim_adv, sim_fac)
+        effective_adv = max(nn_adv, sim_adv)
+        effective_fac = max(nn_fac, sim_fac)
+
+        # 0. Low-similarity fast path for out-of-corpus queries (neither advisory nor factual)
+        if nn_adv < 0.50 and nn_fac < 0.50 and sim_adv < 0.35 and sim_fac < 0.35:
+            return ("OUT_OF_CORPUS", effective_adv, effective_fac)
+
+        # 1. High nearest-neighbor advisory match (>= 0.70) or NN advisory exceeds NN factual
+        if nn_adv >= 0.70 or (nn_adv >= 0.55 and nn_adv > nn_fac):
+            return ("ADVISORY", effective_adv, effective_fac)
+
+        # 2. Strong factual match (NN factual exceeds NN advisory by clear margin)
+        if nn_fac >= 0.70 and nn_fac > nn_adv:
+            return ("FACTUAL", effective_adv, effective_fac)
+
+        # 3. Centroid fallback with fail-closed advisory bias
+        if sim_adv >= 0.35 and sim_adv > sim_fac:
+            return ("ADVISORY", effective_adv, effective_fac)
+        elif sim_fac >= 0.45 and sim_fac > sim_adv:
+            return ("FACTUAL", effective_adv, effective_fac)
+        elif effective_adv >= 0.30:
+            return ("UNCERTAIN", effective_adv, effective_fac)
         else:
-            return ("UNCERTAIN", sim_adv, sim_fac)
+            return ("UNCERTAIN", effective_adv, effective_fac)
     except Exception as e:
         logger.warning(f"Prototype classification error: {e}")
         return ("UNCERTAIN", 0.0, 0.0)

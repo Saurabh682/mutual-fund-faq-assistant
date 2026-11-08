@@ -168,7 +168,7 @@ class ConstrainedSynthesizer:
             raw_draft = self._call_llm(SYSTEM_SYNTHESIS_PROMPT, user_prompt)
         except Exception as e:
             groq_elapsed = (time.perf_counter() - groq_t0) * 1000
-            is_timeout = "timeout" in str(e).lower() or deadline_triggered
+            is_timeout = isinstance(e, TimeoutError) or "timeout" in str(e).lower() or "deadline" in str(e).lower() or deadline_triggered
             logger.warning(f"Groq generation failed/timed out ({groq_elapsed:.1f}ms): {e}. Falling back to safe response.")
 
             if is_timeout:
