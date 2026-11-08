@@ -18,6 +18,9 @@ data/sessions.db*
 !data/index/facts.db
 !data/index/chroma/chroma.sqlite3
 
+# AMC factsheet PDFs — drop locally, never commit
+data/factsheets/*.pdf
+
 # Node & Frontend
 node_modules/
 dist/

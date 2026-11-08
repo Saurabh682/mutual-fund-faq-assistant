@@ -369,3 +369,15 @@ def lookup_fact(
         return None
 
     return None
+
+
+def get_all_scheme_facts_from_db() -> list[dict]:
+    """Returns verified scheme facts for all 5 indexed schemes."""
+    from app.rag.entities import SCHEME_REGISTRY
+    result = []
+    for sid, info in SCHEME_REGISTRY.items():
+        f = get_all_facts_for_scheme(sid)
+        f["scheme_id"] = sid
+        f["scheme_name"] = info.get("name", sid)
+        result.append(f)
+    return result
