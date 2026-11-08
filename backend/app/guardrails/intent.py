@@ -360,7 +360,7 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
 
 
 CLAUSE_SPLIT_PATTERN = re.compile(
-    r"(?:[?;]+\s*(?:also\s+)?|\s+(?:and|but|also)\s+(?=(?:should|can|could|would|will|is|are|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|outperform|grow|beat|switch|pick|choose)\b))",
+    r"(?:[?;]+\s*(?:also\s+)?|\s+(?:and|but|also)\s+(?=(?:should|can|could|would|will|is|are|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|grow|switch|pick|choose)\b))",
     re.I,
 )
 
