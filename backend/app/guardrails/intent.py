@@ -342,7 +342,7 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
     if not is_exempt_from_advisory:
         try:
             from app.guardrails.intent_head import classify_intent_head
-            head_cat, dec_s, info_s = classify_intent_head(clean_query)
+            head_cat, dec_s, info_s, unsup_s = classify_intent_head(clean_query)
             if head_cat == "DECISION_REQUEST":
                 return IntentResult(
                     intent=IntentType.ADVISORY.value,
@@ -351,6 +351,14 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
                     is_compound=has_factual,
                     secondary_intent=IntentType.FACTUAL.value if has_factual else None,
                     matched_triggers=["intent_head_decision"],
+                )
+            elif head_cat == "UNSUPPORTED_INFORMATION":
+                return IntentResult(
+                    intent=IntentType.OUT_OF_SCOPE.value,
+                    confidence=unsup_s,
+                    is_refusal=False,
+                    is_compound=False,
+                    matched_triggers=["intent_head_unsupported"],
                 )
         except Exception:
             pass
@@ -444,7 +452,7 @@ def classify_clause_level_intent(
         if active_scheme and full_ent.field:
             fact_candidate = lookup_fact(query, session_scheme_id=active_scheme)
             if fact_candidate:
-                head_cat, _, _ = classify_intent_head(query)
+                head_cat, *_ = classify_intent_head(query)
                 if head_cat == "DECISION_REQUEST":
                     raw_text = fact_candidate["text"].split("\n\n")[0]
                     sentences = split_sentences(raw_text)

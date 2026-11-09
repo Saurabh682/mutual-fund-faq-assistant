@@ -132,6 +132,30 @@ def retrieve_query(request: RetrievalQueryRequest):
     # 3. Entity Resolution
     entity_res = resolve_entities(request.query, session_scheme_id=request.session_scheme_id)
 
+    # Structural comparison rule (Task 1): 2+ schemes named with no supported fact field
+    if entity_res.is_multi_scheme_comparison:
+        refusal = generate_refusal("COMPARATIVE")
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(refusal["text"])
+        followups = generate_followup_suggestions(intent="COMPARATIVE", is_refusal=True)
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="refusal",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=refusal["text"],
+            sentence_count=len(sentences),
+            citation_url=refusal["citation_url"],
+            last_updated=refusal["last_updated"],
+            rendered=refusal["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=followups,
+        )
+
     # Unsupported Plan check (Regular Plan, IDCW)
     if entity_res.is_unsupported_plan:
         plan_resp = get_unsupported_plan_response(request.query)
@@ -456,6 +480,30 @@ def ask_query(request: SynthesisQueryRequest):
     # 3. Entity Resolution
     entity_res = resolve_entities(request.query, session_scheme_id=request.session_scheme_id)
 
+    # Structural comparison rule (Task 1): 2+ schemes named with no supported fact field
+    if entity_res.is_multi_scheme_comparison:
+        refusal = generate_refusal("COMPARATIVE")
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(refusal["text"])
+        followups = generate_followup_suggestions(intent="COMPARATIVE", is_refusal=True)
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="refusal",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=refusal["text"],
+            sentence_count=len(sentences),
+            citation_url=refusal["citation_url"],
+            last_updated=refusal["last_updated"],
+            rendered=refusal["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=followups,
+        )
+
     # Unsupported Plan check (Regular Plan, IDCW)
     if entity_res.is_unsupported_plan:
         plan_resp = get_unsupported_plan_response(request.query)
@@ -645,6 +693,60 @@ def ask_query(request: SynthesisQueryRequest):
     )
 
     if retrieval_res.is_out_of_corpus or not retrieval_res.chunks:
+        not_found = get_not_found_response()
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(not_found["text"])
+        followups = generate_followup_suggestions(
+            scheme_id=entity_res.scheme_id,
+            field=entity_res.field,
+            is_refusal=True,
+        )
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="not_found",
+            scheme_id=entity_res.scheme_id,
+            scheme_name=entity_res.scheme_name,
+            field=entity_res.field,
+            text=not_found["text"],
+            sentence_count=len(sentences),
+            citation_url=not_found["citation_url"],
+            last_updated=not_found["last_updated"],
+            rendered=not_found["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=followups,
+        )
+
+    # HARD PRE-LLM INVARIANT (Task 1 & Task 2):
+    # Re-run decision-request check on query and residual clause immediately before Groq call
+    from app.guardrails.intent_head import classify_intent_head
+    head_cat, sd, si, su = classify_intent_head(request.query)
+    if head_cat == "DECISION_REQUEST":
+        refusal = generate_refusal("ADVISORY")
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        sentences = split_sentences(refusal["text"])
+        followups = generate_followup_suggestions(intent="ADVISORY", is_refusal=True)
+        return SynthesisQueryResponse(
+            query=request.query,
+            resolution_type="refusal",
+            scheme_id=None,
+            scheme_name=None,
+            field=None,
+            text=refusal["text"],
+            sentence_count=len(sentences),
+            citation_url=refusal["citation_url"],
+            last_updated=refusal["last_updated"],
+            rendered=refusal["rendered"],
+            repaired=False,
+            repair_count=0,
+            chunks=[],
+            latency_ms=elapsed_ms,
+            suggested_followups=followups,
+        )
+
+    if head_cat == "UNSUPPORTED_INFORMATION":
         not_found = get_not_found_response()
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(not_found["text"])
