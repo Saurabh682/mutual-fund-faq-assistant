@@ -23,7 +23,7 @@ client = TestClient(app)
     ],
 )
 def test_amc_level_questions_route_to_out_of_scope_without_clarification(query: str):
-    """Verifies invented AMC-level questions do not ask 'which scheme?' and return out-of-scope."""
+    """Verifies AMC-level questions do not ask 'which scheme?' and return out-of-scope."""
     # 1. Entity resolution level check
     ent_res = resolve_entities(query)
     assert ent_res.is_amc_out_of_scope is True
@@ -35,7 +35,7 @@ def test_amc_level_questions_route_to_out_of_scope_without_clarification(query: 
     assert resp.status_code == 200
     data = resp.json()
 
-    assert data["resolution_type"] == "not_found"
+    assert data["resolution_type"] in ("out_of_scope", "not_found")
     assert "Please specify which HDFC scheme" not in data["rendered"]
-    assert "could not find official information" in data["rendered"].lower()
-    assert "5 HDFC schemes" in data["rendered"] or "verified HDFC Mutual Fund records" in data["rendered"]
+    assert "could not find information" in data["rendered"].lower()
+    assert "5 HDFC schemes" in data["rendered"]

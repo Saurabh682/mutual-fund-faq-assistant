@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -237,7 +238,7 @@ def retrieve_query(request: RetrievalQueryRequest):
         sentences = split_sentences(amc_resp["text"])
         return SynthesisQueryResponse(
             query=request.query,
-            resolution_type="not_found",
+            resolution_type="out_of_scope",
             scheme_id=None,
             scheme_name=None,
             field=None,
@@ -569,7 +570,7 @@ def ask_query(request: SynthesisQueryRequest):
         sentences = split_sentences(amc_resp["text"])
         return SynthesisQueryResponse(
             query=request.query,
-            resolution_type="not_found",
+            resolution_type="out_of_scope",
             scheme_id=None,
             scheme_name=None,
             field=None,
@@ -704,9 +705,18 @@ def ask_query(request: SynthesisQueryRequest):
         intent="FACTUAL",
     )
 
+    clean_text = re.sub(r"\bNOT_FOUND\b\.?", "", syn_res.text, flags=re.I).strip()
+    clean_rendered = re.sub(r"\bNOT_FOUND\b\.?", "", syn_res.rendered, flags=re.I).strip()
+    clean_text = re.sub(r"\s{2,}", " ", clean_text)
+    clean_rendered = re.sub(r"\s{2,}", " ", clean_rendered)
+
     res_type = (
         "not_found"
-        if ("could not find official information" in syn_res.text.lower() or syn_res.raw_draft.strip().upper() == "NOT_FOUND")
+        if (
+            "could not find" in syn_res.text.lower()
+            or syn_res.raw_draft.strip().upper() == "NOT_FOUND"
+            or not clean_text
+        )
         else "llm_synthesis"
     )
     return SynthesisQueryResponse(
@@ -715,11 +725,11 @@ def ask_query(request: SynthesisQueryRequest):
         scheme_id=entity_res.scheme_id,
         scheme_name=entity_res.scheme_name,
         field=entity_res.field,
-        text=syn_res.text,
+        text=clean_text or syn_res.text,
         sentence_count=syn_res.sentence_count,
         citation_url=syn_res.citation_url,
         last_updated=syn_res.last_updated,
-        rendered=syn_res.rendered,
+        rendered=clean_rendered or syn_res.rendered,
         repaired=syn_res.repaired,
         repair_count=syn_res.repair_count,
         deadline_fallback_used=syn_res.deadline_fallback_used,

@@ -300,8 +300,8 @@ class HybridRetriever:
 def get_not_found_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
     """Generates deterministic safe fallback when query cannot be answered from corpus."""
     body = (
-        "I could not find official information regarding this topic in our verified "
-        "HDFC Mutual Fund records."
+        "I could not find information regarding this topic in scheme records "
+        "per the Groww scheme page."
     )
     url = CANONICAL_LINKS["ADVISORY"]
     doc_date = last_updated or get_default_corpus_date()

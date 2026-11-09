@@ -27,22 +27,22 @@ FIELD_LABELS = {
     "riskometer": "SEBI Riskometer Tier",
     "benchmark": "Benchmark Index",
     "fund_manager": "Primary Lead Fund Manager",
-    "nav_source": "Official NAV Verification Source",
+    "nav_source": "NAV Source",
     "aum_cr": "AUM (Fund Size)",
     "turnover_ratio": "Portfolio Turnover Ratio",
-    "lock_in": "Statutory Lock-in Period",
+    "lock_in": "Lock-in Period",
 }
 
 FACT_TEMPLATES = {
-    "ter_direct": "The Total Expense Ratio (TER) of {scheme_name} (Direct Plan - Growth Option) is {value}% as per verified fund records.",
+    "ter_direct": "The Total Expense Ratio (TER) of {scheme_name} (Direct Plan - Growth Option) is {value}% per the Groww scheme page.",
     "nav": "The Net Asset Value (NAV) of {scheme_name} is ₹{value} as per the latest daily valuation.",
     "exit_load": "The exit load for {scheme_name} is {value}.",
     "min_sip": "The minimum SIP investment amount for {scheme_name} is ₹{value}.",
-    "riskometer": "The risk level for {scheme_name} is classified as {value} on the official SEBI Riskometer.",
+    "riskometer": "The risk level for {scheme_name} is classified as {value} on the SEBI Riskometer per the Groww scheme page.",
     "benchmark": "The benchmark index for {scheme_name} is {value}.",
-    "fund_manager": "The fund manager for {scheme_name} is {value}.",
-    "aum_cr": "The total Assets Under Management (AUM) for {scheme_name} is ₹{value} Cr.",
-    "lock_in": "The statutory lock-in period for {scheme_name} is {value}.",
+    "fund_manager": "The fund manager for {scheme_name} is {value} as listed on the Groww scheme page.",
+    "aum_cr": "The total Assets Under Management (AUM) for {scheme_name} is ₹{value} Cr per the Groww scheme page.",
+    "lock_in": "The lock-in period for {scheme_name} is {value} per the Groww scheme page.",
 }
 
 
@@ -193,7 +193,7 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
         val_display = f"{raw_val}%" if not str(raw_val).endswith("%") else str(raw_val)
         narrative = (
             f"The Total Expense Ratio (TER) of {scheme_name} (Direct Plan - Growth Option) is "
-            f"{val_display.rstrip('.')} as per verified fund records."
+            f"{val_display.rstrip('.')} per the Groww scheme page."
         )
     elif field == "nav":
         val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
@@ -204,22 +204,22 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
         val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
         narrative = f"The minimum SIP investment amount for {scheme_name} is {val_display.rstrip('.')}."
     elif field == "riskometer":
-        narrative = f"The risk level for {scheme_name} is classified as {val_clean} on the official SEBI Riskometer."
+        narrative = f"The risk level for {scheme_name} is classified as {val_clean} on the SEBI Riskometer per the Groww scheme page."
     elif field == "benchmark":
         narrative = f"The benchmark index for {scheme_name} is {val_clean}."
     elif field == "fund_manager":
-        narrative = f"The primary lead fund manager for {scheme_name} is {val_clean} as per official scheme records."
+        narrative = f"The primary lead fund manager for {scheme_name} is {val_clean} as listed on the Groww scheme page."
     elif field == "aum_cr":
         val_display = (
             f"₹{raw_val} Cr" if not str(raw_val).endswith("Cr") else f"₹{raw_val}"
         )
         narrative = f"The total Assets Under Management (AUM) for {scheme_name} is {val_display.rstrip('.')}."
     elif field == "lock_in":
-        narrative = f"The statutory lock-in period for {scheme_name} is {val_clean}."
+        narrative = f"The lock-in period for {scheme_name} is {val_clean} per the Groww scheme page."
     elif field == "nav_source":
-        narrative = f"Unitholders can verify daily NAV for {scheme_name} on the official AMFI portal (amfiindia.com) and the AMC website (hdfcfund.com)."
+        narrative = f"Unitholders can verify daily NAV for {scheme_name} on the AMFI portal (amfiindia.com) and the AMC website (hdfcfund.com)."
     elif field == "factsheet":
-        narrative = f"The official monthly scheme factsheet for {scheme_name} is published and available for download on hdfcfund.com."
+        narrative = f"The monthly scheme factsheet for {scheme_name} is published and available for download on hdfcfund.com."
     elif field == "portfolio_turnover":
         narrative = f"The portfolio turnover ratio for {scheme_name} is documented in the monthly scheme factsheet on hdfcfund.com."
     elif field == "amc_name":

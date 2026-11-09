@@ -278,8 +278,8 @@ def validate_response(
     # 0. Handle NOT_FOUND or empty output
     if not clean_draft or clean_draft.upper() == "NOT_FOUND":
         not_found_body = (
-            "I could not find official information regarding this topic in our verified "
-            "HDFC Mutual Fund records."
+            "I could not find information regarding this topic in scheme records "
+            "per the Groww scheme page."
         )
         url = CANONICAL_LINKS["ADVISORY"]
         rendered = f"{not_found_body}\n\nSource: {url}\nLast updated from sources: {effective_date}"

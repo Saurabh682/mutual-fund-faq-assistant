@@ -34,16 +34,16 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
     ),
     "COMPARATIVE": (
         "I cannot compare or rank mutual fund schemes against each other. "
-        "You can review the official factsheet for each individual scheme to compare their "
+        "You can review each scheme page on Groww to compare their "
         "benchmark index, expense ratios, and portfolio allocations."
     ),
     "PROJECTION": (
         "I cannot calculate future returns or provide return projections for mutual fund schemes. "
-        "Historical performance data and rolling returns are documented in the official scheme factsheet."
+        "Historical performance data and rolling returns are documented on the Groww scheme page."
     ),
     "TAX_LEGAL": (
         "I cannot provide tax planning advice or strategies for avoiding capital gains tax. "
-        "Please consult a qualified tax professional or refer to official tax guidelines."
+        "Please consult a qualified tax professional or refer to tax guidelines."
     ),
     "OUT_OF_SCOPE": (
         "I can only assist with factual information regarding selected HDFC Mutual Fund schemes "
@@ -56,7 +56,7 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
         "benchmarks, and riskometers for our 5 supported schemes."
     ),
     "HELP": (
-        "I can answer factual questions about 5 official HDFC Mutual Fund schemes and SEBI/AMFI regulatory guidelines. "
+        "I can answer factual questions about 5 HDFC Mutual Fund schemes per the Groww scheme page and SEBI/AMFI regulatory guidelines. "
         "You can query expense ratios (TER), exit loads, minimum SIP amounts, fund managers, benchmarks, riskometers, and ELSS lock-in rules. "
         "In accordance with SEBI regulations, investment advice, fund recommendations, and future return predictions are strictly prohibited."
     ),

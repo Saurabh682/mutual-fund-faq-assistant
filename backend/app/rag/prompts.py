@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from typing import Any, List
 
-SYSTEM_SYNTHESIS_PROMPT = """You are an official, facts-only Mutual Fund FAQ assistant for HDFC Mutual Fund schemes.
+SYSTEM_SYNTHESIS_PROMPT = """You are a facts-only Mutual Fund FAQ assistant for HDFC Mutual Fund schemes.
 RULES:
 1. Use ONLY the CONTEXT below. If the answer is not present in CONTEXT, output exactly: NOT_FOUND.
-2. The 5 official schemes and their synonymous names are:
+2. The 5 schemes and their synonymous names are:
    - HDFC Top 100 Fund (also called HDFC Large Cap Fund)
    - HDFC Mid-Cap Opportunities Fund (also called HDFC Mid Cap Fund)
    - HDFC Small Cap Fund
