@@ -204,7 +204,8 @@ FIELD_GLOSSARY: Dict[str, List[str]] = {
     ],
     "fund_manager": [
         "fund manager", "manager", "portfolio manager", "who manages",
-        "who is managing", "managing", "managed by", "fund management"
+        "who is managing", "managing", "managed by", "fund management",
+        "who runs", "who is running", "runs", "lead manager"
     ],
     "factsheet": [
         "factsheet", "scheme factsheet", "monthly factsheet", "download factsheet", "download the factsheet",
@@ -386,7 +387,7 @@ def get_unsupported_plan_response(query: Optional[str] = None) -> Dict[str, Any]
     citation = "https://www.hdfcfund.com"
     text = (
         "This assistant strictly indexes Direct Plan (Growth Option) schemes. "
-        "Regular plans and IDCW options are not part of our verified records. "
+        "Regular plans and IDCW options are not supported per the Groww scheme page. "
         "Please query Direct Plan (Growth Option) metrics across our 5 supported HDFC funds."
     )
     val_res = validate_response(text, None, citation, doc_date)
@@ -405,9 +406,9 @@ def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, A
     citation = "https://www.amfiindia.com/investor-corner/knowledge-center"
     amc_label = f"'{detected_amc.title()}'" if detected_amc else "external fund houses"
     text = (
-        f"I can only provide official records for 5 selected HDFC Mutual Fund schemes. "
-        f"Information regarding {amc_label} is not available in our verified corpus. "
-        f"You can explore comprehensive scheme information on the official AMFI portal."
+        f"I can only provide records for 5 selected HDFC Mutual Fund schemes per the Groww scheme page. "
+        f"Information regarding {amc_label} is not available in our records. "
+        f"You can explore comprehensive scheme information on the AMFI portal."
     )
     val_res = validate_response(text, None, citation, doc_date)
     return {
@@ -447,9 +448,9 @@ def get_scheme_meta(scheme_id: str) -> Optional[Dict[str, Any]]:
 def get_amc_out_of_scope_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
     """Generates deterministic out-of-scope response for AMC-level company inquiries without asking which scheme."""
     body = (
-        "I could not find official information regarding this topic in our verified HDFC Mutual Fund records. "
+        "I could not find information regarding this topic in scheme records per the Groww scheme page. "
         "This assistant supports scheme facts (TER, NAV, exit load, fund managers, AUM, benchmark, riskometer, "
-        "minimum SIP) for 5 HDFC schemes. For corporate AMC information, please refer to official filings."
+        "minimum SIP) for 5 HDFC schemes. For corporate AMC information, please refer to regulatory filings."
     )
     url = "https://www.hdfcfund.com"
     doc_date = last_updated or get_default_corpus_date()

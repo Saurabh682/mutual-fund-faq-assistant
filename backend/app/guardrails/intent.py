@@ -338,8 +338,24 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
             matched_triggers=["factual_keyword"],
         )
 
-    # 9. Embedding Prototype Guardrail (Fail closed on un-regexed advisory & projections)
+    # 9. Embedding Intent Head (Decision Request vs Information Request)
     if not is_exempt_from_advisory:
+        try:
+            from app.guardrails.intent_head import classify_intent_head
+            head_cat, dec_s, info_s = classify_intent_head(clean_query)
+            if head_cat == "DECISION_REQUEST":
+                return IntentResult(
+                    intent=IntentType.ADVISORY.value,
+                    confidence=dec_s,
+                    is_refusal=True,
+                    is_compound=has_factual,
+                    secondary_intent=IntentType.FACTUAL.value if has_factual else None,
+                    matched_triggers=["intent_head_decision"],
+                )
+        except Exception:
+            pass
+
+        # 9b. Embedding Prototype Guardrail (Fail closed on un-regexed advisory & projections)
         try:
             from app.guardrails.intent_prototype import classify_clause_prototype
             p_cat, p_adv, p_fac = classify_clause_prototype(clean_query)
@@ -377,24 +393,22 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
 
 
 CLAUSE_SPLIT_PATTERN = re.compile(
-    r"(?:[?;]+\s*(?:also\s+)?|\s+(?:and|but|also)\s+(?=(?:should|can|could|would|will|is|are|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|grow|switch|pick|choose)\b))",
+    r"(?:[?;.!]+|\s*,\s*(?:and|but|also|plus|or|whether)\s*|\s+(?:and|but|also|plus|whether|while|as well as)\s+(?=(?:should|can|could|would|will|is|are|am|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help|predict|whether|if|my|your|i|you|he|she|they|we|which)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|grow|switch|pick|choose)\b))",
     re.I,
 )
 
 
 def split_clauses(query: str) -> List[str]:
-    """Splits a query into constituent clauses only on clause-level conjunctions or punctuation.
+    """Splits a query into constituent clauses on punctuation or clause-level conjunctions.
 
-    Conjunctions ('and', 'but', 'also') are only split when followed by clause-introducing
-    verbs/auxiliaries (e.g. 'should', 'can', 'is', 'invest', 'buy'), preserving coordinated
-    noun phrases like 'TER and exit load' or 'Direct and Regular plans'.
+    Preserves coordinated noun phrases like 'TER and exit load' or 'Direct and Regular plans'.
     """
     parts = CLAUSE_SPLIT_PATTERN.split(query.strip())
     clean_parts: List[str] = []
     for p in parts:
         c = p.strip()
-        c = re.sub(r"^[,\s;?]+|[,\s;?]+$", "", c)
-        c = re.sub(r"^(?:also|and|but)\s+", "", c, flags=re.I).strip()
+        c = re.sub(r"^[,\s;?.!]+|[,\s;?.!]+$", "", c)
+        c = re.sub(r"^(?:also|and|but|plus|whether|or)\s+", "", c, flags=re.I).strip()
         if c:
             clean_parts.append(c)
     return clean_parts
@@ -405,73 +419,129 @@ def classify_clause_level_intent(
 ) -> Optional[Dict[str, Any]]:
     """Evaluates clause-level intent for compound factual-plus-advisory queries.
 
-    Splits on conjunctions ('and', 'but', 'also') and punctuation ('?', ';').
-    If a query has a factual component (from facts.db, procedures, or glossary)
-    and an advisory/comparative/projection refusal component, returns a deterministic
-    2-sentence compound response (1 fact sentence + 1 fixed compliance refusal sentence),
-    completely bypassing the LLM. Zero phrase patches.
+    Design:
+    1. Splits on sentence punctuation and clause conjunctions.
+    2. Identifies if one clause contains a supported fact request (facts.db, procedures, glossary).
+    3. If a fact request is extracted, classifies the remaining text (residual clause).
+    4. If the residual clause is NOT a supported fact, glossary term, or procedure,
+       appends the fixed refusal sentence.
+    5. Never calls the LLM when a residual clause exists.
     """
-    clauses = split_clauses(query)
-    if len(clauses) < 2:
-        return None
-
-    # Lazy imports to avoid circular dependencies
     from app.rag.entities import resolve_entities
     from app.rag.facts import lookup_fact
     from app.rag.procedures import lookup_procedure
     from app.rag.glossary import lookup_glossary
     from app.guardrails.refusal import generate_compound_refusal
     from app.guardrails.validator import split_sentences
+    from app.guardrails.intent_head import classify_intent_head
 
+    clauses = split_clauses(query)
     full_ent = resolve_entities(query, session_scheme_id=session_scheme_id)
     active_scheme = full_ent.scheme_id or session_scheme_id
 
+    # If query did not split into >= 2 clauses, check if the full query has a fact AND a decision request
+    if len(clauses) < 2:
+        if active_scheme and full_ent.field:
+            fact_candidate = lookup_fact(query, session_scheme_id=active_scheme)
+            if fact_candidate:
+                head_cat, _, _ = classify_intent_head(query)
+                if head_cat == "DECISION_REQUEST":
+                    raw_text = fact_candidate["text"].split("\n\n")[0]
+                    sentences = split_sentences(raw_text)
+                    first_sentence = sentences[0] if sentences else raw_text
+                    return generate_compound_refusal(
+                        factual_sentence=first_sentence,
+                        intent=IntentType.ADVISORY.value,
+                        citation_url=fact_candidate.get("citation_url") or fact_candidate.get("source_url"),
+                        last_updated=fact_candidate.get("last_updated"),
+                    )
+        return None
+
     fact_resp = None
-    refusal_intent = None
+    fact_clause_idx = -1
 
-    # Check whole-query intent first
-    full_intent = classify_intent(query)
-    if full_intent.is_refusal:
-        refusal_intent = full_intent.intent
-
-    for c in clauses:
+    # First pass: find the supported fact clause
+    for idx, c in enumerate(clauses):
         c_ent = resolve_entities(c, session_scheme_id=active_scheme)
         target_scheme = c_ent.scheme_id or active_scheme
 
-        # Check factual lookup on clause
-        if not fact_resp:
-            f = lookup_fact(c, session_scheme_id=target_scheme)
-            if f:
-                fact_resp = f
-            elif not target_scheme:
-                p = lookup_procedure(c)
-                if p:
-                    fact_resp = p
-                else:
-                    g = lookup_glossary(c)
-                    if g:
-                        fact_resp = g
+        f = lookup_fact(c, session_scheme_id=target_scheme)
+        if f:
+            fact_resp = f
+            fact_clause_idx = idx
+            break
+        elif not target_scheme:
+            p = lookup_procedure(c)
+            if p:
+                fact_resp = p
+                fact_clause_idx = idx
+                break
+            else:
+                g = lookup_glossary(c)
+                if g:
+                    fact_resp = g
+                    fact_clause_idx = idx
+                    break
 
-        # Check refusal intent on clause
-        i_res = classify_intent(c)
-        if i_res.is_refusal and not refusal_intent:
-            refusal_intent = i_res.intent
-        elif not refusal_intent:
-            try:
-                from app.guardrails.intent_prototype import classify_clause_prototype
-                p_cat, p_adv, p_fac = classify_clause_prototype(c)
-                if p_cat == "ADVISORY" or (p_cat == "UNCERTAIN" and p_adv >= 0.28 and p_adv > p_fac):
-                    refusal_intent = IntentType.ADVISORY.value
-            except Exception:
-                pass
+    # If no single clause resolved a fact, but the whole query matches a fact:
+    if not fact_resp and active_scheme and full_ent.field:
+        fact_resp = lookup_fact(query, session_scheme_id=active_scheme)
+        if fact_resp:
+            for idx, c in enumerate(clauses):
+                c_ent = resolve_entities(c, session_scheme_id=active_scheme)
+                if c_ent.field or c_ent.scheme_id:
+                    fact_clause_idx = idx
+                    break
 
-    if fact_resp and refusal_intent:
+    if not fact_resp:
+        return None
+
+    # Second pass: check the remaining (residual) clauses
+    residual_clauses = [c for idx, c in enumerate(clauses) if idx != fact_clause_idx]
+    has_unsupported_residual = False
+
+    for rc in residual_clauses:
+        clean_rc = rc.strip()
+        if not clean_rc:
+            continue
+        rc_words = [w.lower() for w in clean_rc.split()]
+        if len(rc_words) == 1 and rc_words[0] in ("please", "today", "now", "thanks"):
+            continue
+
+        rc_ent = resolve_entities(clean_rc, session_scheme_id=active_scheme)
+        target_scheme = rc_ent.scheme_id or active_scheme
+
+        # 1. Is it another supported fact?
+        rc_fact = lookup_fact(clean_rc, session_scheme_id=target_scheme)
+        if rc_fact:
+            continue
+
+        # 2. Is it a procedure?
+        rc_proc = lookup_procedure(clean_rc)
+        if rc_proc:
+            continue
+
+        # 3. Is it a glossary term?
+        rc_gloss = lookup_glossary(clean_rc)
+        if rc_gloss:
+            continue
+
+        # 4. Is it a pure anaphoric carrier phrase referring to the same fact?
+        carrier_tokens = set("what is it tell me show give where published can you point to the value of".split())
+        if all(w in carrier_tokens for w in rc_words):
+            continue
+
+        # Otherwise, clean_rc is an unsupported residual clause!
+        has_unsupported_residual = True
+        break
+
+    if has_unsupported_residual:
         raw_text = fact_resp["text"].split("\n\n")[0]
         sentences = split_sentences(raw_text)
         first_sentence = sentences[0] if sentences else raw_text
         return generate_compound_refusal(
             factual_sentence=first_sentence,
-            intent=refusal_intent,
+            intent=IntentType.ADVISORY.value,
             citation_url=fact_resp.get("citation_url") or fact_resp.get("source_url"),
             last_updated=fact_resp.get("last_updated"),
         )
