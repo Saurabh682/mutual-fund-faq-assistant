@@ -55,9 +55,8 @@ def get_prototype_data() -> Optional[Tuple[Dict[str, np.ndarray], Dict[str, np.n
         return _CENTROIDS_CACHE, _VECTORS_CACHE
 
     try:
-        from app.rag.retriever import get_embedder
+        from app.rag.retriever import encode_query
 
-        embedder = get_embedder()
         prototypes = load_prototypes()
         adv_list = prototypes.get("advisory", [])
         fac_list = prototypes.get("factual", [])
@@ -65,8 +64,8 @@ def get_prototype_data() -> Optional[Tuple[Dict[str, np.ndarray], Dict[str, np.n
         if not adv_list or not fac_list:
             return None
 
-        adv_vecs = embedder.encode(adv_list, normalize_embeddings=True)
-        fac_vecs = embedder.encode(fac_list, normalize_embeddings=True)
+        adv_vecs = encode_query(adv_list, normalize_embeddings=True)
+        fac_vecs = encode_query(fac_list, normalize_embeddings=True)
 
         adv_centroid = np.mean(adv_vecs, axis=0)
         adv_centroid = adv_centroid / np.linalg.norm(adv_centroid)
@@ -109,14 +108,13 @@ def classify_clause_prototype(clause: str) -> Tuple[str, float, float]:
     centroids, vectors = data
 
     try:
-        from app.rag.retriever import get_embedder
+        from app.rag.retriever import encode_query
 
-        embedder = get_embedder()
         clean = clause.strip()
         if not clean:
             return ("UNCERTAIN", 0.0, 0.0)
 
-        vec = embedder.encode([clean], normalize_embeddings=True)[0]
+        vec = encode_query(clean, normalize_embeddings=True)
 
         # Nearest-neighbor cosine similarities (max over individual prototypes)
         nn_adv = float(np.max(np.dot(vectors["advisory"], vec)))

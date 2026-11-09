@@ -5,10 +5,25 @@ from app.api.guardrails import router as guardrails_router
 from app.api.rag import router as rag_router
 from app.api.threads import router as threads_router
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Warm up embedding model and prototype cache on server startup
+    try:
+        from app.rag.retriever import get_embedder
+        get_embedder()
+        from app.guardrails.intent_prototype import get_prototype_data
+        get_prototype_data()
+    except Exception:
+        pass
+    yield
+
 app = FastAPI(
     title="Mutual Fund FAQ Assistant API",
     description="Deterministic facts-only Q&A assistant for HDFC Mutual Fund schemes operating under SEBI guidelines.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 from collections import defaultdict, deque

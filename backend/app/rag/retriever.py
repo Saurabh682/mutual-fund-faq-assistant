@@ -19,15 +19,41 @@ from sentence_transformers import SentenceTransformer
 from app.core.config import settings
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date, normalize_date_footer
 
+import threading
+import numpy as np
+
+_EMBEDDER_LOCK = threading.Lock()
 _EMBEDDER_INSTANCE: Optional[SentenceTransformer] = None
 
 
 def get_embedder() -> SentenceTransformer:
-    """Singleton getter for SentenceTransformer embedding model."""
+    """Singleton getter for SentenceTransformer embedding model with thread-safe warmup."""
     global _EMBEDDER_INSTANCE
     if _EMBEDDER_INSTANCE is None:
-        _EMBEDDER_INSTANCE = SentenceTransformer(settings.EMBEDDING_MODEL, device="cpu")
+        with _EMBEDDER_LOCK:
+            if _EMBEDDER_INSTANCE is None:
+                model = SentenceTransformer(settings.EMBEDDING_MODEL, device="cpu")
+                # Warm up model to eliminate first-call cold-start latency
+                model.encode(["warmup query for initialization"], normalize_embeddings=True, show_progress_bar=False)
+                _EMBEDDER_INSTANCE = model
     return _EMBEDDER_INSTANCE
+
+
+def encode_query(
+    text_or_texts: Any,
+    normalize_embeddings: bool = True,
+) -> np.ndarray:
+    """Thread-safe serialized encode preventing CPU OpenMP thread thrashing under concurrency."""
+    embedder = get_embedder()
+    if isinstance(text_or_texts, str):
+        inputs = [text_or_texts]
+        single = True
+    else:
+        inputs = list(text_or_texts)
+        single = False
+    with _EMBEDDER_LOCK:
+        vecs = embedder.encode(inputs, normalize_embeddings=normalize_embeddings, show_progress_bar=False)
+    return vecs[0] if single else vecs
 
 
 @dataclass
@@ -108,9 +134,8 @@ class HybridRetriever:
         Returns:
             RetrievalResult containing ranked chunks and primary citation URL.
         """
-        embedder = get_embedder()
         clean_query = query.strip()
-        query_embedding = embedder.encode([clean_query]).tolist()
+        query_embedding = [encode_query(clean_query, normalize_embeddings=False).tolist()]
 
         # 1. Metadata Pre-Filter (Eliminates 100% of cross-scheme contamination)
         dense_where = {"scheme_id": scheme_id} if scheme_id else None

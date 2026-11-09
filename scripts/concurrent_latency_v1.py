@@ -7,7 +7,7 @@ Measures n, p50, p95, max for:
 - Groq LLM synthesis
 - validation
 - total latency
-Records counts of 429s from Groq and deadline fallbacks triggered.
+Records counts of 429s from Groq, reached Groq count, and deadline fallbacks triggered.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from app.api.rag import _retriever, _synthesizer
 from app.guardrails.refusal import get_default_corpus_date
 from app.guardrails.validator import validate_response
 from app.rag.prompts import SYSTEM_SYNTHESIS_PROMPT, build_synthesis_user_prompt
-from app.rag.retriever import get_embedder
+from app.rag.retriever import encode_query, get_embedder
 
 QUERIES_30 = [
     # 15 Procedural Queries (exercise hybrid retrieval + synthesis)
@@ -79,11 +79,12 @@ def run_single_query(query: str, worker_id: int) -> Dict[str, Any]:
 
     groq_429_count = 0
     deadline_fallback_count = 0
+    reached_groq = False
+    groq_success = False
 
-    # 1. Embedding timing
+    # 1. Embedding timing (serialized encode prevents OpenMP CPU thrashing)
     t_emb_0 = time.perf_counter()
-    embedder = get_embedder()
-    _ = embedder.encode([query], normalize_embeddings=True)[0]
+    _ = encode_query(query, normalize_embeddings=True)
     t_emb = (time.perf_counter() - t_emb_0) * 1000
 
     # 2. Retrieval timing (Dense + BM25 + RRF)
@@ -98,8 +99,10 @@ def run_single_query(query: str, worker_id: int) -> Dict[str, Any]:
     is_fallback = False
 
     try:
+        reached_groq = True
         user_prompt = build_synthesis_user_prompt(query, context_texts)
         raw_draft = _synthesizer._call_llm(SYSTEM_SYNTHESIS_PROMPT, user_prompt, deadline_t=time.perf_counter() + 1.8)
+        groq_success = True
     except Exception as e:
         err_msg = str(e).lower()
         if "429" in err_msg:
@@ -128,6 +131,8 @@ def run_single_query(query: str, worker_id: int) -> Dict[str, Any]:
         "groq_ms": t_groq,
         "validation_ms": t_val,
         "total_ms": t_total,
+        "reached_groq": reached_groq,
+        "groq_success": groq_success,
         "groq_429": groq_429_count,
         "deadline_fallback": deadline_fallback_count,
         "is_fallback": is_fallback,
@@ -146,7 +151,14 @@ def compute_stats(values: List[float]) -> Dict[str, float]:
 
 
 def main():
-    print(f"Starting unpaced concurrency latency run on {len(QUERIES_30)} queries with max_workers=5...")
+    print(f"Pre-warming embedding model and prototype cache on main thread...")
+    t_warm_0 = time.perf_counter()
+    get_embedder()
+    from app.guardrails.intent_prototype import get_prototype_data
+    get_prototype_data()
+    print(f"Warmup complete in {(time.perf_counter() - t_warm_0)*1000:.1f}ms")
+
+    print(f"\nStarting unpaced concurrency latency run on {len(QUERIES_30)} queries with max_workers=5...")
     wall_t0 = time.perf_counter()
 
     results: List[Dict[str, Any]] = []
@@ -159,7 +171,7 @@ def main():
         for future in concurrent.futures.as_completed(futures):
             res = future.result()
             results.append(res)
-            print(f"  [{len(results):02d}/30] total: {res['total_ms']:.1f}ms | groq: {res['groq_ms']:.1f}ms | 429: {res['groq_429']} | fallback: {res['deadline_fallback']}")
+            print(f"  [{len(results):02d}/30] total: {res['total_ms']:.1f}ms | emb: {res['embedding_ms']:.1f}ms | groq: {res['groq_ms']:.1f}ms | 429: {res['groq_429']} | fallback: {res['deadline_fallback']}")
 
     wall_elapsed = time.perf_counter() - wall_t0
 
@@ -170,6 +182,8 @@ def main():
     val_stats = compute_stats([r["validation_ms"] for r in results])
     total_stats = compute_stats([r["total_ms"] for r in results])
 
+    total_reached_groq = sum(1 for r in results if r["reached_groq"])
+    total_groq_success = sum(1 for r in results if r["groq_success"])
     total_429s = sum(r["groq_429"] for r in results)
     total_deadlines = sum(r["deadline_fallback"] for r in results)
 
@@ -177,13 +191,15 @@ def main():
         "concurrency": 5,
         "query_count": len(results),
         "wall_time_sec": round(wall_elapsed, 2),
+        "reached_groq_count": total_reached_groq,
+        "groq_success_count": total_groq_success,
+        "groq_429_count": total_429s,
+        "deadline_fallback_count": total_deadlines,
         "embedding": emb_stats,
         "retrieval": ret_stats,
         "groq": groq_stats,
         "validation": val_stats,
         "total": total_stats,
-        "groq_429_count": total_429s,
-        "deadline_fallback_count": total_deadlines,
     }
 
     out_file = BASE_DIR / "eval" / "reports" / "concurrent_latency_v1.json"
@@ -196,6 +212,8 @@ def main():
     print("=" * 60)
     print(f"Total Queries (n):          {len(results)}")
     print(f"Wall-clock Time:            {wall_elapsed:.2f} s")
+    print(f"Queries Reached Groq:       {total_reached_groq} / {len(results)}")
+    print(f"Groq Synthesis Successes:   {total_groq_success} / {len(results)}")
     print(f"Total Groq 429 Count:       {total_429s}")
     print(f"Deadline Fallbacks Used:    {total_deadlines}")
     print("-" * 60)
