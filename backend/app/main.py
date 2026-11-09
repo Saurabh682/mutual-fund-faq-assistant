@@ -134,6 +134,11 @@ def get_metadata():
         ]
     }
 
+@app.post("/api/v1/feedback")
+async def submit_feedback(request: Request):
+    """Stub endpoint for UI feedback (thumbs up/down, reports)."""
+    return {"status": "recorded"}
+
 # Mount static frontend build in production if available
 import os
 from fastapi.staticfiles import StaticFiles
