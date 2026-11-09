@@ -50,9 +50,9 @@ _VERHOEFF_INV = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9]
 # B: BOI, L: Local Authority, J: Artificial Juridical Person, G: Government
 PAN_ENTITY_TYPES = set("PCHFATBLJG")
 
-# Spaced or standard PAN pattern: 5 letters (4th char captured), 4 digits, 1 letter
+# Spaced or standard PAN pattern: 5 letters, 4 digits, 1 letter (matches any 4th character)
 PAN_REGEX = re.compile(
-    r"(?i)\b([a-z]\s*[a-z]\s*[a-z]\s*([a-z])\s*[a-z][\s\-]*(?:\d[\s\-]*){4}[a-z])\b"
+    r"(?i)\b([a-z]\s*[a-z]\s*[a-z]\s*[a-z]\s*[a-z][\s\-]*(?:\d[\s\-]*){4}[a-z])\b"
 )
 
 # Aadhaar candidate pattern: 12 digits, optional space or dash every 4 digits
@@ -162,25 +162,25 @@ def scan_pii(text: str) -> Tuple[bool, List[str], str]:
         for match_str in otp_matches:
             redacted = redacted.replace(match_str, "[CREDENTIAL_REDACTED]")
 
-    # 4. Check PAN (with 4th character entity type check)
+    # 4. Check PAN (any 5 letters, 4 digits, 1 letter regardless of 4th character)
     pan_matches = []
     for m in PAN_REGEX.finditer(redacted):
         raw_match = m.group(1)
-        entity_char = m.group(2).upper()
-        if entity_char in PAN_ENTITY_TYPES:
-            pan_matches.append(raw_match)
+        pan_matches.append(raw_match)
     if pan_matches:
         detected.append("PAN")
         for match_str in pan_matches:
             redacted = redacted.replace(match_str, "[PAN_REDACTED]")
 
-    # 5. Check Aadhaar (Verhoeff checksum validation strictly on 12-digit candidate strings)
+    # 5. Check Aadhaar (Aadhaar-like spaced/dashed numbers or valid Verhoeff checksum)
     aadhaar_matches = []
     for m in AADHAAR_REGEX.finditer(redacted):
         candidate = m.group(1)
         digits = [c for c in candidate if c.isdigit()]
-        if len(digits) == 12 and verhoeff_validate(candidate):
-            aadhaar_matches.append(candidate)
+        if len(digits) == 12:
+            is_aadhaar_shaped = (' ' in candidate or '-' in candidate)
+            if is_aadhaar_shaped or verhoeff_validate(candidate):
+                aadhaar_matches.append(candidate)
     if aadhaar_matches:
         detected.append("AADHAAR")
         for match_str in aadhaar_matches:
