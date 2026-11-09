@@ -122,7 +122,7 @@ def classify_intent_head(query: str, margin_threshold: float = 0.05) -> Tuple[st
         effective_info = max(nn_info, c_info)
 
         # Out-of-corpus check: if both decision and info similarity are low, query is out of corpus
-        if effective_dec < 0.45 and effective_info < 0.45:
+        if effective_dec < 0.35 and effective_info < 0.35:
             return ('OUT_OF_CORPUS', effective_dec, effective_info)
 
         # Fail-closed rule: if decision score >= info score - margin, treat as decision request
