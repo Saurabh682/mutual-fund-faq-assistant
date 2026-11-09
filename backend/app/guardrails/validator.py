@@ -236,9 +236,12 @@ def safe_contract_fallback(
     reason: str = "DEFAULT",
 ) -> ValidationResult:
     """Generates the safe compliant fallback when a model draft violates the contract."""
-    body = (
-        "Please try again shortly; real-time verification timed out."
-    )
+    reason_upper = str(reason).upper()
+    if "TIMEOUT" in reason_upper or "429" in reason_upper or "RATE_LIMIT" in reason_upper or "DEADLINE" in reason_upper:
+        body = "Please try again shortly."
+    else:
+        body = "I could not find information regarding this topic in scheme records per the Groww scheme page."
+
     url = primary_url or CANONICAL_LINKS["ADVISORY"]
     date_str = normalize_date_footer(doc_date)
     rendered = f"{body}\n\nSource: {url}\nLast updated from sources: {date_str}"

@@ -157,6 +157,27 @@ class ConstrainedSynthesizer:
                 raw_draft="NOT_FOUND",
             )
 
+        # HARD PRE-LLM INVARIANT (Task 1): Re-run decision-request check on query
+        from app.guardrails.intent_head import classify_intent_head
+        head_cat, _, _, _ = classify_intent_head(query)
+        if head_cat == "DECISION_REQUEST":
+            logger.warning(f"Hard pre-LLM invariant fired: blocked decision query '{query}' from Groq LLM.")
+            refusal_body = "I can only provide objective, factual information regarding mutual fund schemes and cannot offer investment advice, comparisons, or recommendations."
+            rendered_refusal = f"{refusal_body}\n\nSource: {CANONICAL_LINKS['ADVISORY']}\nLast updated from sources: {effective_date}"
+            return SynthesisResult(
+                text=refusal_body,
+                sentence_count=1,
+                citation_url=CANONICAL_LINKS["ADVISORY"],
+                last_updated=effective_date,
+                rendered=rendered_refusal,
+                is_valid=True,
+                repaired=False,
+                repair_count=0,
+                violation_reasons=["HARD_PRE_LLM_INVARIANT_DECISION_BLOCKED"],
+                raw_draft=refusal_body,
+                deadline_fallback_used=False,
+            )
+
         # 1. Primary LLM Generation with strict 1.8s deadline
         raw_draft = ""
         groq_t0 = time.perf_counter()
@@ -187,8 +208,10 @@ class ConstrainedSynthesizer:
             raw_draft = cleaned_raw
         except Exception as e:
             groq_elapsed = (time.perf_counter() - groq_t0) * 1000
+            exc_type = type(e).__name__
             is_timeout = isinstance(e, TimeoutError) or "timeout" in str(e).lower() or "deadline" in str(e).lower() or deadline_triggered
-            logger.warning(f"Groq generation failed/timed out ({groq_elapsed:.1f}ms): {e}. Falling back to safe response.")
+            is_rate_limit = ("429" in str(e) or "rate_limit" in str(e).lower() or "ratelimit" in str(e).lower())
+            logger.warning(f"Groq call failed with exception {exc_type} ({groq_elapsed:.1f}ms): {e}. Falling back to safe response.")
 
             if is_timeout:
                 extractive_answer = None
@@ -215,7 +238,7 @@ class ConstrainedSynthesizer:
                         deadline_fallback_used=True,
                     )
                 else:
-                    timeout_msg = "Please try again shortly; real-time verification timed out."
+                    timeout_msg = "Please try again shortly."
                     rendered = f"{timeout_msg}\n\nSource: {citation_url}\nLast updated from sources: {effective_date}"
                     return SynthesisResult(
                         text=timeout_msg,
@@ -226,12 +249,29 @@ class ConstrainedSynthesizer:
                         is_valid=True,
                         repaired=True,
                         repair_count=0,
-                        violation_reasons=["DEADLINE_TIMEOUT"],
+                        violation_reasons=[f"DEADLINE_TIMEOUT_{exc_type}"],
                         raw_draft=raw_draft,
                         deadline_fallback_used=True,
                     )
 
-            fallback = safe_contract_fallback(citation_url, effective_date, reason=f"API_ERROR_{type(e).__name__}")
+            if is_rate_limit:
+                timeout_msg = "Please try again shortly."
+                rendered = f"{timeout_msg}\n\nSource: {citation_url}\nLast updated from sources: {effective_date}"
+                return SynthesisResult(
+                    text=timeout_msg,
+                    sentence_count=1,
+                    citation_url=citation_url,
+                    last_updated=effective_date,
+                    rendered=rendered,
+                    is_valid=True,
+                    repaired=True,
+                    repair_count=0,
+                    violation_reasons=[f"RATE_LIMIT_{exc_type}"],
+                    raw_draft=raw_draft,
+                    deadline_fallback_used=True,
+                )
+
+            fallback = safe_contract_fallback(citation_url, effective_date, reason=f"API_ERROR_{exc_type}")
             return SynthesisResult(
                 text=fallback.text,
                 sentence_count=fallback.sentence_count,
