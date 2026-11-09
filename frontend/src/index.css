@@ -1,25 +1,60 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
-    --brand-emerald: #00D09C;
-    --brand-emerald-hover: #00B386;
-    --brand-emerald-glow: rgba(0, 208, 156, 0.15);
-    --slate-base: #12161A;
-    --slate-card: #1A2027;
-    --slate-border: #28323E;
-    --slate-bubble: #242D38;
-    --slate-hover: #202832;
-    --amber-gold: #F59E0B;
-    --amber-banner: rgba(245, 158, 11, 0.08);
-    --amber-border: rgba(245, 158, 11, 0.25);
+    --bg-surface: #F8FAFC;
+    --bg-surface-low: #FFFFFF;
+    --bg-surface-container: #F1F5F9;
+    --bg-surface-high: #E2E8F0;
+    --bg-surface-highest: #CBD5E1;
+    --text-on-surface: #0F172A;
+    --text-on-surface-variant: #475569;
+    --text-caption: #64748B;
+    --color-primary: #059669;
+    --color-primary-container: #10B981;
+    --color-on-primary-container: #FFFFFF;
+    --color-secondary: #92400E;
+    --color-secondary-bg: rgba(245, 158, 11, 0.12);
+    --color-secondary-border: rgba(245, 158, 11, 0.25);
+    --border-color: #E2E8F0;
+    --border-subtle: #F1F5F9;
   }
 
-  body {
-    background-color: #12161A;
-    color: #FFFFFF;
-    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  .dark {
+    --bg-surface: #0e1512;
+    --bg-surface-low: #131a17;
+    --bg-surface-container: #16201b;
+    --bg-surface-high: #242c28;
+    --bg-surface-highest: #2f3633;
+    --text-on-surface: #dde4df;
+    --text-on-surface-variant: #94a3b8;
+    --text-caption: #94a3b8;
+    --color-primary: #10b981;
+    --color-primary-container: #10b981;
+    --color-on-primary-container: #00422b;
+    --color-secondary: #ffb95f;
+    --color-secondary-bg: rgba(255, 185, 95, 0.12);
+    --color-secondary-border: rgba(255, 185, 95, 0.25);
+    --border-color: #1f2824;
+    --border-subtle: #16201b;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-surface);
+    color: var(--text-on-surface);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Strict WCAG 2.1 AA Caption Minimum: no text below 13px */
+  small, caption, .caption {
+    font-size: 13px;
+    line-height: 18px;
   }
 }
 
@@ -29,25 +64,44 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #12161A;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #28323E;
+  background: var(--border-color);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3A4756;
+  background: var(--text-caption);
 }
 
 .num-tabular {
   font-variant-numeric: tabular-nums;
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.15); }
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.pulse-dot {
-  animation: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpBottom {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUpBottom 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

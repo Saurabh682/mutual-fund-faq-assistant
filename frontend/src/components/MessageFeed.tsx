@@ -2,61 +2,58 @@ import React, { useEffect, useRef } from 'react';
 import { useChatStore } from '../store/useChatStore';
 import { MessageBubble } from './MessageBubble';
 import { StarterQuestions } from './StarterQuestions';
+import { StaleBanner } from './StaleBanner';
 
 export const MessageFeed: React.FC = () => {
-  const { activeThread, isSending, isLoadingMessages, sendUserMessage } = useChatStore();
+  const { activeThread, isSending } = useChatStore();
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const messages = activeThread?.messages || [];
+  const hasMessages = messages.length > 0;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeThread?.messages, isSending]);
-
-  if (isLoadingMessages) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-2 border-[#00D09C] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-slate-400 font-mono">Accessing official SQLite and ChromaDB records...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const messages = activeThread?.messages || [];
+  }, [messages.length, isSending]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6">
-      <div className="max-w-[860px] mx-auto flex flex-col gap-4">
-        {messages.length === 0 ? (
-          <StarterQuestions />
-        ) : (
-          messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              onSelectSuggestion={(q) => sendUserMessage(q)}
-            />
-          ))
-        )}
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-5">
+      {/* Dynamic Stale Data Banner (triggers only if >7 days old from API data) */}
+      <StaleBanner />
 
-        {isSending && (
-          <div className="flex justify-start items-start gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-[#00D09C]/10 border border-[#00D09C]/40 flex items-center justify-center text-[#00D09C] shrink-0 mt-0.5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#00D09C] animate-ping" />
-            </div>
-            <div className="bg-[#1A2027] border border-[#28323E] rounded-2xl rounded-tl-xs px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#00D09C] animate-pulse" />
-                <span className="w-2 h-2 rounded-full bg-[#00D09C] animate-pulse [animation-delay:200ms]" />
-                <span className="w-2 h-2 rounded-full bg-[#00D09C] animate-pulse [animation-delay:400ms]" />
-                <span className="text-xs text-slate-400 font-mono ml-2">Verifying scheme records &amp; facts...</span>
-              </div>
+      {/* Empty State / Query Starter Board */}
+      {!hasMessages && <StarterQuestions />}
+
+      {/* Message Stream */}
+      {messages.map((msg) => (
+        <MessageBubble key={msg.id} message={msg} />
+      ))}
+
+      {/* Runtime Checking Sources Skeleton State */}
+      {isSending && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="w-full rounded-2xl p-5 shadow-xs flex flex-col gap-3.5 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620] animate-fade-in"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#059669] dark:bg-[#10b981] animate-ping" />
+            <span className="text-[14px] sm:text-[15px] font-semibold text-[#059669] dark:text-[#10b981]">
+              Checking sources...
+            </span>
+          </div>
+          <div className="space-y-2.5 animate-pulse pt-1">
+            <div className="h-4 rounded-md w-5/6 bg-[#E2E8F0] dark:bg-[#242c28]" />
+            <div className="h-4 rounded-md w-3/4 bg-[#E2E8F0] dark:bg-[#242c28]" />
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#242c28]" />
+              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#242c28]" />
+              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#242c28]" />
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        <div ref={bottomRef} />
-      </div>
+      <div ref={bottomRef} className="h-2" />
     </div>
   );
 };
