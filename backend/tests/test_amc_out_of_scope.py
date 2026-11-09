@@ -37,5 +37,5 @@ def test_amc_level_questions_route_to_out_of_scope_without_clarification(query: 
 
     assert data["resolution_type"] in ("out_of_scope", "not_found")
     assert "Please specify which HDFC scheme" not in data["rendered"]
-    assert "could not find information" in data["rendered"].lower()
+    assert "i don't have that information" in data["rendered"].lower()
     assert "5 HDFC schemes" in data["rendered"]

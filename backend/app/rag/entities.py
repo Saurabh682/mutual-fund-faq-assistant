@@ -525,9 +525,8 @@ def get_scheme_meta(scheme_id: str) -> Optional[Dict[str, Any]]:
 def get_amc_out_of_scope_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
     """Generates deterministic out-of-scope response for AMC-level company inquiries without asking which scheme."""
     body = (
-        "I could not find information regarding this topic in scheme records per the Groww scheme page. "
-        "This assistant supports scheme facts (TER, NAV, exit load, fund managers, AUM, benchmark, riskometer, "
-        "minimum SIP) for 5 HDFC schemes. For corporate AMC information, please refer to regulatory filings."
+        "I don't have that information. I can answer questions about TER, exit load, minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for 5 HDFC schemes. "
+        "For corporate AMC information, please refer to regulatory filings."
     )
     url = "https://www.hdfcfund.com"
     doc_date = last_updated or get_default_corpus_date()

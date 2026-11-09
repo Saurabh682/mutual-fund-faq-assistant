@@ -240,7 +240,10 @@ def safe_contract_fallback(
     if "TIMEOUT" in reason_upper or "429" in reason_upper or "RATE_LIMIT" in reason_upper or "DEADLINE" in reason_upper:
         body = "Please try again shortly."
     else:
-        body = "I could not find information regarding this topic in scheme records per the Groww scheme page."
+        body = (
+            "I don't have that information. I can answer questions about TER, exit load, "
+            "minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for 5 HDFC schemes."
+        )
 
     url = primary_url or CANONICAL_LINKS["ADVISORY"]
     date_str = normalize_date_footer(doc_date)
@@ -281,8 +284,8 @@ def validate_response(
     # 0. Handle NOT_FOUND or empty output
     if not clean_draft or clean_draft.upper() == "NOT_FOUND":
         not_found_body = (
-            "I could not find information regarding this topic in scheme records "
-            "per the Groww scheme page."
+            "I don't have that information. I can answer questions about TER, exit load, "
+            "minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for 5 HDFC schemes."
         )
         url = CANONICAL_LINKS["ADVISORY"]
         rendered = f"{not_found_body}\n\nSource: {url}\nLast updated from sources: {effective_date}"

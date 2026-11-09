@@ -67,6 +67,27 @@ SCHEME_MAP = {
     "HDFC Multi Cap Fund (Direct - Growth)": "hdfc_multicap_dg",
 }
 
+# Warm up models, intent classifiers, field embeddings, and query pipelines for Hugging Face entrypoint
+try:
+    from app.rag.retriever import get_embedder, encode_query
+    get_embedder()
+    from app.guardrails.intent_prototype import get_prototype_data
+    get_prototype_data()
+    from app.guardrails.intent_head import get_head_vectors, classify_intent_head
+    get_head_vectors()
+    from app.rag.entities import get_field_embeddings, resolve_entities
+    get_field_embeddings()
+    from app.guardrails.intent import classify_intent
+    classify_intent("warmup which fund should I buy")
+    classify_intent_head("warmup which fund should I buy")
+    resolve_entities("warmup NAV of HDFC Small Cap Fund")
+    encode_query("warmup query for inference latency", normalize_embeddings=True)
+    from app.api.rag import ask_query
+    from app.schemas.synthesis import SynthesisQueryRequest
+    _ = ask_query(SynthesisQueryRequest(query="warmup ask query"))
+except Exception:
+    pass
+
 CUSTOM_CSS = """
 /* Groww Obsidian Archetype */
 :root {

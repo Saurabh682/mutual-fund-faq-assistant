@@ -205,7 +205,59 @@ Note: I can only provide objective facts about these schemes. I cannot evaluate 
     expect(results.violations.filter((v) => v.impact === 'critical')).toHaveLength(0);
   });
 
-  it('8. Renders FactSheetContent with exactly 10 statutory rows and 6-segment Riskometer', async () => {
+  it('8. Renders Information not found card for not_found resolution', async () => {
+    const notFoundMsg: Message = {
+      id: 'msg_nf_1',
+      role: 'assistant',
+      type: 'not_found',
+      text: "I don't have that information. I can answer questions about TER, exit load, minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for 5 HDFC schemes.",
+      citation_url: 'https://groww.in',
+      last_updated: '2026-11-05',
+      timestamp: new Date().toISOString(),
+    };
+
+    const { container } = render(<MessageBubble message={notFoundMsg} />);
+    expect(screen.getByText('Information not found')).toBeInTheDocument();
+    expect(screen.getByText(/I don't have that information/i)).toBeInTheDocument();
+    const results = await axe.run(container);
+    expect(results.violations.filter((v) => v.impact === 'critical')).toHaveLength(0);
+  });
+
+  it('9. Renders Out of scope card for out_of_scope resolution', async () => {
+    const oosMsg: Message = {
+      id: 'msg_oos_1',
+      role: 'assistant',
+      type: 'out_of_scope',
+      text: 'This assistant supports scheme facts for 5 HDFC schemes. For corporate AMC information, please refer to regulatory filings.',
+      last_updated: '2026-11-05',
+      timestamp: new Date().toISOString(),
+    };
+
+    const { container } = render(<MessageBubble message={oosMsg} />);
+    expect(screen.getByText('Out of scope query')).toBeInTheDocument();
+    expect(screen.getByText(/This assistant supports scheme facts for 5 HDFC schemes/i)).toBeInTheDocument();
+    const results = await axe.run(container);
+    expect(results.violations.filter((v) => v.impact === 'critical')).toHaveLength(0);
+  });
+
+  it('10. Renders Direct Plan Scope card for unsupported_plan resolution', async () => {
+    const planMsg: Message = {
+      id: 'msg_plan_1',
+      role: 'assistant',
+      type: 'unsupported_plan',
+      text: 'This assistant only provides information for Direct - Growth plans of the supported HDFC schemes.',
+      last_updated: '2026-11-05',
+      timestamp: new Date().toISOString(),
+    };
+
+    const { container } = render(<MessageBubble message={planMsg} />);
+    expect(screen.getByText('Direct Plan Scope')).toBeInTheDocument();
+    expect(screen.getByText(/Direct - Growth plans/i)).toBeInTheDocument();
+    const results = await axe.run(container);
+    expect(results.violations.filter((v) => v.impact === 'critical')).toHaveLength(0);
+  });
+
+  it('11. Renders FactSheetContent with exactly 10 statutory rows and 6-segment Riskometer', async () => {
     const { container } = render(<FactSheetContent />);
 
     // Row 1: TER (Direct)

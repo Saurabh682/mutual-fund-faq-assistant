@@ -187,7 +187,7 @@ class TestEVAL_P3_3_OutOfCorpusFallback:
         data = resp.json()
         assert data["resolution_type"] in ("not_found", "external_amc")
         assert (
-            "I could not find information regarding this topic" in data["text"]
+            "I don't have that information" in data["text"]
             or "5 selected HDFC Mutual Fund schemes" in data["text"]
         )
         assert data["citation_url"] == "https://www.amfiindia.com/investor-corner/knowledge-center"
