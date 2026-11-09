@@ -31,6 +31,8 @@ FIELD_LABELS = {
     "aum_cr": "AUM (Fund Size)",
     "turnover_ratio": "Portfolio Turnover Ratio",
     "lock_in": "Lock-in Period",
+    "min_lumpsum": "Minimum Lumpsum Amount",
+    "min_additional": "Minimum Additional Investment",
 }
 
 FACT_TEMPLATES = {
@@ -43,6 +45,8 @@ FACT_TEMPLATES = {
     "fund_manager": "The fund manager for {scheme_name} is {value} as listed on the Groww scheme page.",
     "aum_cr": "The total Assets Under Management (AUM) for {scheme_name} is ₹{value} Cr per the Groww scheme page.",
     "lock_in": "The lock-in period for {scheme_name} is {value} per the Groww scheme page.",
+    "min_lumpsum": "The minimum lumpsum investment amount for {scheme_name} is {value}.",
+    "min_additional": "The minimum additional investment amount for {scheme_name} is {value}.",
 }
 
 
@@ -203,6 +207,12 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     elif field == "min_sip":
         val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
         narrative = f"The minimum SIP investment amount for {scheme_name} is {val_display.rstrip('.')}."
+    elif field == "min_lumpsum":
+        val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
+        narrative = f"The minimum lumpsum investment amount for {scheme_name} is {val_display.rstrip('.')}."
+    elif field == "min_additional":
+        val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
+        narrative = f"The minimum additional investment amount for {scheme_name} is {val_display.rstrip('.')}."
     elif field == "riskometer":
         narrative = f"The risk level for {scheme_name} is classified as {val_clean} on the SEBI Riskometer per the Groww scheme page."
     elif field == "benchmark":

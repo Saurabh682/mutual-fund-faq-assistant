@@ -8,9 +8,13 @@ ambiguous queries requiring scheme clarification.
 from __future__ import annotations
 
 import difflib
+import logging
 import re
 from dataclasses import dataclass, field as dc_field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+import numpy as np
+
+logger = logging.getLogger(__name__)
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
 from app.guardrails.validator import validate_response
 
@@ -224,6 +228,59 @@ FIELD_GLOSSARY: Dict[str, List[str]] = {
     ],
 }
 
+SUPPORTED_FACT_FIELD_DESCRIPTIONS: Dict[str, str] = {
+    "ter_direct": "total expense ratio TER direct plan annual management fee charges ratio",
+    "exit_load": "exit load penalty redemption fee premature exit charge duration period",
+    "min_sip": "minimum systematic investment plan SIP monthly installment starting sip amount",
+    "min_lumpsum": "minimum initial lumpsum investment amount purchase minimum lumpsum deposit",
+    "min_additional": "minimum additional purchase investment amount additional purchase",
+    "benchmark": "benchmark index tracked target index comparison standard index name tracks",
+    "riskometer": "riskometer SEBI risk level rating risk category risk grade meter",
+    "nav": "net asset value NAV unit price daily valuation price per unit",
+    "aum": "assets under management AUM fund size total corpus asset size portfolio value",
+    "lock_in": "lock-in period mandatory holding duration lock in tenure lockin",
+    "fund_manager": "fund manager lead manager portfolio manager who manages who is managing",
+}
+
+_FIELD_EMBEDDINGS_CACHE: Optional[Dict[str, Any]] = None
+
+
+def get_field_embeddings() -> Optional[Dict[str, Any]]:
+    global _FIELD_EMBEDDINGS_CACHE
+    if _FIELD_EMBEDDINGS_CACHE is not None:
+        return _FIELD_EMBEDDINGS_CACHE
+    try:
+        from app.rag.retriever import encode_query
+        keys = list(SUPPORTED_FACT_FIELD_DESCRIPTIONS.keys())
+        descs = list(SUPPORTED_FACT_FIELD_DESCRIPTIONS.values())
+        vecs = encode_query(descs, normalize_embeddings=True)
+        _FIELD_EMBEDDINGS_CACHE = {"keys": keys, "vecs": vecs}
+        return _FIELD_EMBEDDINGS_CACHE
+    except Exception as e:
+        logger.warning(f"Could not compute field embeddings: {e}")
+        return None
+
+
+def match_field_by_embedding(clause: str, threshold: float = 0.52) -> Optional[Tuple[str, float]]:
+    cache = get_field_embeddings()
+    if not cache:
+        return None
+    try:
+        from app.rag.retriever import encode_query
+        clean = clause.strip()
+        if not clean:
+            return None
+        q_vec = encode_query(clean, normalize_embeddings=True)
+        sims = np.dot(cache["vecs"], q_vec)
+        best_idx = int(np.argmax(sims))
+        best_score = float(sims[best_idx])
+        if best_score >= threshold:
+            return (cache["keys"][best_idx], best_score)
+        return None
+    except Exception as e:
+        logger.warning(f"Field embedding matching error: {e}")
+        return None
+
 PRONOUN_PATTERN = re.compile(
     r"\b(it|this\s+fund|this\s+scheme|the\s+fund|the\s+scheme|its|that\s+fund|that\s+scheme)\b",
     re.I
@@ -241,6 +298,8 @@ class EntityResolutionResult:
     is_external_amc: bool = False
     is_unsupported_plan: bool = False
     is_amc_out_of_scope: bool = False
+    is_multi_scheme_comparison: bool = False
+    matched_scheme_ids: List[str] = dc_field(default_factory=list)
     matched_scheme_alias: Optional[str] = None
     matched_field_alias: Optional[str] = None
 
@@ -259,6 +318,7 @@ def resolve_entities(
     # 1. Match Scheme Entity (Longest exact alias match first)
     detected_scheme_id = None
     detected_scheme_alias = None
+    matched_scheme_ids = []
 
     for sid, info in SCHEME_REGISTRY.items():
         sorted_aliases = sorted(info["aliases"], key=len, reverse=True)
@@ -266,9 +326,12 @@ def resolve_entities(
             norm_alias = re.sub(r"[-\s]+", " ", alias.lower())
             pattern = r"\b" + re.escape(norm_alias) + r"\b"
             if re.search(pattern, norm_query) or re.search(r"\b" + re.escape(alias) + r"\b", clean_query):
+                if sid not in matched_scheme_ids:
+                    matched_scheme_ids.append(sid)
                 if detected_scheme_alias is None or len(alias) > len(detected_scheme_alias):
                     detected_scheme_id = sid
                     detected_scheme_alias = alias
+                break
 
     # 1b. Fuzzy Matching for Typos & Abbreviations (e.g. 'sml cap', 'midcap opp')
     if not detected_scheme_id:
@@ -324,6 +387,18 @@ def resolve_entities(
                     detected_field_alias = kw
                 break
 
+    # 3b. Semantic Field Matching for Unmatched Clauses (Task 5)
+    if detected_field is None:
+        emb_match = match_field_by_embedding(clean_query, threshold=0.52)
+        if emb_match:
+            detected_field = emb_match[0]
+            if detected_field not in detected_fields:
+                detected_fields.append(detected_field)
+            detected_field_alias = f"semantic_match:{detected_field}"
+
+    # Structural rule: 2+ schemes named with no supported fact field is a comparison request
+    is_multi_scheme_comparison = (len(matched_scheme_ids) >= 2 and not detected_field and not detected_fields)
+
     # 4. Check External AMC & Ambiguity (EC-ENT-01 & EC-RET-02)
     has_external_amc = any(
         re.search(r"\b" + re.escape(amc) + r"\b", clean_query) for amc in EXTERNAL_AMCS
@@ -376,6 +451,8 @@ def resolve_entities(
         is_external_amc=has_external_amc,
         is_unsupported_plan=is_unsupported_plan,
         is_amc_out_of_scope=is_amc_out_of_scope,
+        is_multi_scheme_comparison=is_multi_scheme_comparison,
+        matched_scheme_ids=matched_scheme_ids,
         matched_scheme_alias=detected_scheme_alias,
         matched_field_alias=detected_field_alias,
     )
