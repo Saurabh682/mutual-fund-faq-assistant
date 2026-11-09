@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import random
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -166,6 +167,24 @@ class ConstrainedSynthesizer:
                 raise TimeoutError("Deadline exceeded prior to Groq call")
             user_prompt = build_synthesis_user_prompt(query, context_chunks)
             raw_draft = self._call_llm(SYSTEM_SYNTHESIS_PROMPT, user_prompt)
+            # Strip any NOT_FOUND token so it never reaches the user
+            cleaned_raw = re.sub(r"\bNOT_FOUND\b\.?", "", raw_draft, flags=re.I).strip()
+            cleaned_raw = re.sub(r"\s{2,}", " ", cleaned_raw)
+            if not cleaned_raw or raw_draft.strip().upper() == "NOT_FOUND":
+                fallback = safe_contract_fallback(citation_url, effective_date, reason="NOT_FOUND")
+                return SynthesisResult(
+                    text=fallback.text,
+                    sentence_count=fallback.sentence_count,
+                    citation_url=fallback.citation_url,
+                    last_updated=fallback.last_updated,
+                    rendered=fallback.rendered,
+                    is_valid=True,
+                    repaired=False,
+                    repair_count=0,
+                    violation_reasons=fallback.violation_reasons,
+                    raw_draft="NOT_FOUND",
+                )
+            raw_draft = cleaned_raw
         except Exception as e:
             groq_elapsed = (time.perf_counter() - groq_t0) * 1000
             is_timeout = isinstance(e, TimeoutError) or "timeout" in str(e).lower() or "deadline" in str(e).lower() or deadline_triggered
