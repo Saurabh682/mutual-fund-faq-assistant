@@ -1,18 +1,31 @@
+export type MessageType =
+  | 'user_query'
+  | 'answer'
+  | 'fact_store'
+  | 'llm_synthesis'
+  | 'refusal'
+  | 'compound'
+  | 'not_found'
+  | 'out_of_scope'
+  | 'unsupported_plan'
+  | 'external_amc'
+  | 'clarification'
+  | 'pii_warning'
+  | 'pii_block'
+  | 'rate_limit'
+  | 'timeout'
+  | 'help'
+  | 'glossary';
+
+export interface StatMetric {
+  label: string;
+  value: string;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
-  type:
-    | 'user_query'
-    | 'answer'
-    | 'fact_store'
-    | 'llm_synthesis'
-    | 'refusal'
-    | 'clarification'
-    | 'not_found'
-    | 'glossary'
-    | 'unsupported_plan'
-    | 'external_amc'
-    | 'pii_block';
+  type: MessageType;
   text: string;
   sentence_count?: number;
   citation_url?: string;
@@ -21,6 +34,10 @@ export interface Message {
   suggested_followups?: string[];
   timestamp: string;
   latency_ms?: number;
+  fact_portion?: string;
+  note_portion?: string;
+  metrics?: StatMetric[];
+  userFeedback?: 'up' | 'down' | 'reported';
 }
 
 export interface ThreadSummary {
@@ -47,4 +64,28 @@ export interface MetaData {
   disclaimer: string;
   starter_questions: string[];
   schemes: SchemeInfo[];
+}
+
+export interface FactMetric {
+  value: string;
+  as_of?: string;
+  source_url?: string;
+}
+
+export interface SchemeFacts {
+  scheme_id: string;
+  scheme_name: string;
+  as_of?: string;
+  source_url?: string;
+  ter_direct?: FactMetric;
+  exit_load?: FactMetric;
+  min_sip?: FactMetric;
+  min_lumpsum?: FactMetric;
+  lock_in?: FactMetric;
+  riskometer?: FactMetric;
+  benchmark?: FactMetric;
+  fund_manager?: FactMetric;
+  nav?: FactMetric;
+  aum?: FactMetric;
+  [key: string]: FactMetric | string | undefined;
 }

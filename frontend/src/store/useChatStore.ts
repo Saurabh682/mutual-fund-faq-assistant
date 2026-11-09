@@ -3,11 +3,13 @@ import {
   createThread,
   deleteThread,
   fetchMetadata,
+  fetchSchemeFacts,
   fetchThread,
   fetchThreads,
   sendMessage,
+  submitFeedback,
 } from '../api/client';
-import type { Message, MetaData, Thread, ThreadSummary } from '../types/chat';
+import type { Message, MetaData, SchemeFacts, Thread, ThreadSummary } from '../types/chat';
 
 function getOrCreateClientId(): string {
   const key = 'mf_assistant_client_id';
@@ -19,16 +21,27 @@ function getOrCreateClientId(): string {
   return id;
 }
 
+function getInitialTheme(): 'dark' | 'light' {
+  const saved = localStorage.getItem('mf_assistant_theme');
+  if (saved === 'dark' || saved === 'light') return saved;
+  return 'dark'; // Default to dark per Stitch design archetype
+}
+
 interface ChatState {
   clientId: string;
   threads: ThreadSummary[];
   activeThreadId: string | null;
   activeThread: Thread | null;
   meta: MetaData | null;
+  schemeFacts: SchemeFacts[];
+  selectedSchemeId: string;
+  isFactSheetOpen: boolean;
+  isSidebarOpen: boolean;
+  isAboutModalOpen: boolean;
+  theme: 'dark' | 'light';
   isLoadingThreads: boolean;
   isLoadingMessages: boolean;
   isSending: boolean;
-  isSidebarOpen: boolean;
   error: string | null;
 
   // Actions
@@ -37,9 +50,18 @@ interface ChatState {
   startNewThread: (initialQuestion?: string) => Promise<string>;
   removeThread: (threadId: string) => Promise<void>;
   sendUserMessage: (text: string) => Promise<void>;
+  setSelectedSchemeId: (schemeId: string) => void;
+  toggleFactSheet: (open?: boolean) => void;
   toggleSidebar: () => void;
   closeSidebar: () => void;
+  setAboutModalOpen: (open: boolean) => void;
+  setTheme: (theme: 'dark' | 'light') => void;
   clearError: () => void;
+  submitMessageFeedback: (
+    messageId: string,
+    rating: 'up' | 'down' | 'reported',
+    comment?: string
+  ) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -48,21 +70,46 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeThreadId: null,
   activeThread: null,
   meta: null,
+  schemeFacts: [],
+  selectedSchemeId: 'hdfc_midcap_dg',
+  isFactSheetOpen: false,
+  isSidebarOpen: false,
+  isAboutModalOpen: false,
+  theme: getInitialTheme(),
   isLoadingThreads: false,
   isLoadingMessages: false,
   isSending: false,
-  isSidebarOpen: false,
   error: null,
 
   init: async () => {
-    const { clientId } = get();
+    const { clientId, theme } = get();
+    // Apply theme to document
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
     try {
       set({ isLoadingThreads: true, error: null });
-      const [meta, threads] = await Promise.all([
+      const [meta, threads, factsRes] = await Promise.all([
         fetchMetadata(),
         fetchThreads(clientId),
+        fetchSchemeFacts().catch(() => ({ schemes: [] })),
       ]);
-      set({ meta, threads, isLoadingThreads: false });
+
+      const defaultSchemeId =
+        meta.schemes && meta.schemes.length > 0 ? meta.schemes[0].id : 'hdfc_midcap_dg';
+
+      set({
+        meta,
+        threads,
+        schemeFacts: factsRes.schemes || [],
+        selectedSchemeId: defaultSchemeId,
+        isLoadingThreads: false,
+      });
 
       if (threads.length > 0) {
         await get().selectThread(threads[0].id);
@@ -162,7 +209,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       activeThreadId = await get().startNewThread();
     }
 
-    // Optimistically append user message
     const tempUserMsg: Message = {
       id: `temp_${Date.now()}`,
       role: 'user',
@@ -183,11 +229,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
 
     try {
-      await sendMessage(activeThreadId, trimmed, clientId);
+      const assistantMsg = await sendMessage(activeThreadId, trimmed, clientId);
 
       // Refresh complete thread state to synchronize message IDs and scheme state
-      const updatedThread = await fetchThread(activeThreadId);
-      const updatedThreadsList = await fetchThreads(clientId);
+      const updatedThread = await fetchThread(activeThreadId).catch(() => ({
+        ...activeThread!,
+        messages: [...(activeThread?.messages || []), tempUserMsg, assistantMsg],
+      }));
+      const updatedThreadsList = await fetchThreads(clientId).catch(() => get().threads);
 
       set({
         activeThread: updatedThread,
@@ -202,7 +251,56 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
+  setSelectedSchemeId: (schemeId: string) => set({ selectedSchemeId: schemeId }),
+
+  toggleFactSheet: (open?: boolean) =>
+    set((state) => ({
+      isFactSheetOpen: typeof open === 'boolean' ? open : !state.isFactSheetOpen,
+    })),
+
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   closeSidebar: () => set({ isSidebarOpen: false }),
+
+  setAboutModalOpen: (open: boolean) => set({ isAboutModalOpen: open }),
+
+  setTheme: (theme: 'dark' | 'light') => {
+    localStorage.setItem('mf_assistant_theme', theme);
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+    set({ theme });
+  },
+
   clearError: () => set({ error: null }),
+
+  submitMessageFeedback: async (
+    messageId: string,
+    rating: 'up' | 'down' | 'reported',
+    comment?: string
+  ) => {
+    const { activeThread } = get();
+    if (!activeThread) return;
+
+    // Optimistically update message
+    const updatedMessages = activeThread.messages.map((m) =>
+      m.id === messageId ? { ...m, userFeedback: rating } : m
+    );
+
+    set({
+      activeThread: {
+        ...activeThread,
+        messages: updatedMessages,
+      },
+    });
+
+    await submitFeedback({
+      message_id: messageId,
+      rating,
+      comment,
+    });
+  },
 }));
