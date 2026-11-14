@@ -256,6 +256,35 @@ To ensure flawless compliance and deterministic reliability across all 7 phases,
   1. Disable starter question chips while `isLoading == true`.
   2. Immediately hide starter question panel once the first message enters the thread.
 
+### `EC-UI-03`: Placeholder Data Shown As Real
+- **Trigger**: First paint before `/meta` and `/facts/schemes` return, a sleeping Space, or a failed facts call.
+- **Architectural Component**: `Header.tsx`, `FactSheetDrawer.tsx`, `useChatStore.ts` (`factsState`)
+- **Impact**: Dashes and a hard-coded "5 Nov 2026" read as real data, and stay that way if the call fails.
+- **Mitigation Strategy**: No fallback dates anywhere. A skeleton shows while `factsState` is `loading`; on failure the sheet says so and offers *Try again*. The header date chip appears only with a real date.
+
+### `EC-UI-04`: A "No Information" Reply Dressed As a Sourced Answer
+- **Trigger**: The synthesizer falls back to the standard not-found text (question outside the corpus).
+- **Architectural Component**: `backend/app/api/threads.py` and `rag.py` (`is_not_found`), `MessageBubble.tsx`
+- **Impact**: A green "Answer" card with a "Source: Groww" link for something that is not an answer.
+- **Mitigation Strategy**: The backend types the reply `not_found`. The UI also renders any saved answer that starts with the not-found text as "Information not found", so older saved threads are fixed too.
+
+### `EC-UI-05`: Raw Markup In Cards
+- **Trigger**: Glossary or procedure text that contains a markdown table.
+- **Architectural Component**: `frontend/src/lib/answerText.ts`, `MessageBubble.tsx`
+- **Impact**: Users see `| :--- | **Term** |` as text.
+- **Mitigation Strategy**: Tables parse into a label/value list (header rows skipped) for every card type. AMFI code, fund house and data source rows are left out because the footer already cites the source.
+
+### `EC-UI-06`: Dialogs Not Operable From the Keyboard
+- **Trigger**: Opening the guide, About or fact-sheet dialogs with a keyboard or screen reader.
+- **Architectural Component**: `frontend/src/lib/useDialogA11y.ts`, `MessageFeed.tsx`
+- **Impact**: Focus stays behind the dialog, Escape does nothing, two dialogs have no accessible name, and new answers are not announced.
+- **Mitigation Strategy**: Every dialog is named, moves focus in, keeps Tab inside, closes on Escape and returns focus. New assistant answers go to a polite live region.
+
+### `EC-UI-07`: Layout At Tablet And Phone Widths
+- **Trigger**: Widths of 1024 px and below; first visit on a phone.
+- **Architectural Component**: `Header.tsx`, `MessageFeed.tsx`
+- **Impact**: The scheme dropdown ran under the "Scheme fact sheet" button, and an empty chat opened scrolled to the bottom so the heading and scheme chips were out of view.
+- **Mitigation Strategy**: The dropdown shrinks with an ellipsis. An empty chat never scrolls to the bottom and starts at its heading.
 ---
 
 ## 10. Corpus Expansion Edge Cases (`EC-EXP`)

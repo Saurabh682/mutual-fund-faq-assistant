@@ -28,6 +28,7 @@ FIELD_LABELS = {
     "benchmark": "Benchmark Index",
     "fund_manager": "Primary Lead Fund Manager",
     "nav_source": "NAV Source",
+    "aum": "AUM (Fund Size)",
     "aum_cr": "AUM (Fund Size)",
     "turnover_ratio": "Portfolio Turnover Ratio",
     "lock_in": "Lock-in Period",
@@ -171,6 +172,33 @@ def get_all_facts_for_scheme(scheme_id: str, db_path: str = _FACTS_DB_PATH) -> D
         conn.close()
 
 
+def plain_exit_load(value: Any) -> str:
+    """Groww words the value 'Exit load of 1% if redeemed within 1 year.'; drop the lead-in so 'The exit load is ...' reads once."""
+    return re.sub(r"^\s*exit\s+load\s+(?:of\s+)?", "", str(value), flags=re.I).rstrip(".")
+
+
+def group_indian(text: str) -> str:
+    """'₹100687.07 Cr' -> '₹1,00,687.07 Cr': lakh/crore grouping, as Groww prints it. Numbers already grouped are left alone."""
+
+    def _group(m: "re.Match[str]") -> str:
+        digits, frac = m.group(1), m.group(2) or ""
+        if len(digits) < 4:
+            return m.group(0)
+        head = re.sub(r"\B(?=(\d{2})+(?!\d))", ",", digits[:-3])
+        return f"{head},{digits[-3:]}{frac}" if head else f"{digits}{frac}"
+
+    return re.sub(r"(?<![\d,.])(\d+)(\.\d+)?(?![\d,])", _group, text)
+
+
+def _display_value(field: str, value: Any) -> str:
+    """The value as shown in the stat card, without the wording and number-format quirks of the source page."""
+    if field == "exit_load":
+        return plain_exit_load(value)
+    if field == "aum":
+        return group_indian(str(value))
+    return str(value)
+
+
 def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     """Formats a deterministic ground-truth fact card complying with the response contract.
 
@@ -203,7 +231,9 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
         val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
         narrative = f"The Net Asset Value (NAV) of {scheme_name} is {val_display.rstrip('.')} as per the latest daily valuation."
     elif field == "exit_load":
-        narrative = f"The exit load for {scheme_name} is {val_clean}."
+        narrative = f"The exit load for {scheme_name} is {plain_exit_load(raw_val)}."
+    elif field == "aum":
+        narrative = f"The AUM for {scheme_name} is {group_indian(val_clean)}."
     elif field == "min_sip":
         val_display = f"₹{raw_val}" if not str(raw_val).startswith("₹") else str(raw_val)
         narrative = f"The minimum SIP investment amount for {scheme_name} is {val_display.rstrip('.')}."
@@ -242,7 +272,7 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
         "| Metric | Value |",
         "| :--- | :--- |",
         f"| **Scheme** | {scheme_name} |",
-        f"| **{field_title}** | {raw_val} |",
+        f"| **{field_title}** | {_display_value(field, raw_val)} |",
     ]
     if amfi_code:
         stat_card_rows.append(f"| **AMFI Code** | {amfi_code} |")
@@ -287,7 +317,7 @@ def format_multi_fact_response(
         f_name = fact["field"]
         val = fact["value"]
         title = FIELD_LABELS.get(f_name, f_name.replace("_", " ").title())
-        stat_card_rows.append(f"| **{title}** | {val} |")
+        stat_card_rows.append(f"| **{title}** | {_display_value(f_name, val)} |")
 
         if fact.get("as_of"):
             d = normalize_iso_date(fact["as_of"])
@@ -298,7 +328,7 @@ def format_multi_fact_response(
             val_disp = f"{val}%" if not str(val).endswith("%") else str(val)
             narrative_sentences.append(f"The Total Expense Ratio (TER) is {val_disp}.")
         elif f_name == "exit_load":
-            narrative_sentences.append(f"The exit load is {val}.")
+            narrative_sentences.append(f"The exit load is {plain_exit_load(val)}.")
         elif f_name == "nav":
             val_disp = f"₹{val}" if not str(val).startswith("₹") else str(val)
             narrative_sentences.append(f"The latest NAV is {val_disp}.")
@@ -315,7 +345,7 @@ def format_multi_fact_response(
     stat_card_rows.append("| **Fund House** | HDFC Asset Management Company Limited |")
     stat_card_rows.append("| **Data Source** | Groww scheme page |")
 
-    narrative = f"For {scheme_name}, " + " ".join(narrative_sentences).lower().capitalize()
+    narrative = f"For {scheme_name}: " + " ".join(narrative_sentences)
     stat_card = "\n".join(stat_card_rows)
     body = f"{narrative}\n\n{stat_card}".strip()
     val_res = validate_response(body, None, citation_url, latest_doc_date)

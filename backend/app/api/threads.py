@@ -27,7 +27,7 @@ from app.rag.entities import (
 from app.rag.facts import lookup_fact
 from app.rag.followups import generate_followup_suggestions
 from app.rag.retriever import HybridRetriever, get_not_found_response
-from app.rag.synthesizer import ConstrainedSynthesizer
+from app.rag.synthesizer import ConstrainedSynthesizer, is_not_found
 from app.schemas.chat import (
     ChatRequest,
     CreateThreadRequest,
@@ -42,6 +42,7 @@ router = APIRouter(prefix="/api/v1/threads", tags=["Threads & Chat Sessions"])
 _store = SessionStore()
 _retriever = HybridRetriever()
 _synthesizer = ConstrainedSynthesizer()
+_DEFAULT_THREAD_TITLES = {"", "New Conversation", "Conversation"}
 
 
 @router.post("", response_model=ThreadDTO, status_code=status.HTTP_201_CREATED)
@@ -195,8 +196,9 @@ async def post_message(
             )
             return asst_msg
 
-        # Auto-update thread title if this is the first turn
-        if len(thread.messages) <= 1:
+        # Title the thread from its first question that gets processed. Counting messages would leave a thread
+        # whose first message was blocked (PII) titled "New Conversation" forever.
+        if thread.title in _DEFAULT_THREAD_TITLES:
             clean_title = user_query[:35] + ("..." if len(user_query) > 35 else "")
             _store.update_thread_title(thread_id, clean_title)
 
@@ -508,8 +510,10 @@ async def post_message(
         )
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
+        # A "no information" reply must not look like a sourced answer in the UI
+        res_type = "not_found" if is_not_found(syn_res) else "llm_synthesis"
         followups = generate_followup_suggestions(
-            resolution_type="llm_synthesis",
+            resolution_type=res_type,
             scheme_id=entity_res.scheme_id,
             field=entity_res.field,
         )
@@ -517,7 +521,7 @@ async def post_message(
         asst_msg = MessageDTO(
             id=f"msg_{uuid.uuid4().hex[:12]}",
             role="assistant",
-            type="llm_synthesis",
+            type=res_type,
             text=syn_res.text,
             sentence_count=syn_res.sentence_count,
             citation_url=syn_res.citation_url,
@@ -533,7 +537,7 @@ async def post_message(
             thread_id=thread_id,
             client_id=client_id,
             redacted_query=user_query,
-            resolution_type="llm_synthesis",
+            resolution_type=res_type,
             intent="FACTUAL",
             scheme_id=entity_res.scheme_id,
             field=entity_res.field,

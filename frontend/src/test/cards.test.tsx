@@ -299,9 +299,8 @@ Note: I can only provide objective facts about these schemes. I cannot evaluate 
     expect(screen.getByText('AUM')).toBeInTheDocument();
     expect(screen.getByText('₹101,856 Cr')).toBeInTheDocument();
 
-    // Check date subtitles for rows
-    const dateSubtitles = screen.getAllByText(/as of 5 Nov 2026/i);
-    expect(dateSubtitles.length).toBeGreaterThanOrEqual(10);
+    // One date for the whole sheet (the footer); rows only repeat it when theirs differs
+    expect(screen.queryAllByText(/^as of /i)).toHaveLength(0);
 
     // Footer
     expect(screen.getByText(/Source: Groww scheme page · Data as of 5 Nov 2026/i)).toBeInTheDocument();

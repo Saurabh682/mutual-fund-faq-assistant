@@ -9,27 +9,14 @@ import {
   ShieldAlert,
   User,
 } from 'lucide-react';
+import { formatDate } from '../lib/format';
 import { useChatStore } from '../store/useChatStore';
-
-function formatDate(isoStr?: string): string {
-  if (!isoStr) return '5 Nov 2026';
-  try {
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  } catch {
-    return isoStr;
-  }
-}
 
 export const Header: React.FC = () => {
   const {
     meta,
     schemeFacts,
+    factsState,
     selectedSchemeId,
     setSelectedSchemeId,
     toggleFactSheet,
@@ -58,10 +45,10 @@ export const Header: React.FC = () => {
       ? currentSchemeFacts.as_of
       : typeof currentSchemeFacts?.ter_direct?.as_of === 'string'
       ? currentSchemeFacts.ter_direct.as_of
-      : '2026-11-05';
+      : '';
 
   return (
-    <header className="w-full h-16 px-4 sm:px-6 flex items-center justify-between border-b shadow-xs sticky top-0 z-20 backdrop-blur-md bg-white/95 border-[#E2E8F0] dark:bg-[#0e1512]/95 dark:border-[#1a231f] transition-colors">
+    <header className="w-full h-16 px-4 sm:px-6 flex items-center justify-between gap-3 border-b shadow-xs sticky top-0 z-20 backdrop-blur-md bg-white/95 border-[#E2E8F0] dark:bg-[#0e1512]/95 dark:border-[#1a231f] transition-colors">
       {/* Left: Mobile menu toggle + Scheme selector strictly on a single line */}
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 max-w-[65%] sm:max-w-[70%]">
         <button
@@ -74,18 +61,20 @@ export const Header: React.FC = () => {
         </button>
 
         {/* Scheme Selector kept strictly on a single line with truncate */}
-        <div className="relative min-w-0 max-w-full">
+        <div className="relative min-w-0 shrink">
           <label htmlFor="scheme-header-select" className="sr-only">
             Select Scheme
           </label>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-colors bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9] dark:bg-[#16201b] dark:border-[#1f2824] dark:hover:bg-[#242c28] cursor-pointer max-w-full">
-            <span className="w-2 h-2 rounded-full bg-[#059669] dark:bg-[#10b981] shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-colors bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9] dark:bg-[#16201b] dark:border-[#1f2824] dark:hover:bg-[#242c28] cursor-pointer max-w-full min-w-0">
+            <span className="w-2 h-2 rounded-full bg-[#047857] dark:bg-[#10b981] shrink-0" />
             <select
               id="scheme-header-select"
               value={selectedSchemeId}
               onChange={(e) => setSelectedSchemeId(e.target.value)}
-              className="bg-transparent text-[13px] sm:text-[14px] font-semibold text-[#0F172A] dark:text-[#dde4df] focus:outline-none cursor-pointer truncate max-w-[180px] sm:max-w-[280px] md:max-w-[340px] pr-2 appearance-none"
+              disabled={schemes.length === 0}
+              className="min-w-0 flex-1 bg-transparent text-[13px] sm:text-[14px] font-semibold text-[#0F172A] dark:text-[#dde4df] focus:outline-none cursor-pointer truncate max-w-[180px] sm:max-w-[280px] md:max-w-[340px] pr-2 appearance-none"
             >
+              {schemes.length === 0 && <option value="">Loading schemes…</option>}
               {schemes.map((s) => (
                 <option
                   key={s.id}
@@ -107,7 +96,7 @@ export const Header: React.FC = () => {
           type="button"
           aria-label="Toggle scheme fact sheet drawer"
         >
-          <FileText className="w-4 h-4 text-[#059669] dark:text-[#10b981]" />
+          <FileText className="w-4 h-4 text-[#047857] dark:text-[#10b981]" />
           <span>Scheme fact sheet</span>
         </button>
       </div>
@@ -115,10 +104,16 @@ export const Header: React.FC = () => {
       {/* Right: Data Date, More menu, User avatar */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Data As Of Chip */}
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-medium bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] dark:bg-[#16201b] dark:border-[#1f2824] dark:text-[#94a3b8]">
-          <Calendar className="w-3.5 h-3.5 text-[#059669] dark:text-[#10b981]" />
-          <span>Data as of {formatDate(asOfDate)}</span>
-        </div>
+        {asOfDate ? (
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-medium bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] dark:bg-[#16201b] dark:border-[#1f2824] dark:text-[#94a3b8]">
+            <Calendar className="w-3.5 h-3.5 text-[#047857] dark:text-[#10b981]" />
+            <span>Data as of {formatDate(asOfDate)}</span>
+          </div>
+        ) : (
+          factsState === 'loading' && (
+            <div aria-hidden="true" className="hidden md:block h-8 w-44 rounded-lg animate-pulse bg-[#E2E8F0] dark:bg-[#242c28]" />
+          )
+        )}
 
         {/* More Dropdown */}
         <div className="relative" ref={moreMenuRef}>
@@ -143,7 +138,7 @@ export const Header: React.FC = () => {
                 }}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-left hover:bg-[#F1F5F9] dark:hover:bg-[#242c28] transition-colors cursor-pointer min-h-[44px]"
               >
-                <FileText className="w-4 h-4 text-[#059669] dark:text-[#10b981]" />
+                <FileText className="w-4 h-4 text-[#047857] dark:text-[#10b981]" />
                 <span>Scheme Fact Sheet</span>
               </button>
               <button
@@ -172,7 +167,7 @@ export const Header: React.FC = () => {
 
         {/* User Avatar */}
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-xs shrink-0 bg-[#059669] dark:bg-[#10b981] dark:text-[#003824]"
+          className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-xs shrink-0 bg-[#047857] dark:bg-[#10b981] dark:text-[#003824]"
           title="Guest User"
         >
           <User className="w-4 h-4" />

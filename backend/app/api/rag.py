@@ -27,7 +27,7 @@ from app.rag.glossary import lookup_glossary
 from app.rag.procedures import lookup_procedure
 from app.rag.followups import generate_followup_suggestions
 from app.rag.retriever import HybridRetriever, get_not_found_response
-from app.rag.synthesizer import ConstrainedSynthesizer
+from app.rag.synthesizer import ConstrainedSynthesizer, is_not_found
 from app.schemas.rag import RetrievalQueryRequest, RetrievalQueryResponse
 from app.schemas.synthesis import SynthesisQueryRequest, SynthesisQueryResponse
 
@@ -818,7 +818,7 @@ def ask_query(request: SynthesisQueryRequest):
         "not_found"
         if (
             "could not find" in syn_res.text.lower()
-            or syn_res.raw_draft.strip().upper() == "NOT_FOUND"
+            or is_not_found(syn_res)
             or not clean_text
         )
         else "llm_synthesis"

@@ -1,14 +1,19 @@
 import React from 'react';
 import { Info, X } from 'lucide-react';
+import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
 
 export const AboutModal: React.FC = () => {
-  const { isAboutModalOpen, setAboutModalOpen } = useChatStore();
+  const { isAboutModalOpen, setAboutModalOpen, meta } = useChatStore();
+  const dialogRef = useDialogA11y(isAboutModalOpen, () => setAboutModalOpen(false));
 
   if (!isAboutModalOpen) return null;
 
+  const schemeCount = meta?.schemes.length;
+
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="about-modal-title"
@@ -46,11 +51,11 @@ export const AboutModal: React.FC = () => {
             This service is strictly computational and non-interpretive. It does not provide portfolio recommendations, comparison advice, or future market forecasts.
           </p>
           <div className="p-3.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1f2824]">
-            <span className="text-[13px] font-semibold text-[#059669] dark:text-[#10b981] uppercase tracking-wide block mb-1">
+            <span className="text-[13px] font-semibold text-[#047857] dark:text-[#10b981] uppercase tracking-wide block mb-1">
               Coverage Scope
             </span>
             <span className="text-[14px] text-[#0F172A] dark:text-[#dde4df]">
-              Covers 5 core HDFC Direct-Growth equity &amp; commodity structures as indexed in the snapshot catalog.
+              Covers {schemeCount ? `${schemeCount} ` : 'the '}HDFC Direct-Growth schemes as indexed in the snapshot catalog.
             </span>
           </div>
         </div>
@@ -59,7 +64,7 @@ export const AboutModal: React.FC = () => {
         <div className="flex justify-end pt-3">
           <button
             onClick={() => setAboutModalOpen(false)}
-            className="min-h-[44px] px-5 py-2.5 rounded-xl font-semibold text-[14px] shadow-sm transition-colors bg-[#059669] text-white hover:bg-[#047857] dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3] cursor-pointer"
+            className="min-h-[44px] px-5 py-2.5 rounded-xl font-semibold text-[14px] shadow-sm transition-colors bg-[#047857] text-white hover:bg-[#065f46] dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3] cursor-pointer"
             type="button"
           >
             Acknowledge &amp; Dismiss

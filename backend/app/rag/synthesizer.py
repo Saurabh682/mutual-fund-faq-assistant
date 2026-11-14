@@ -48,6 +48,14 @@ class SynthesisResult:
     deadline_fallback_used: bool = False
 
 
+NOT_FOUND_PREFIX = "I don't have that information"
+
+
+def is_not_found(result: SynthesisResult) -> bool:
+    """True for the standard 'no information' reply, whether the model said NOT_FOUND or the validator fell back to it."""
+    return result.raw_draft.strip().upper() == "NOT_FOUND" or result.text.startswith(NOT_FOUND_PREFIX)
+
+
 class ConstrainedSynthesizer:
     """Orchestrates LLM generation with strict output contract enforcement."""
 

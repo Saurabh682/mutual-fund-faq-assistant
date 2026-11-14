@@ -16,73 +16,18 @@ import {
   ThumbsUp,
 } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
+import { parseAnswerText } from '../lib/answerText';
+import { formatDate } from '../lib/format';
 import type { Message } from '../types/chat';
 
-function formatDate(isoStr?: string): string {
-  if (!isoStr) return '5 Nov 2026';
-  try {
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  } catch {
-    return isoStr;
-  }
-}
-
-interface ParsedContent {
-  prose: string;
-  metrics: { label: string; value: string }[];
-  note?: string;
-}
-
-function parseAnswerText(rawText: string): ParsedContent {
-  const lines = rawText.split('\n');
-  const proseLines: string[] = [];
-  const metrics: { label: string; value: string }[] = [];
-  let note: string | undefined;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-
-    // Table row parse
-    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-      const parts = trimmed.split('|').map((p) => p.trim()).filter(Boolean);
-      if (parts.length >= 2) {
-        const label = parts[0].replace(/\*\*/g, '').replace(/:---/g, '').trim();
-        const value = parts[1].replace(/\*\*/g, '').replace(/:---/g, '').trim();
-        if (label && value && !label.toLowerCase().includes('metric') && !label.includes('---')) {
-          if (!label.toLowerCase().includes('data source') && !label.toLowerCase().includes('fund house')) {
-            metrics.push({ label, value });
-          }
-        }
-      }
-    } else if (trimmed.toLowerCase().startsWith('note:')) {
-      note = trimmed.replace(/^note:\s*/i, '');
-    } else if (trimmed.toLowerCase().startsWith('source:')) {
-      // Citation footer ignored in prose body
-    } else {
-      proseLines.push(trimmed);
-    }
-  }
-
-  return {
-    prose: proseLines.join('\n\n'),
-    metrics,
-    note,
-  };
-}
+const NO_INFO_PREFIX = "I don't have that information";
 
 interface Props {
   message: Message;
 }
 
 export const MessageBubble: React.FC<Props> = ({ message }) => {
-  const { meta, sendUserMessage, submitMessageFeedback, isSending } = useChatStore();
+  const { meta, activeThread, sendUserMessage, submitMessageFeedback, isSending } = useChatStore();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = (textToCopy: string) => {
@@ -92,6 +37,13 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
   };
 
   const asOf = formatDate(message.last_updated);
+  const dataAsOf = asOf ? `Data as of ${asOf}` : '';
+  const sourceLabel = `Source: Groww scheme page${asOf ? ` · Data as of ${asOf}` : ''}`;
+  // The question to ask again if an answer timed out
+  const lastQuestion = [...(activeThread?.messages ?? [])].reverse().find((m) => m.role === 'user')?.text;
+  // A "no information" reply is not a sourced answer, whatever type an older saved message carries
+  const isNoInfoAnswer =
+    (message.type === 'llm_synthesis' || message.type === 'answer') && message.text.trim().startsWith(NO_INFO_PREFIX);
   const citationUrl = message.citation_url || 'https://groww.in';
 
   // 1. User Message Bubble
@@ -170,8 +122,8 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
           </span>
         </div>
         <button
-          onClick={() => sendUserMessage('Retry last question')}
-          disabled={isSending}
+          onClick={() => lastQuestion && sendUserMessage(lastQuestion)}
+          disabled={isSending || !lastQuestion}
           className="min-h-[44px] px-3.5 py-1.5 rounded-xl text-[13px] font-semibold border flex items-center gap-1.5 transition-colors cursor-pointer bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9] text-[#0F172A] dark:bg-[#242c28] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#2f3633]"
           type="button"
         >
@@ -203,7 +155,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
                 href="https://www.amfiindia.com/investor-corner"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#059669] dark:text-[#4edea3] hover:underline min-h-[44px]"
+                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#047857] dark:text-[#4edea3] hover:underline min-h-[44px]"
               >
                 <span>Learn more at AMFI investor education ↗</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -221,7 +173,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
     return (
       <div className="w-full rounded-2xl p-5 shadow-sm flex flex-col gap-3.5 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620] animate-fade-in">
         <div className="flex items-center gap-2.5">
-          <SlidersHorizontal className="w-5 h-5 text-[#059669] dark:text-[#10b981]" />
+          <SlidersHorizontal className="w-5 h-5 text-[#047857] dark:text-[#10b981]" />
           <span className="text-[15px] font-bold text-[#0F172A] dark:text-[#dde4df]">
             Which scheme did you mean? Please select one to view its facts:
           </span>
@@ -232,7 +184,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
               key={s.id}
               onClick={() => sendUserMessage(`Show facts for ${s.name}`)}
               disabled={isSending}
-              className="min-h-[44px] px-4 py-2 rounded-xl text-[13px] font-medium border transition-colors cursor-pointer bg-[#F8FAFC] border-[#CBD5E1] text-[#0F172A] hover:bg-emerald-50 hover:border-[#059669] hover:text-[#059669] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#242c28] dark:hover:text-[#10b981]"
+              className="min-h-[44px] px-4 py-2 rounded-xl text-[13px] font-medium border transition-colors cursor-pointer bg-[#F8FAFC] border-[#CBD5E1] text-[#0F172A] hover:bg-emerald-50 hover:border-[#047857] hover:text-[#047857] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#242c28] dark:hover:text-[#10b981]"
               type="button"
             >
               {s.name.replace(' (Direct - Growth)', '').replace(' (Direct Growth)', '')}
@@ -252,14 +204,12 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-[#059669] dark:text-[#10b981]" />
+              <CheckCircle className="w-4 h-4 text-[#047857] dark:text-[#10b981]" />
               <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df]">
                 Answer
               </span>
             </div>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">
-              Data as of {asOf}
-            </span>
+            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">{dataAsOf}</span>
           </div>
 
           <p className="text-[14px] sm:text-[15px] leading-relaxed text-[#0F172A] dark:text-[#dde4df]">
@@ -304,10 +254,10 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
             href={citationUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-semibold transition-colors min-h-[44px] bg-[#F8FAFC] border-[#E2E8F0] text-[#059669] hover:bg-emerald-50 dark:bg-[#16201b] dark:border-[#1f2824] dark:text-[#10b981] dark:hover:bg-[#242c28]"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-semibold transition-colors min-h-[44px] bg-[#F8FAFC] border-[#E2E8F0] text-[#047857] hover:bg-emerald-50 dark:bg-[#16201b] dark:border-[#1f2824] dark:text-[#10b981] dark:hover:bg-[#242c28]"
           >
             <LinkIcon className="w-3.5 h-3.5" />
-            <span>Source: Groww scheme page · Data as of {asOf}</span>
+            <span>{sourceLabel}</span>
           </a>
           <button
             onClick={() => handleCopy(parsed.prose)}
@@ -324,6 +274,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
 
   // 8. Neutral Info Card (out_of_scope / not_found / unsupported_plan / external_amc / help)
   if (
+    isNoInfoAnswer ||
     message.type === 'not_found' ||
     message.type === 'out_of_scope' ||
     message.type === 'unsupported_plan' ||
@@ -342,18 +293,29 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
         ? 'Glossary Definition'
         : 'Information not found';
 
+    const info = parseAnswerText(message.text);
     return (
       <div className="w-full rounded-2xl p-5 shadow-sm flex items-start gap-3.5 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620] animate-fade-in">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#94a3b8]">
           <HelpCircle className="w-5 h-5" />
         </div>
-        <div className="flex flex-col gap-1 min-w-0">
+        <div className="flex flex-col gap-2 min-w-0">
           <span className="text-[15px] font-bold text-[#0F172A] dark:text-[#dde4df]">
             {title}
           </span>
-          <p className="text-[14px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
-            {message.text || 'I can only answer factual questions about these HDFC schemes.'}
+          <p className="text-[14px] leading-relaxed whitespace-pre-line text-[#475569] dark:text-[#94a3b8]">
+            {info.prose || message.text || 'I can only answer factual questions about these HDFC schemes.'}
           </p>
+          {info.metrics.length > 0 && (
+            <dl className="grid grid-cols-1 gap-2.5 rounded-xl p-3.5 border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2c25]">
+              {info.metrics.map((m, idx) => (
+                <div key={idx} className="flex flex-col">
+                  <dt className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">{m.label}</dt>
+                  <dd className="text-[14px] font-semibold text-[#0F172A] dark:text-[#dde4df] leading-snug">{m.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </div>
     );
@@ -367,16 +329,14 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
       {/* Top Bar: Check icon badge + "Answer" + "Data as of <as_of>" */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center font-bold bg-emerald-100 text-[#059669] dark:bg-[#10b981] dark:text-[#003824]">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center font-bold bg-emerald-100 text-[#047857] dark:bg-[#10b981] dark:text-[#003824]">
             <Check className="w-4 h-4 stroke-[3]" />
           </div>
           <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df]">
             Answer
           </span>
         </div>
-        <span className="text-[13px] font-medium text-[#64748B] dark:text-[#94a3b8]">
-          Data as of {asOf}
-        </span>
+        <span className="text-[13px] font-medium text-[#64748B] dark:text-[#94a3b8]">{dataAsOf}</span>
       </div>
 
       {/* Narrative Prose */}
@@ -409,10 +369,10 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
           href={citationUrl}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-semibold transition-colors min-h-[44px] bg-[#F8FAFC] border-[#E2E8F0] text-[#059669] hover:bg-emerald-50 dark:bg-[#16201b] dark:border-[#1f2824] dark:text-[#10b981] dark:hover:bg-[#242c28]"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-semibold transition-colors min-h-[44px] bg-[#F8FAFC] border-[#E2E8F0] text-[#047857] hover:bg-emerald-50 dark:bg-[#16201b] dark:border-[#1f2824] dark:text-[#10b981] dark:hover:bg-[#242c28]"
         >
           <LinkIcon className="w-3.5 h-3.5" />
-          <span>Source: Groww scheme page · Data as of {asOf}</span>
+          <span>{sourceLabel}</span>
         </a>
 
         {/* Action Controls: Thumbs Up / Down / Copy / Report */}
@@ -422,8 +382,8 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
               onClick={() => submitMessageFeedback(message.id, 'up')}
               className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
                 message.userFeedback === 'up'
-                  ? 'text-[#059669] bg-emerald-50 dark:text-[#10b981] dark:bg-[#242c28]'
-                  : 'text-[#64748B] hover:text-[#059669] dark:text-[#94a3b8] dark:hover:text-[#10b981]'
+                  ? 'text-[#047857] bg-emerald-50 dark:text-[#10b981] dark:bg-[#242c28]'
+                  : 'text-[#64748B] hover:text-[#047857] dark:text-[#94a3b8] dark:hover:text-[#10b981]'
               }`}
               title="Helpful answer"
               type="button"

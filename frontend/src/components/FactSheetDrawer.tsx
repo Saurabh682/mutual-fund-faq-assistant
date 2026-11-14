@@ -1,5 +1,7 @@
 import React from 'react';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { formatDate, groupIndian, plainExitLoad } from '../lib/format';
+import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
 
 function parseRiskLevel(riskStr?: string): { level: number; label: string } {
@@ -15,48 +17,31 @@ function parseRiskLevel(riskStr?: string): { level: number; label: string } {
   return { level: 6, label: riskStr };
 }
 
-function formatDate(isoStr?: string): string {
-  if (!isoStr) return '5 Nov 2026';
-  try {
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  } catch {
-    return isoStr;
-  }
-}
-
 interface FactSheetContentProps {
   onClose?: () => void;
   isModalOrDrawer?: boolean;
+  /** id of the heading, so a dialog around this content can name itself with aria-labelledby */
+  titleId?: string;
 }
 
 export const FactSheetContent: React.FC<FactSheetContentProps> = ({
   onClose,
   isModalOrDrawer = false,
+  titleId,
 }) => {
-  const { meta, schemeFacts, selectedSchemeId, setSelectedSchemeId } = useChatStore();
+  const { meta, schemeFacts, factsState, reloadSchemeFacts, selectedSchemeId, setSelectedSchemeId } = useChatStore();
 
   const schemes = meta?.schemes || [];
   const activeFacts = schemeFacts.find((s) => s.scheme_id === selectedSchemeId);
 
-  const getMetric = (key: string): { val: string; date: string } => {
-    if (!activeFacts) return { val: '—', date: '5 Nov 2026' };
-    const raw = activeFacts[key];
-    const fallbackDate =
-      typeof activeFacts.as_of === 'string' ? activeFacts.as_of : '2026-11-05';
-
+  const fallbackIso = activeFacts && typeof activeFacts.as_of === 'string' ? activeFacts.as_of : '';
+  const getMetric = (key: string): { val: string; iso: string; date: string } => {
+    const raw = activeFacts?.[key];
     if (typeof raw === 'object' && raw !== null && 'value' in raw) {
-      return {
-        val: raw.value || '—',
-        date: formatDate(raw.as_of || fallbackDate),
-      };
+      const iso = raw.as_of || fallbackIso;
+      return { val: raw.value || '—', iso, date: formatDate(iso) };
     }
-    return { val: '—', date: formatDate(fallbackDate) };
+    return { val: '—', iso: fallbackIso, date: formatDate(fallbackIso) };
   };
 
   const ter = getMetric('ter_direct');
@@ -70,8 +55,20 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
   const nav = getMetric('nav');
   const aum = getMetric('aum');
 
+  // One date for the whole sheet (the footer). A row only says "as of" when it differs, so a stale row stands out.
+  const sheetIso =
+    [ter, exitLoad, minSip, minLumpsum, lockIn, riskometer, benchmark, fundManager, nav, aum]
+      .map((m) => m.iso)
+      .filter(Boolean)
+      .sort()
+      .pop() ?? '';
+  const sheetDate = formatDate(sheetIso);
+  const rowDate = (m: { iso: string; date: string }) =>
+    m.iso && m.iso !== sheetIso ? (
+      <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {m.date}</span>
+    ) : null;
+
   const riskInfo = parseRiskLevel(riskometer.val);
-  const globalAsOf = ter.date || '5 Nov 2026';
 
   return (
     <div className="flex flex-col h-full">
@@ -79,8 +76,8 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
       <div className="flex flex-col gap-2.5 pb-3 border-b border-[#E2E8F0] dark:border-[#2f3633] shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#059669] dark:bg-[#10b981]" />
-            <h2 className="text-[17px] font-bold text-[#0F172A] dark:text-[#dde4df]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#047857] dark:bg-[#10b981]" />
+            <h2 id={titleId} className="text-[17px] font-bold text-[#0F172A] dark:text-[#dde4df]">
               Scheme Fact Sheet
             </h2>
           </div>
@@ -123,15 +120,36 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         </div>
       </div>
 
-      {/* Exactly 10 Rows with Subtitle "as of <as_of>" */}
+      {!activeFacts ? (
+        factsState === 'loading' ? (
+          <div role="status" aria-label="Loading fact sheet" className="flex-1 py-3 space-y-2 animate-pulse">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="h-[52px] rounded-xl bg-[#E2E8F0] dark:bg-[#242c28]" />
+            ))}
+          </div>
+        ) : (
+          <div role="alert" className="flex-1 py-8 flex flex-col items-center gap-3 text-center">
+            <p className="text-[14px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
+              Couldn&apos;t load this fact sheet. The data service may be starting up.
+            </p>
+            <button
+              type="button"
+              onClick={() => reloadSchemeFacts()}
+              className="min-h-[44px] px-4 rounded-xl text-[13px] font-semibold border cursor-pointer bg-white border-[#E2E8F0] text-[#0F172A] hover:bg-[#F8FAFC] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#242c28]"
+            >
+              Try again
+            </button>
+          </div>
+        )
+      ) : (
       <div className="overflow-y-auto flex-1 py-3 space-y-2 text-[13px]">
         {/* Row 1: TER (Direct) */}
         <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
           <div className="flex flex-col">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">TER (Direct)</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {ter.date}</span>
+            {rowDate(ter)}
           </div>
-          <span className="text-[15px] font-bold text-[#059669] dark:text-[#10b981] num-tabular">
+          <span className="text-[15px] font-bold text-[#047857] dark:text-[#10b981] num-tabular">
             {ter.val}
           </span>
         </div>
@@ -140,10 +158,10 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824] gap-2">
           <div className="flex flex-col min-w-0">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Exit load</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {exitLoad.date}</span>
+            {rowDate(exitLoad)}
           </div>
           <span className="text-[13px] text-right text-[#0F172A] dark:text-[#dde4df] font-medium max-w-[200px]">
-            {exitLoad.val}
+            {plainExitLoad(exitLoad.val)}
           </span>
         </div>
 
@@ -151,7 +169,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
           <div className="flex flex-col">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Minimum SIP</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {minSip.date}</span>
+            {rowDate(minSip)}
           </div>
           <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
             {minSip.val}
@@ -162,7 +180,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
           <div className="flex flex-col">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Minimum lumpsum</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {minLumpsum.date}</span>
+            {rowDate(minLumpsum)}
           </div>
           <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
             {minLumpsum.val}
@@ -173,7 +191,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
           <div className="flex flex-col">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Lock-in</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {lockIn.date}</span>
+            {rowDate(lockIn)}
           </div>
           <span className="text-[13px] font-medium text-[#0F172A] dark:text-[#dde4df]">
             {lockIn.val}
@@ -185,7 +203,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Riskometer</span>
-              <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {riskometer.date}</span>
+              {rowDate(riskometer)}
             </div>
             <span
               className={`text-[13px] font-bold px-2 py-0.5 rounded-md ${
@@ -257,7 +275,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824] gap-2">
           <div className="flex flex-col min-w-0">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Benchmark</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {benchmark.date}</span>
+            {rowDate(benchmark)}
           </div>
           <span className="text-[13px] text-right font-medium text-[#0F172A] dark:text-[#dde4df] max-w-[200px]">
             {benchmark.val}
@@ -270,9 +288,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">
               Fund manager (as listed on source page)
             </span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">
-              as of {fundManager.date}
-            </span>
+            {rowDate(fundManager)}
           </div>
           <span className="text-[13px] text-right font-medium text-[#0F172A] dark:text-[#dde4df] max-w-[190px]">
             {fundManager.val}
@@ -283,7 +299,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
           <div className="flex flex-col">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">NAV</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {nav.date}</span>
+            {rowDate(nav)}
           </div>
           <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
             {nav.val}
@@ -294,31 +310,36 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
           <div className="flex flex-col">
             <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">AUM</span>
-            <span className="text-[13px] text-[#64748B] dark:text-[#94a3b8]">as of {aum.date}</span>
+            {rowDate(aum)}
           </div>
           <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
-            {aum.val}
+            {groupIndian(aum.val)}
           </span>
         </div>
       </div>
 
+      )}
+
       {/* Footer */}
-      <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2f3633] shrink-0 text-center">
-        <p className="text-[13px] text-[#64748B] dark:text-[#94a3b8] leading-relaxed">
-          Source: Groww scheme page · Data as of {globalAsOf}
-        </p>
-      </div>
+      {activeFacts && (
+        <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2f3633] shrink-0 text-center">
+          <p className="text-[13px] text-[#64748B] dark:text-[#94a3b8] leading-relaxed">
+            Source: Groww scheme page{sheetDate ? ` · Data as of ${sheetDate}` : ''}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
 
 export const FactSheetDrawer: React.FC = () => {
   const { isFactSheetOpen, toggleFactSheet } = useChatStore();
+  const dialogsRef = useDialogA11y(isFactSheetOpen, () => toggleFactSheet(false));
 
   if (!isFactSheetOpen) return null;
 
   return (
-    <>
+    <div ref={dialogsRef} className="contents">
       {/* Backdrop for Overlay Drawer (Tablet < 1100px & Mobile < 768px) */}
       <div
         onClick={() => toggleFactSheet(false)}
@@ -338,7 +359,7 @@ export const FactSheetDrawer: React.FC = () => {
           <div className="w-10 h-1.5 rounded-full bg-[#CBD5E1] dark:bg-[#3c4a42]" />
         </div>
         <div className="p-4 flex-1 overflow-hidden flex flex-col">
-          <FactSheetContent onClose={() => toggleFactSheet(false)} isModalOrDrawer={true} />
+          <FactSheetContent titleId="mobile-factsheet-title" onClose={() => toggleFactSheet(false)} isModalOrDrawer={true} />
         </div>
       </div>
 
@@ -349,8 +370,8 @@ export const FactSheetDrawer: React.FC = () => {
         aria-labelledby="tablet-factsheet-title"
         className="fixed top-0 right-0 bottom-0 w-[420px] max-w-[90vw] z-50 hidden md:flex xl:hidden flex-col shadow-2xl p-5 animate-slide-in-right bg-white border-l border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1f2824]"
       >
-        <FactSheetContent onClose={() => toggleFactSheet(false)} isModalOrDrawer={true} />
+        <FactSheetContent titleId="tablet-factsheet-title" onClose={() => toggleFactSheet(false)} isModalOrDrawer={true} />
       </div>
-    </>
+    </div>
   );
 };

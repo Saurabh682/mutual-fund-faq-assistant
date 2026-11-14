@@ -1,21 +1,7 @@
 import React from 'react';
 import { History } from 'lucide-react';
+import { formatDate } from '../lib/format';
 import { useChatStore } from '../store/useChatStore';
-
-function formatDate(isoStr?: string): string {
-  if (!isoStr) return '';
-  try {
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  } catch {
-    return isoStr;
-  }
-}
 
 export const StaleBanner: React.FC = () => {
   const { schemeFacts, selectedSchemeId } = useChatStore();

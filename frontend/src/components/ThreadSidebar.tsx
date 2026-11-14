@@ -14,6 +14,7 @@ export const ThreadSidebar: React.FC = () => {
   const {
     threads,
     activeThreadId,
+    activeThread,
     selectThread,
     startNewThread,
     removeThread,
@@ -26,9 +27,16 @@ export const ThreadSidebar: React.FC = () => {
 
   const handleNewChat = () => {
     if (isSending) return;
-    startNewThread();
+    // Already on an empty chat: reuse it instead of piling up blank "New Conversation" entries
+    if (activeThread && activeThread.messages.length === 0) {
+      document.getElementById('chat-textarea')?.focus();
+    } else {
+      startNewThread();
+    }
     closeSidebar();
   };
+
+  const listedThreads = threads.filter((t) => t.id === activeThreadId || t.message_count > 0);
 
   const handleSelectThread = (threadId: string) => {
     selectThread(threadId);
@@ -56,7 +64,7 @@ export const ThreadSidebar: React.FC = () => {
           {/* Top Brand Header */}
           <div className="h-16 px-4 flex items-center justify-between border-b border-[#F1F5F9] dark:border-[#1f2824] shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-emerald-50 border-emerald-200 text-[#059669] dark:bg-[#10b981]/15 dark:border-[#10b981]/40 dark:text-[#10b981]">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-emerald-50 border-emerald-200 text-[#047857] dark:bg-[#10b981]/15 dark:border-[#10b981]/40 dark:text-[#10b981]">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -87,7 +95,7 @@ export const ThreadSidebar: React.FC = () => {
             <button
               onClick={handleNewChat}
               disabled={isSending}
-              className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-semibold text-[14px] shadow-sm transition-colors cursor-pointer bg-[#059669] text-white hover:bg-[#047857] dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3] disabled:opacity-50"
+              className="w-full min-h-[44px] flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-semibold text-[14px] shadow-sm transition-colors cursor-pointer bg-[#047857] text-white hover:bg-[#065f46] dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3] disabled:opacity-50"
               type="button"
             >
               <Plus className="w-4 h-4" />
@@ -100,20 +108,20 @@ export const ThreadSidebar: React.FC = () => {
             <div className="px-2 pb-1.5 text-[13px] font-semibold uppercase tracking-wider text-[#64748B] dark:text-[#94a3b8]">
               Conversations
             </div>
-            {threads.length === 0 ? (
+            {listedThreads.length === 0 ? (
               <div className="px-2 py-4 text-[13px] text-[#64748B] dark:text-[#94a3b8] text-center">
                 No conversations yet
               </div>
             ) : (
               <nav className="flex flex-col gap-1" aria-label="Conversation history">
-                {threads.map((t) => {
+                {listedThreads.map((t) => {
                   const isActive = t.id === activeThreadId;
                   return (
                     <div
                       key={t.id}
                       className={`group relative flex items-center justify-between rounded-xl transition-colors min-h-[44px] px-2.5 py-1.5 ${
                         isActive
-                          ? 'bg-emerald-50 text-[#059669] border border-emerald-100 font-semibold dark:bg-[#16201b] dark:text-[#10b981] dark:border-[#2f3633]'
+                          ? 'bg-emerald-50 text-[#047857] border border-emerald-100 font-semibold dark:bg-[#16201b] dark:text-[#10b981] dark:border-[#2f3633]'
                           : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:bg-[#16201b] dark:hover:text-[#dde4df]'
                       }`}
                     >
@@ -125,7 +133,7 @@ export const ThreadSidebar: React.FC = () => {
                         <MessageSquare
                           className={`w-4 h-4 shrink-0 ${
                             isActive
-                              ? 'text-[#059669] dark:text-[#10b981]'
+                              ? 'text-[#047857] dark:text-[#10b981]'
                               : 'text-[#64748B] dark:text-[#86948a]'
                           }`}
                         />
@@ -180,7 +188,7 @@ export const ThreadSidebar: React.FC = () => {
                 className={`min-h-[32px] px-2.5 py-1 rounded-md text-[13px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
                   theme === 'dark'
                     ? 'bg-[#2f3633] text-[#dde4df] shadow-xs'
-                    : 'text-[#94a3b8] hover:text-[#dde4df]'
+                    : 'text-[#475569] hover:text-[#0F172A]'
                 }`}
                 type="button"
                 aria-pressed={theme === 'dark'}
@@ -193,7 +201,7 @@ export const ThreadSidebar: React.FC = () => {
                 className={`min-h-[32px] px-2.5 py-1 rounded-md text-[13px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
                   theme === 'light'
                     ? 'bg-white text-[#0F172A] shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                    : 'text-[#94a3b8] hover:text-[#dde4df]'
                 }`}
                 type="button"
                 aria-pressed={theme === 'light'}

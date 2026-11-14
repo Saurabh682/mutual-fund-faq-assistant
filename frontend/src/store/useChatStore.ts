@@ -34,6 +34,8 @@ interface ChatState {
   activeThread: Thread | null;
   meta: MetaData | null;
   schemeFacts: SchemeFacts[];
+  /** 'loading' until the first /facts/schemes call settles; 'error' when it failed (the sheet offers a retry) */
+  factsState: 'loading' | 'ready' | 'error';
   selectedSchemeId: string;
   isFactSheetOpen: boolean;
   isSidebarOpen: boolean;
@@ -46,6 +48,7 @@ interface ChatState {
 
   // Actions
   init: () => Promise<void>;
+  reloadSchemeFacts: () => Promise<void>;
   selectThread: (threadId: string) => Promise<void>;
   startNewThread: (initialQuestion?: string) => Promise<string>;
   removeThread: (threadId: string) => Promise<void>;
@@ -71,6 +74,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeThread: null,
   meta: null,
   schemeFacts: [],
+  factsState: 'loading',
   selectedSchemeId: 'hdfc_midcap_dg',
   isFactSheetOpen: false,
   isSidebarOpen: false,
@@ -94,11 +98,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     try {
       set({ isLoadingThreads: true, error: null });
-      const [meta, threads, factsRes] = await Promise.all([
-        fetchMetadata(),
-        fetchThreads(clientId),
-        fetchSchemeFacts().catch(() => ({ schemes: [] })),
-      ]);
+      // A failed fact sheet must show up as a failure (with a retry), not as empty rows
+      const factsPromise = fetchSchemeFacts().then(
+        (res) => ({ ok: true, schemes: res.schemes || [] }),
+        () => ({ ok: false, schemes: [] as SchemeFacts[] })
+      );
+      const [meta, threads, facts] = await Promise.all([fetchMetadata(), fetchThreads(clientId), factsPromise]);
 
       const defaultSchemeId =
         meta.schemes && meta.schemes.length > 0 ? meta.schemes[0].id : 'hdfc_midcap_dg';
@@ -106,7 +111,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({
         meta,
         threads,
-        schemeFacts: factsRes.schemes || [],
+        schemeFacts: facts.schemes,
+        factsState: facts.ok ? 'ready' : 'error',
         selectedSchemeId: defaultSchemeId,
         isLoadingThreads: false,
       });
@@ -120,7 +126,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({
         error: err instanceof Error ? err.message : 'Failed to initialize assistant',
         isLoadingThreads: false,
+        factsState: get().factsState === 'loading' ? 'error' : get().factsState,
       });
+    }
+  },
+
+  reloadSchemeFacts: async () => {
+    set({ factsState: 'loading' });
+    try {
+      const res = await fetchSchemeFacts();
+      set({ schemeFacts: res.schemes || [], factsState: 'ready' });
+    } catch {
+      set({ factsState: 'error' });
     }
   },
 

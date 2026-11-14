@@ -47,7 +47,7 @@ export const Composer: React.FC = () => {
   return (
     <div className="w-full rounded-2xl p-3 sm:p-4 shadow-lg sticky bottom-2 z-20 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620]">
       {/* Textarea container */}
-      <div className="relative rounded-xl p-3 transition-colors bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#059669] dark:bg-[#16201b] dark:border-[#1f2c25] dark:focus-within:bg-[#242c28]">
+      <div className="relative rounded-xl p-3 transition-colors bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#047857] dark:bg-[#16201b] dark:border-[#1f2c25] dark:focus-within:bg-[#242c28]">
         <label htmlFor="chat-textarea" className="sr-only">
           Ask a factual question about mutual funds
         </label>
@@ -92,7 +92,7 @@ export const Composer: React.FC = () => {
             <button
               onClick={handleSend}
               disabled={!text.trim() || isSending || isTooLong}
-              className="min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center shadow-xs transition-all cursor-pointer bg-[#059669] text-white hover:bg-[#047857] disabled:opacity-40 disabled:cursor-not-allowed dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3]"
+              className="min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center shadow-xs transition-all cursor-pointer bg-[#047857] text-white hover:bg-[#065f46] disabled:opacity-40 disabled:cursor-not-allowed dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3]"
               type="button"
               aria-label="Send message"
             >

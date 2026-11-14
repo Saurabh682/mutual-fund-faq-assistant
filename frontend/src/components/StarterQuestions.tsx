@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, HelpCircle, X } from 'lucide-react';
+import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
 
 const CATEGORY_TAGS = ['Exit Rules', 'Investment Minimums', 'Fund Norms'];
@@ -9,6 +10,7 @@ export const StarterQuestions: React.FC = () => {
     useChatStore();
 
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const guideRef = useDialogA11y(isGuideOpen, () => setIsGuideOpen(false));
 
   const starterQuestions = meta?.starter_questions || [
     'What is the exit load for HDFC Mid-Cap Opportunities Fund?',
@@ -50,7 +52,7 @@ export const StarterQuestions: React.FC = () => {
               onClick={() => handleChipClick(s.id)}
               className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-[13px] font-medium flex items-center gap-2 transition-all cursor-pointer border ${
                 isSelected
-                  ? 'bg-emerald-50 text-[#059669] border-[#059669]/30 font-semibold dark:bg-[#2f3633] dark:text-[#dde4df] dark:border-[#10b981]/50'
+                  ? 'bg-emerald-50 text-[#047857] border-[#047857]/30 font-semibold dark:bg-[#2f3633] dark:text-[#dde4df] dark:border-[#10b981]/50'
                   : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A] dark:bg-[#16201b] dark:text-[#94a3b8] dark:border-[#1f2824] dark:hover:bg-[#242c28] dark:hover:text-[#dde4df]'
               }`}
               type="button"
@@ -58,7 +60,7 @@ export const StarterQuestions: React.FC = () => {
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  isSelected ? 'bg-[#059669] dark:bg-[#10b981]' : 'bg-transparent'
+                  isSelected ? 'bg-[#047857] dark:bg-[#10b981]' : 'bg-transparent'
                 }`}
               />
               <span>{s.name.replace(' (Direct - Growth)', '').replace(' (Direct Growth)', '')}</span>
@@ -77,12 +79,12 @@ export const StarterQuestions: React.FC = () => {
             className="text-left p-4 rounded-xl transition-all flex flex-col justify-between gap-3 group border cursor-pointer min-h-[44px] bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9] dark:bg-[#16201b] dark:border-[#1f2c25] dark:hover:bg-[#242c28] disabled:opacity-50"
             type="button"
           >
-            <span className="text-[14px] text-[#0F172A] dark:text-[#dde4df] group-hover:text-[#059669] dark:group-hover:text-[#10b981] transition-colors leading-snug">
+            <span className="text-[14px] text-[#0F172A] dark:text-[#dde4df] group-hover:text-[#047857] dark:group-hover:text-[#10b981] transition-colors leading-snug">
               &ldquo;{q}&rdquo;
             </span>
             <div className="flex items-center justify-between text-[13px] pt-1 text-[#64748B] dark:text-[#94a3b8]">
               <span>{CATEGORY_TAGS[idx] || 'Fund Inquiry'}</span>
-              <ArrowRight className="w-4 h-4 text-[#059669] dark:text-[#10b981] group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-[#047857] dark:text-[#10b981] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </button>
         ))}
@@ -92,7 +94,7 @@ export const StarterQuestions: React.FC = () => {
       <div className="flex items-center justify-start pt-1">
         <button
           onClick={() => setIsGuideOpen(true)}
-          className="min-h-[44px] text-[13px] font-semibold text-[#059669] dark:text-[#10b981] hover:underline inline-flex items-center gap-1.5 cursor-pointer"
+          className="min-h-[44px] text-[13px] font-semibold text-[#047857] dark:text-[#10b981] hover:underline inline-flex items-center gap-1.5 cursor-pointer"
           type="button"
         >
           <HelpCircle className="w-4 h-4" />
@@ -103,8 +105,10 @@ export const StarterQuestions: React.FC = () => {
       {/* "What can I ask?" Guidance Dialog */}
       {isGuideOpen && (
         <div
+          ref={guideRef}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="guide-dialog-title"
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setIsGuideOpen(false)}
         >
@@ -113,7 +117,7 @@ export const StarterQuestions: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0] dark:border-[#2f3633]">
-              <h2 className="text-[16px] font-bold text-[#0F172A] dark:text-[#dde4df]">
+              <h2 id="guide-dialog-title" className="text-[16px] font-bold text-[#0F172A] dark:text-[#dde4df]">
                 Supported Factual Queries
               </h2>
               <button
@@ -125,7 +129,9 @@ export const StarterQuestions: React.FC = () => {
               </button>
             </div>
             <div className="py-3 text-[13px] space-y-2.5 text-[#475569] dark:text-[#94a3b8]">
-              <p>You can ask exact factual questions about any of the 5 indexed HDFC schemes:</p>
+              <p>
+                You can ask exact factual questions about any of the {schemes.length ? `${schemes.length} ` : ''}indexed HDFC schemes:
+              </p>
               <ul className="list-disc list-inside space-y-1 text-[#0F172A] dark:text-[#dde4df] pl-1 font-medium">
                 <li>Total Expense Ratio (TER - Direct Growth)</li>
                 <li>Exit load rates and holding period conditions</li>
