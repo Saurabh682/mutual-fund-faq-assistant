@@ -50,3 +50,8 @@ def test_advice_with_lookup_keyword_is_refused(query):
 @pytest.mark.parametrize("query", STILL_ANSWERED)
 def test_plain_lookup_is_not_refused(query):
     assert resolution(query) not in ("refusal", "compound")
+
+
+def test_sip_and_lumpsum_question_is_procedural_not_advice():
+    from app.guardrails.intent import classify_intent
+    assert classify_intent("Can I do both SIP and Lump Sum in HDFC Silver ETF FoF?").intent == "PROCEDURAL"

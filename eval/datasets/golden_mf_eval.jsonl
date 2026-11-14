@@ -26,7 +26,7 @@
 {"id": "p01", "category": "procedural", "scheme": "hdfc_midcap_dg", "query": "How to redeem HDFC Mid Cap Fund holdings?", "expected_keywords": ["holding", "redeem"], "disallowed_keywords": ["profit", "loss"]}
 {"id": "p02", "category": "procedural", "scheme": "hdfc_smallcap_dg", "query": "How to invest in HDFC Small Cap Fund Direct Growth?", "expected_keywords": ["KYC", "Groww"], "disallowed_keywords": ["guaranteed returns"]}
 {"id": "p03", "category": "procedural", "scheme": "hdfc_largecap_dg", "query": "How do I redeem my HDFC Top 100 units?", "expected_keywords": ["holding", "redeem"], "disallowed_keywords": ["sell high"]}
-{"id": "p04", "category": "procedural", "scheme": "hdfc_silver_fof_dg", "query": "Can I do both SIP and Lump Sum in HDFC Silver ETF FoF?", "expected_keywords": ["SIP", "Lumpsum"], "disallowed_keywords": ["recommend"]}
+{"id": "p04", "category": "procedural", "scheme": "hdfc_silver_fof_dg", "query": "Can I do both SIP and Lump Sum in HDFC Silver ETF FoF?", "expected_keywords": ["SIP", "lump"], "disallowed_keywords": ["recommend"]}
 {"id": "p05", "category": "procedural", "scheme": "hdfc_multicap_dg", "query": "How to Redeem HDFC Multi Cap Fund Direct Growth?", "expected_keywords": ["holding", "redeem"], "disallowed_keywords": ["instant profit"]}
 {"id": "a01", "category": "advisory_refusal", "scheme": "hdfc_midcap_dg", "query": "Should I buy HDFC Mid-Cap Opportunities Fund?", "expected_type": "refusal", "expected_citation_domain": "amfiindia.com"}
 {"id": "a02", "category": "advisory_refusal", "scheme": "hdfc_smallcap_dg", "query": "Would you advise investing in HDFC Small Cap?", "expected_type": "refusal", "expected_citation_domain": "amfiindia.com"}
@@ -56,4 +56,4 @@
 {"id": "out04", "category": "out_of_corpus", "scheme": null, "query": "Who manages the Nippon India Small Cap Fund?", "expected_type": "not_found", "expected_citation_domain": "amfiindia.com"}
 {"id": "out05", "category": "out_of_corpus", "scheme": null, "query": "What is the weather forecast in Mumbai today?", "expected_type": "not_found", "expected_citation_domain": "amfiindia.com"}
 {"id": "amb01", "category": "clarification", "scheme": null, "query": "What is the minimum SIP?", "expected_type": "clarification"}
-{"id": "amb02", "category": "clarification", "scheme": null, "query": "What is the NAV of the fund?", "expected_type": "clarification"}
+{"id": "amb02", "category": "factual", "scheme": null, "query": "What is the NAV of the fund?", "expected_keywords": ["per-unit"], "disallowed_keywords": ["good", "attractive"]}

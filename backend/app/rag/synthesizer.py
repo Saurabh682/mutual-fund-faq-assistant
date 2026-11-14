@@ -122,6 +122,7 @@ class ConstrainedSynthesizer:
         context_chunks: List[Any],
         primary_url: Optional[str] = None,
         doc_date: Optional[str] = None,
+        procedural: bool = False,
     ) -> SynthesisResult:
         """Synthesizes a contract-compliant factual answer from retrieved chunks.
         start_t = time.perf_counter()
@@ -160,7 +161,8 @@ class ConstrainedSynthesizer:
         # HARD PRE-LLM INVARIANT (Task 1): Re-run decision-request check on query
         from app.guardrails.intent_head import classify_intent_head
         head_cat, _, _, _ = classify_intent_head(query)
-        if head_cat == "DECISION_REQUEST":
+        # procedural=True: classify_intent already ran the residual head veto, the raw query would re-refuse "How to invest in X"
+        if head_cat == "DECISION_REQUEST" and not procedural:
             logger.warning(f"Hard pre-LLM invariant fired: blocked decision query '{query}' from Groq LLM.")
             refusal_body = "I can only provide objective, factual information regarding mutual fund schemes and cannot offer investment advice, comparisons, or recommendations."
             rendered_refusal = f"{refusal_body}\n\nSource: {CANONICAL_LINKS['ADVISORY']}\nLast updated from sources: {effective_date}"

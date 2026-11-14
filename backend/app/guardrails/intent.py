@@ -165,6 +165,7 @@ ADVISORY_PATTERNS = [
 
 # 6. Procedural Query Patterns
 PROCEDURAL_PATTERNS = [
+    re.compile(r"\b(?:can|may)\s+i\s+(?:do|have|use|invest\s+(?:through|via))\s+both\s+(?:a\s+)?sip\s+and\s+lump[\s-]?sum\b", re.I),
     re.compile(r"\bhow\s+(?:to|can\s+i|do\s+i)\s+(?:start\s+(?:a\s+)?sip|invest|redeem|withdraw|switch|change|update|complete|apply|download|get|obtain|set\s+up|pause|track)\b", re.I),
     re.compile(r"\b(?:step\s+by\s+step|process\s+to|procedure\s+(?:for|to)|kyc\s+process|kyc\s+documents|kyc\s+verification|documents\s+required|autopay|bank\s+mandate|e[\s-]?nach)\b", re.I),
     re.compile(r"\bhow\s+can\s+i\s+(?:invest|apply|register|open\s+an\s+account|redeem|download|switch)\b", re.I),

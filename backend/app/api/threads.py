@@ -504,6 +504,7 @@ async def post_message(
             context_chunks=retrieval_res.chunks,
             primary_url=retrieval_res.primary_citation_url,
             doc_date=retrieval_res.primary_doc_date,
+            procedural=intent_res.intent == "PROCEDURAL",
         )
 
         elapsed_ms = (time.perf_counter() - t0) * 1000

@@ -723,7 +723,8 @@ def ask_query(request: SynthesisQueryRequest):
     # Re-run decision-request check on query and residual clause immediately before Groq call
     from app.guardrails.intent_head import classify_intent_head
     head_cat, sd, si, su = classify_intent_head(request.query)
-    if head_cat == "DECISION_REQUEST":
+    # PROCEDURAL already passed the residual head veto in classify_intent; the raw query would re-refuse "How to invest in X"
+    if head_cat == "DECISION_REQUEST" and intent_res.intent != "PROCEDURAL":
         refusal = generate_refusal("ADVISORY")
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(refusal["text"])
@@ -786,6 +787,7 @@ def ask_query(request: SynthesisQueryRequest):
         context_chunks=context_texts,
         primary_url=retrieval_res.primary_citation_url,
         doc_date=get_default_corpus_date(),
+        procedural=intent_res.intent == "PROCEDURAL",
     )
 
     elapsed_ms = (time.perf_counter() - t0) * 1000
