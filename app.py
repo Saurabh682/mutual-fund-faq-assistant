@@ -453,6 +453,12 @@ def custom_create_app(*args, **kwargs):
             ],
         }
 
+    # Feeds the frontend's Scheme Fact Sheet. Without it the drawer silently shows "—" rows.
+    @server_app.get("/api/v1/facts/schemes")
+    def get_scheme_facts_list():
+        from app.rag.facts import get_all_scheme_facts_from_db
+        return {"schemes": get_all_scheme_facts_from_db()}
+
     return server_app
 
 gr.routes.App.create_app = custom_create_app
