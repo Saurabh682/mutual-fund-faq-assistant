@@ -134,6 +134,9 @@ def evaluate_benchmark(dataset_path: str, report_output_path: str) -> Dict[str, 
                 elif cat in ("factual", "procedural"):
                     text = data.get("text", "")
                     for exp in item.get("expected_keywords", []):
+                        if exp == "{ter_direct}":  # the daily refresh moves TER, so read the live value
+                            from app.rag.facts import get_fact_from_db
+                            exp = get_fact_from_db(item["scheme"], "ter_direct")["value"]
                         if exp.lower() not in text.lower():
                             passed = False
                             failure_reasons.append(f"Missing expected keyword: '{exp}'")

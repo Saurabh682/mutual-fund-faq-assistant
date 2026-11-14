@@ -13,6 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.audit.logger import read_audit_logs
+from conftest import ter
 from app.main import app
 from app.sessions.store import SessionStore
 
@@ -134,7 +135,7 @@ class TestSessionIsolationEC_SES_01:
             json={"text": "What is the TER of HDFC Small Cap Fund?"},
         )
         assert msg_b.status_code == 200
-        assert "0.8%" in msg_b.json()["text"]
+        assert ter("hdfc_smallcap_dg") in msg_b.json()["text"]
 
         # Verify thread states are completely isolated
         state_a = client.get(f"/api/v1/threads/{thread_a_id}").json()
@@ -170,7 +171,7 @@ class TestPronounAnaphoraResolutionEC_ENT_02:
         data2 = turn2.json()
         # Must resolve to HDFC Mid-Cap (0.74%), NOT ask for disambiguation!
         assert data2["type"] == "fact_store"
-        assert "0.74%" in data2["text"]
+        assert ter("hdfc_midcap_dg") in data2["text"]
         assert "HDFC Mid-Cap" in data2["text"]
         assert "hdfc-mid-cap-fund-direct-growth" in data2["citation_url"]
 

@@ -16,6 +16,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
+from conftest import ter
 from app.main import app
 from app.guardrails.validator import (
     BANNED_LEXICON,
@@ -264,7 +265,7 @@ class TestEndToEndAskEndpoint:
         assert resp.status_code == 200
         data = resp.json()
         assert data["resolution_type"] == "fact_store"
-        assert "0.8%" in data["text"]
+        assert ter("hdfc_smallcap_dg") in data["text"]
         assert data["sentence_count"] <= 3
         assert "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth" in data["citation_url"]
         assert "Last updated from sources:" in data["rendered"]
