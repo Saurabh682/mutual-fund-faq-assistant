@@ -92,6 +92,8 @@ Refusals and general guidance point to official investor resources: [AMFI Knowle
 
 Questions about other fund houses (SBI, ICICI, Axis…) get a clear "outside my scope" answer rather than a guess.
 
+**Planned:** growing from 5 to about 19 HDFC schemes (more funds, index funds, ETFs and FoFs). The step-by-step plan is in [docs/corpus-expansion-roadmap.md](docs/corpus-expansion-roadmap.md).
+
 ---
 
 ## 🛡️ Response Contract
@@ -379,12 +381,13 @@ mutual-fund-faq-assistant/
 | [Edge cases](docs/edge-case.md) | Edge-case catalogue with stable IDs |
 | [Evaluation plan](docs/eval.md) | Per-phase evals and pass criteria |
 | [Deployment plan](docs/deployment-plan.md) | Hosting options, env vars and step-by-step deploy |
+| [Corpus expansion roadmap](docs/corpus-expansion-roadmap.md) | Plan to grow from 5 to about 19 schemes: funds, index funds, ETFs and FoFs |
 
 ---
 
 ## ⚠️ Known Limitations
 
-- **Narrow scope by design:** only the 5 HDFC schemes above. Everything else gets a "not covered" answer.
+- **Narrow scope by design:** only the 5 HDFC schemes above for now (expansion is [planned](docs/corpus-expansion-roadmap.md)). Everything else gets a "not covered" answer.
 - **Cautious wording handling:** harmless questions phrased with words like *"recommend"*, *"wise"* or *"better"* may get a fact plus a refusal note.
 - **Data freshness** depends on the daily ingestion job; the footer date shows exactly when the sources were last read.
 - **Cold starts:** the free Hugging Face Space sleeps when idle, so the first request after a while is slower.

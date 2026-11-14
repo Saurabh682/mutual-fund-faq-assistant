@@ -22,6 +22,7 @@ To ensure flawless compliance and deterministic reliability across all 7 phases,
 | **`EC-VAL`** | **Output Contract Validation** | Sentence tokenizer boundaries, currency punctuation, date footers | Phase 4 |
 | **`EC-SES`** | **Session & Multi-Threading** | Cross-thread leakage, race conditions, storage corruption | Phase 5 |
 | **`EC-UI`** | **Presentation & Accessibility** | Responsive drawers, disclaimer permanence, WCAG 2.1 AA contrast | Phase 6 |
+| **`EC-EXP`** | **Corpus Expansion** | Similar scheme names, ETF/FoF/ELSS/debt field semantics, scale limits | Phase 9 |
 
 ---
 
@@ -129,7 +130,7 @@ To ensure flawless compliance and deterministic reliability across all 7 phases,
 - **Architectural Component**: `backend/app/rag/entities.py` (`resolve_entities`)
 - **Impact**: Retriever arbitrarily picks one of the 5 schemes, giving misleading data.
 - **Mitigation Strategy**:
-  1. If `scheme_id` is null, check the active thread's session context for `last_scheme_id`.
+  1. If `scheme_id` is null, check the active thread's session context for `last_scheme_id`. (With more schemes, the clarification lists the closest matches only, see `EC-EXP-01`.)
   2. If no prior scheme exists in session memory, return a concise clarification (1 sentence): *"Please specify which HDFC scheme you are inquiring about: HDFC Mid-Cap Opportunities, HDFC Small Cap, HDFC Top 100, HDFC Silver ETF FoF, or HDFC Multi Cap Fund."*
   3. Do not invoke vector search or LLM generation.
 
@@ -254,3 +255,40 @@ To ensure flawless compliance and deterministic reliability across all 7 phases,
 - **Mitigation Strategy**:
   1. Disable starter question chips while `isLoading == true`.
   2. Immediately hide starter question panel once the first message enters the thread.
+
+---
+
+## 10. Corpus Expansion Edge Cases (`EC-EXP`)
+
+See [corpus-expansion-roadmap.md](corpus-expansion-roadmap.md) for the phases these belong to.
+
+### `EC-EXP-01`: Bare Category Name Matches Several Schemes
+- **Trigger**: *"What is the TER of HDFC Large Cap?"* when both *Large Cap* and *Large and Mid Cap* exist, or *"Gold ETF"* when the ETF and the Gold FoF both exist.
+- **Architectural Component**: `backend/app/rag/entities.py`
+- **Impact**: A confident number for the wrong scheme.
+- **Mitigation Strategy**:
+  1. A name that matches 2 or more schemes returns the clarification, never a pick.
+  2. The clarification lists at most the 5 closest matches, not all schemes.
+  3. Alias-collision tests for every pair added in a wave.
+
+### `EC-EXP-02`: Invented or Unlisted HDFC Fund Name
+- **Trigger**: *"Expense ratio of HDFC Infrastructure Fund"* (not in the corpus).
+- **Impact**: Fuzzy matching maps it to the closest listed scheme and quotes that scheme's data.
+- **Mitigation Strategy**: Every word of the query phrase must be close to its alias word; otherwise no scheme resolves and the not-found answer is returned. Regression test with a made-up fund name.
+
+### `EC-EXP-03`: Field Does Not Apply to the Instrument
+- **Trigger**: *"What is the exit load of HDFC Sensex ETF?"* or *"lock-in of HDFC Flexi Cap"*.
+- **Impact**: "I don't have that information" for a fact that simply does not exist, which reads like a data gap.
+- **Mitigation Strategy**: Store `not_applicable` per instrument type and answer in one sentence from the Groww page. ELSS stores its real 3-year lock-in. Debt exit-load slabs are stored verbatim.
+
+### `EC-EXP-04`: Scheme Page Parses Partially
+- **Trigger**: A new scheme's Groww page loads but one or more fields are missing or in a new layout.
+- **Mitigation Strategy**: The Phase 9.1 fetch gate defers the scheme; in daily runs a missing field keeps the last good value, flags it stale and fails the job visibly. Never publish a blank.
+
+### `EC-EXP-05`: Comparison Pressure From a Larger Catalogue
+- **Trigger**: *"Which HDFC index fund is best?"*, *"Nifty 50 index vs Sensex index"*.
+- **Mitigation Strategy**: Existing advisory and comparison refusals apply unchanged. The leak probe is re-run with the new scheme names every wave, and 2+ schemes with no fact field remains a refusal.
+
+### `EC-EXP-06`: Scale Limits
+- **Trigger**: About 19 schemes (roughly 57 documents) on the free Space; daily ingestion grows.
+- **Mitigation Strategy**: Measure index size, memory, latency and CI wall time per wave; stop expanding when headroom is thin. Scrape politely and fail loudly on 403/429.

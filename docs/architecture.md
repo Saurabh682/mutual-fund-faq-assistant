@@ -1065,7 +1065,7 @@ mf-faq-assistant/
 ## 21. Known Limitations & Future Enhancements
 
 ### Known Limitations
-1. **Corpus Scope**: Limited to 5 HDFC schemes (Direct-Growth plan); other AMCs or Regular plans return *"not found"*.
+1. **Corpus Scope**: Limited to 5 HDFC schemes (Direct-Growth plan) today, growing to about 19 per [corpus-expansion-roadmap.md](corpus-expansion-roadmap.md); other AMCs or Regular plans return *"not found"*.
 2. **Freshness Bound**: Values are only as fresh as the last ingestion; the footer always reveals the document date.
 3. **JS-Rendered Scraping**: Groww pages can change client-side layout and require periodic extractor maintenance.
 4. **Single-Citation Boundary**: Multi-fact questions spanning distinct sources may require follow-up turns to preserve single-citation guarantees.
@@ -1075,7 +1075,8 @@ mf-faq-assistant/
 ### Future Enhancements
 1. **Automated Freshness Monitoring**: Daily diff-based scraping with compliance verification dashboard.
 2. **Multilingual Support**: Hindi and Hinglish support with localized embeddings and refusal templates.
-3. **Multi-AMC Expansion**: Coverage for SBI, ICICI Prudential, and Nippon India Mutual Funds.
+3. **More HDFC Schemes, ETFs and FoFs**: Phase 9, planned in [corpus-expansion-roadmap.md](corpus-expansion-roadmap.md).
+3b. **Multi-AMC Expansion**: Coverage for SBI, ICICI Prudential, and Nippon India Mutual Funds (separate roadmap).
 4. **Admin Fact Verification Console**: Web portal for compliance officers to review and sign off on high-risk facts.
 5. **Air-Gapped Local LLM**: Option to run quantized Ollama/Gemma models locally without external cloud API dependencies.
 6. **User Feedback Signals**: Thumbs up/down telemetry to feed automated golden eval sets (strictly PII-free).
@@ -1096,3 +1097,4 @@ mf-faq-assistant/
 | **ADR-8** | **Metadata scheme pre-filter** | Pure semantic search | Prevents cross-scheme number mix-ups, the most damaging error class. |
 | **ADR-9** | **Source priority ordering (AMC > AMFI/SEBI > Groww)** | Equal weighting | Official documents are authoritative; Groww used as reference context only. |
 | **ADR-10**| **Per-thread isolated state, anonymous client ID** | Global memory / login | Meets multi-thread requirement with minimal privacy surface. |
+| **ADR-11**| **Manifest-driven scheme registry; add HDFC schemes before other AMCs** | Hand-edit each scheme in code; widen to other AMCs first | Today a scheme is wired into about 8 places by hand. One manifest source makes each addition a data change that tests can verify, and staying inside one AMC keeps the out-of-scope guardrail and all eval sets valid. Supersedes the "≤ 25 sources" sizing in ADR-7, to be re-measured per wave. |

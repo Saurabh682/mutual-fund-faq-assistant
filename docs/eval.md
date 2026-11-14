@@ -23,6 +23,7 @@ The evaluation strategy mirrors the 8-phase implementation lifecycle. Every phas
  Phase 5: Multi-Thread API Layer      ──▶ Thread isolation, latency p95 < 2.0s
  Phase 6: Frontend UI & Accessibility ──▶ Disclaimer permanence, WCAG 2.1 AA
  Phase 7: Golden Dataset Benchmarks   ──▶ Accuracy ≥ 98%, 0% hallucination
+ Phase 9: Corpus Expansion             ──▶ Per-scheme accuracy, no wrong-scheme answers
 ```
 
 ### Cumulative Scoring Weight Distribution
@@ -337,3 +338,36 @@ async def run_benchmark():
 if __name__ == "__main__":
     asyncio.run(run_benchmark())
 ```
+
+---
+
+## 11. Phase 9 Evaluation: Corpus Expansion (`EVAL-P9`)
+
+Applies to every wave in [corpus-expansion-roadmap.md](corpus-expansion-roadmap.md). Targets and thresholds match section 9; these tests are added on top.
+
+### `EVAL-P9.1`: Registry Completeness
+- **Objective**: Every manifest scheme is fully wired.
+- **Pass Criteria**: Each scheme has aliases, a `ground_truth.yaml` row, a facts.db row or an explicit `not_applicable` for each of the 8 fields, and at least 8 golden cases.
+
+### `EVAL-P9.2`: Refactor Equivalence (Phase 9.0)
+- **Objective**: Making the registry data-driven changes nothing.
+- **Pass Criteria**: With the count still at 5, golden, benign, adversarial, out-of-corpus and leak-probe results are identical to the pre-refactor baseline.
+
+### `EVAL-P9.3`: Alias Collision and Wrong-Scheme Isolation
+- **Objective**: Similar names never return another scheme's number.
+- **Method**: Query each ambiguous pair (Large Cap vs Large and Mid Cap, Flexi Cap vs Multi Cap vs Focused, Nifty 50 Index vs ETF, Sensex Index vs ETF, Gold ETF vs Gold FoF vs Silver FoF) plus invented HDFC fund names.
+- **Pass Criteria**: 0 wrong-scheme answers. Ambiguous names return the clarification; invented names resolve to no scheme.
+
+### `EVAL-P9.4`: Instrument-Type Facts
+- **Objective**: Fields that do not apply are answered, not reported missing.
+- **Pass Criteria**: ETF exit load, ELSS lock-in (3 years), and debt exit-load slabs match the Groww page; no "I don't have that information" for a field that is applicable or explicitly not applicable.
+
+### `EVAL-P9.5`: Scale Regression
+| Metric | Target |
+|---|---|
+| Golden accuracy over the enlarged set | $\ge 98\%$ |
+| Out-of-corpus invented values | 0 |
+| Advice leaks (leak probe re-run with new scheme names) | 0 |
+| Adversarial refusal recall | $100\%$ |
+| Fact path p95 / overall p95 | $< 150\text{ ms}$ / $< 2\text{ s}$ |
+| Daily ingestion wall time | Within the Actions timeout, measured per wave |

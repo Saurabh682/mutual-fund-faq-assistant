@@ -19,6 +19,7 @@ Phase 5 ──▶ Multi-Thread Session Management & Backend REST API Service
 Phase 6 ──▶ Frontend UI & Groww-Style Interface (React + Tailwind + Zustand)
 Phase 7 ──▶ Scheduled Data Pipeline via GitHub Actions (Daily 10:00 AM Cron)
 Phase 8 ──▶ End-to-End Testing, Golden Dataset Evals & Production Readiness
+Phase 9 ──▶ Corpus Expansion: 5 → ~19 HDFC schemes (funds, index funds, ETFs, FoFs)
 ```
 
 | Phase | Name | Key Deliverable | Estimated Time |
@@ -32,6 +33,7 @@ Phase 8 ──▶ End-to-End Testing, Golden Dataset Evals & Production Readines
 | **6** | **Frontend UI & Groww Experience** | Disclaimer banner, thread sidebar, starter chips, citation pill, dark/light theme | 2.5 hr |
 | **7** | **Scheduled Ingestion Pipeline** | GitHub Actions 10:00 AM IST cron, scraping, normalization, ChromaDB & SQLite refresh | 1.0 hr |
 | **8** | **Evals, Testing & Delivery** | Pytest suite, golden eval runner (accuracy, refusals, PII), Docker Compose | 1.5 hr |
+| **9** | **Corpus Expansion** | Data-driven scheme registry, instrument-type fields, 3 waves of new HDFC schemes (see [corpus-expansion-roadmap.md](corpus-expansion-roadmap.md)) | ~8 hr |
 
 **Total Estimated Implementation Time**: ~13 hours
 
@@ -932,3 +934,25 @@ services:
 - [x] Output Contract Validator enforcing $\le 3$ sentences, 1 citation link, and date footer.
 - [x] Multi-thread chat interface operational with Groww UI design tokens.
 - [x] Comprehensive `README.md` with setup commands, architectural decisions, and limitations.
+
+---
+
+## Phase 9: Corpus Expansion (Planned)
+
+**Goal**: Grow coverage from 5 to about 19 HDFC Mutual Fund Direct-Growth schemes (equity, index funds, ETFs, FoFs, then hybrid/ELSS/debt/thematic) using Groww pages as the reference source, without weakening any compliance gate.
+
+The full plan, candidate list with probed Groww URLs, risks and decision log live in **[corpus-expansion-roadmap.md](corpus-expansion-roadmap.md)**. Summary:
+
+| Step | Work | Gate |
+|---|---|---|
+| **9.0** | Make schemes data-driven: manifest is the single source for registry, aliases, UI list and the scheme count in user-facing text. Count stays 5. | Every existing eval gives identical results |
+| **9.1** | Fetch gate per candidate: parse the 8 fields, cross-check against the page, defer anything unparsable | Fields present, not applicable, or deferred |
+| **9.2** | Instrument-type semantics: `not_applicable` facts for ETF exit load, ELSS lock-in, debt exit-load slabs | No "I don't have that" for facts that do not exist |
+| **9.3** | Entity-resolution safety: alias-collision tests, clarification on ambiguity, made-up fund resolves to nothing | 0 wrong-scheme answers |
+| **9.4** | Roll out in 3 waves (5 → 10 → 13 → 19) with at least 8 golden cases per new scheme and a full re-run of every eval | Per-wave Definition of Done |
+| **9.5** | Operations: daily CI time, scraping politeness, index size and Space memory, latency | p95 targets still met |
+
+### Phase 9 Acceptance Criteria
+- [ ] Scheme count in refusals, prompts, UI and README is derived from the registry, never hand-typed.
+- [ ] Registry completeness test passes for every scheme.
+- [ ] Waves 1 to 3 each meet the Definition of Done in the roadmap, or the wave is deferred with the reason logged.
