@@ -52,15 +52,15 @@ license: mit
 
 1. [What It Does](#-what-it-does)
 2. [Scope: Schemes & Sources](#-scope-schemes--sources)
-3. [Response Contract](#-response-contract)
-4. [Architecture](#-architecture)
+3. [Response Contract](#%EF%B8%8F-response-contract)
+4. [Architecture](#%EF%B8%8F-architecture)
 5. [Tech Stack](#-tech-stack)
 6. [Testing & Evaluation](#-testing--evaluation)
 7. [Run It Locally](#-run-it-locally)
 8. [API Examples](#-api-examples)
 9. [Repository Layout](#-repository-layout)
 10. [Project Docs](#-project-docs)
-11. [Known Limitations](#-known-limitations)
+11. [Known Limitations](#%EF%B8%8F-known-limitations)
 12. [Disclaimer](#%EF%B8%8F-disclaimer)
 
 ---
