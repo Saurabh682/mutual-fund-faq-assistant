@@ -33,7 +33,7 @@ if sys.platform == "win32":
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend")))
 
 from fastapi.testclient import TestClient
-from app.main import app
+from app.main import app, _IP_REQUEST_TIMESTAMPS
 
 client = TestClient(app)
 
@@ -71,6 +71,8 @@ def evaluate_benchmark(dataset_path: str, report_output_path: str) -> Dict[str, 
         category_stats[cat]["total"] += 1
 
         query = item["query"]
+        # The eval harness is a single trusted client; bypass the per-IP limiter (20 req/min).
+        _IP_REQUEST_TIMESTAMPS.clear()
         t0 = time.perf_counter()
         resp = client.post("/api/v1/rag/ask", json={"query": query})
         elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -119,7 +121,8 @@ def evaluate_benchmark(dataset_path: str, report_output_path: str) -> Dict[str, 
                             failure_reasons.append(f"Expected citation domain {domain}")
 
                 elif cat == "out_of_corpus":
-                    if data.get("resolution_type") != "not_found":
+                    # external_amc: newer, more specific decline for other AMCs' schemes.
+                    if data.get("resolution_type") not in ("not_found", "external_amc"):
                         passed = False
                         failure_reasons.append(f"Expected not_found, got {data.get('resolution_type')}")
 
