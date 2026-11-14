@@ -110,7 +110,9 @@ ADVISORY_EXEMPTIONS = [
     re.compile(r"\bhow\s+should\s+one\s+find\s+the\s+fund\s+manager\b", re.I),
     re.compile(r"\bwhat\s+does\s+high\s+risk\s+signify\b", re.I),
     re.compile(r"\b(?:recommend|suggest|advise)\s+(?:the\s+)?(?:official\s+|standard\s+|best\s+)?(?:document|procedure|source|section|method|process|way)\b", re.I),
-    re.compile(r"\b(?:advise|suggest)\s+(?:me\s+)?(?:on\s+)?(?:what|whether|where|if)\s+.*?\s+(?:minimum|sip|ter|expense\s+ratio|exit\s+load|nav|lock[\s-]?in|benchmark|manager|tenure|turnover|riskometer)\b", re.I),
+    # The gap may not cross a decision verb: "advise me whether I should redeem ... given the
+    # exit load" must not be exempted.
+    re.compile(r"\b(?:advise|suggest)\s+(?:me\s+)?(?:on\s+)?(?:what|whether|where|if)\s+(?:(?!\b(?:should|buy|sell|redeem|invest|switch|hold|exit|choose|pick)\b).)*?\s+(?:minimum|sip|ter|expense\s+ratio|exit\s+load|nav|lock[\s-]?in|benchmark|manager|tenure|turnover|riskometer)\b", re.I),
     re.compile(r"\b(?:suggest|recommend|advise)\s+what\s+(?:the\s+)?(?:lock[\s-]?in|minimum|sip|ter|nav|benchmark|exit\s+load)\b", re.I),
 ]
 
@@ -129,6 +131,8 @@ ADVISORY_PATTERNS = [
     re.compile(r"\bwhich\s+(?:fund|scheme)\s+gives\s+(?:the\s+)?(?:highest|best|top|maximum)\b", re.I),
     re.compile(r"\b(?:smart|wise|conservative|moderate|aggressive)\s+investor\s+(?:prefer|choose|pick|buy|invest)\b", re.I),
     re.compile(r"\b(?:good|right|best)\s+time\s+to\s+(?:invest|buy|start\s+investing|enter(?:\s+the\s+market|\s+[a-z0-9\s-]+)?)\b", re.I),
+    re.compile(r"\b(?:suitable|ideal|opportune|right|good)\s+moment\s+to\s+(?:invest|buy|sell|exit|redeem|enter|switch)\b", re.I),
+    re.compile(r"\b(?:smallest|lowest|least)\s+(?:chance|risk|probability)\s+of\s+losing\b", re.I),
     re.compile(r"\bif\s+you\s+had\s+(?:[₹rs]\s*)?\d+", re.I),
     re.compile(r"\bshould\s+i\s+(?:hold|sell|redeem|exit)\b", re.I),
     re.compile(r"\bis\s+.*?\s+(?:a\s+)?(?:safe|good|advisable|smart|suitable)\s+(?:investment|fund|option\s+to\s+buy)\b", re.I),
@@ -330,6 +334,8 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
         if m:
             matched_triggers.append(m.group(0))
     if matched_triggers:
+        if not is_exempt_from_advisory and (veto := _head_decision_veto(clean_query, has_factual)):
+            return veto
         return IntentResult(
             intent=IntentType.PROCEDURAL.value,
             confidence=0.95,
@@ -340,6 +346,8 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
 
     # 8. Factual Check
     if has_factual:
+        if not is_exempt_from_advisory and (veto := _head_decision_veto(clean_query, has_factual)):
+            return veto
         return IntentResult(
             intent=IntentType.FACTUAL.value,
             confidence=0.95,
@@ -455,7 +463,7 @@ RESIDUAL_FILLER_WORDS = frozenset(
     """a an the of for in on is are was what whats what's who whom which does do did tell me show
     give please about its it this that fund funds scheme schemes plan direct growth regular option
     hdfc mf mutual today current currently value amount percentage percent limit period level
-    category labeled labelled any has have how much many""".split()
+    category labeled labelled any has have how much many managers manager handling managing""".split()
 )
 RESIDUAL_MIN_WORDS = 3
 # "if sold in 6 months", "when redeemed within 1 year": the holding period an exit load or
@@ -468,18 +476,86 @@ REDEMPTION_TIMING_PATTERN = re.compile(
 
 
 def _supported_lookup_residual(query: str) -> Optional[str]:
-    """Residual text if the query resolves to a glossary, procedure or scheme+field lookup, else None."""
+    """Residual text if the query names a procedure, glossary term or scheme+field fact, else None.
+
+    The phrases that named the lookup ("redemption cut-off time", "expense ratio") are removed
+    too: left in, they dilute the head's score, and "<decision> considering the redemption
+    cut-off time" read as an information request.
+    """
     from app.rag.entities import resolve_entities
-    from app.rag.glossary import lookup_glossary
-    from app.rag.procedures import lookup_procedure
 
     try:
         ent = resolve_entities(query)
-        if (ent.scheme_id and ent.field) or lookup_glossary(query) or lookup_procedure(query):
-            return _decision_residual(query, ent)
+        text, named_lookup = query, False
+        for p in _lookup_phrase_patterns():
+            if p.search(text):
+                named_lookup = True
+                text = p.sub(" ", text)
+        if named_lookup or (ent.scheme_id and ent.field):
+            return _decision_residual(text, ent)
     except Exception as e:  # fail closed: fall back to whole-query head scoring
         logger.warning(f"Supported-lookup residual failed: {e}")
     return None
+
+
+_LOOKUP_PHRASE_PATTERNS: Optional[List[Any]] = None
+
+
+def _lookup_phrase_patterns() -> List[Any]:
+    """Patterns that name a supported procedure or glossary term, plus PROCEDURAL_PATTERNS."""
+    global _LOOKUP_PHRASE_PATTERNS
+    if _LOOKUP_PHRASE_PATTERNS is None:
+        from app.rag.glossary import GLOSSARY_DEFINITIONS
+        from app.rag.procedures import PROCEDURE_ITEMS
+
+        pats = [
+            p
+            for item in PROCEDURE_ITEMS
+            if item.get("supported") is not False and item.get("status") != "unsupported"
+            for p in item["patterns"]
+        ]
+        pats += [p for item in GLOSSARY_DEFINITIONS for p in item["patterns"]]
+        _LOOKUP_PHRASE_PATTERNS = pats + PROCEDURAL_PATTERNS
+    return _LOOKUP_PHRASE_PATTERNS
+
+
+def _head_decision_veto(clean_query: str, has_factual: bool) -> Optional[IntentResult]:
+    """Embedding-head check for a decision request hidden in a procedural or factual query.
+
+    Steps 7 and 8 of classify_intent return on a single keyword ("cut-off time", "scheme"),
+    which let "Which scheme would you recommend for long term wealth creation?" through as
+    FACTUAL. Scores the residual left after removing the lookup phrases; a residual shorter
+    than RESIDUAL_MIN_WORDS is a plain lookup and is never vetoed.
+    """
+    from app.rag.entities import resolve_entities
+
+    try:
+        if resolve_entities(clean_query).is_external_amc:
+            return None  # answered as out-of-corpus; advisory wording there is caught by rules
+        residual = _supported_lookup_residual(clean_query)
+        if residual is not None and len(residual.split()) < RESIDUAL_MIN_WORDS:
+            return None
+        from app.guardrails.intent_head import classify_intent_head
+
+        head_cat, dec_s, info_s, unsup_s = classify_intent_head(residual if residual is not None else clean_query)
+    except Exception as e:  # fail closed
+        logger.warning(f"Head decision veto failed: {e}")
+        head_cat, dec_s, info_s, unsup_s = "DECISION_REQUEST", 0.0, 0.0, 0.0
+    if head_cat != "DECISION_REQUEST":
+        return None
+    # Whole-query scoring (no lookup phrase to strip) needs decision to actually win: the head's
+    # fail-closed near-tie refused "Can I switch mutual fund units between two different AMCs
+    # directly?" (decision 0.49 vs information 0.52). Leaked advice questions score 0.85+.
+    if residual is None and dec_s <= max(info_s, unsup_s):
+        return None
+    return IntentResult(
+        intent=IntentType.ADVISORY.value,
+        confidence=dec_s,
+        is_refusal=True,
+        is_compound=has_factual,
+        secondary_intent=IntentType.FACTUAL.value if has_factual else None,
+        matched_triggers=["intent_head_decision"],
+    )
 
 
 def _decision_residual(query: str, ent: Any) -> str:
