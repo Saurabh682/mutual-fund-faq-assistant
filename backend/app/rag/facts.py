@@ -334,6 +334,11 @@ def format_multi_fact_response(
     }
 
 
+_PAST_POINT_IN_TIME = re.compile(
+    r"\b(?:19|20)\d{2}\b|\b(?:yesterday|last\s+(?:year|month|week)|on\s+\d{1,2}(?:st|nd|rd|th)?\s+\w+)\b", re.I
+)
+
+
 def lookup_fact(
     query: str, session_scheme_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
@@ -344,6 +349,10 @@ def lookup_fact(
     standard mutual fund and Groww procedures (e.g. Capital Gains, Redemption).
     """
     entity_res = resolve_entities(query, session_scheme_id=session_scheme_id)
+
+    # Only today's NAV/AUM is stored: a dated question must not get the current value as if it were that day's
+    if entity_res.field in ("nav", "aum") and _PAST_POINT_IN_TIME.search(query):
+        return None
 
     # 1. Scheme-Specific Fact Path
     if entity_res.scheme_id and entity_res.field:

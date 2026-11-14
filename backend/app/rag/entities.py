@@ -354,6 +354,13 @@ def resolve_entities(
                     if ngram in ("hdfc mutual fund", "mutual fund", "hdfc mutual", "mutual fund amc", "hdfc mf", "hdfc amc", "asset management"):
                         continue
                     sim = difflib.SequenceMatcher(None, ngram, norm_alias).ratio()
+                    # "flexi cap" must not fuzzy-match "large cap": every word has to be close to its alias word
+                    ng_w, al_w = ngram.split(), norm_alias.split()
+                    if len(ng_w) == len(al_w) and not all(
+                        a.startswith(g) or difflib.SequenceMatcher(None, g, a).ratio() >= 0.75
+                        for g, a in zip(ng_w, al_w)
+                    ):
+                        continue
                     if sim > best_score and sim >= 0.78:
                         best_score = sim
                         best_sid = sid
