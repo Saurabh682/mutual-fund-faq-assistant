@@ -167,6 +167,10 @@ PROCEDURAL_PATTERNS = [
     re.compile(r"\b(?:capital\s+gains?|tax\s+statement|p&l\s+statement|account\s+statement|kyc|cut[\s-]?off\s+time|nav\s+cut[\s-]?off)\b", re.I),
     re.compile(r"\b(?:elss\s+lock[\s-]?in|lock[\s-]?in\s+(?:period\s+)?(?:for\s+)?elss|sebi\s+riskometer|sebi\s+categorization)\b", re.I),
     re.compile(r"\b(?:insufficient\s+funds?|sip\s+bounce|failed\s+sip|pause\s+sip|bank\s+update|settlement\s+cycle|order\s+status|track\s+order)\b", re.I),
+    # Account servicing. The object must be a servicing record, so "where do I see which scheme
+    # I should buy" is not matched.
+    re.compile(r"\bwhere\s+(?:can|do|does)\s+(?:i|an?\s+investor|investors|one|we)\s+(?:track|view|check|see|find|download)\s+(?:the\s+|my\s+|an?\s+|their\s+)?(?:allotment|order|transaction|redemption|account|capital\s+gains?|tax|folio|kyc|mandate|sip\s+status|statement)\b", re.I),
+    re.compile(r"\b(?:penny[\s-]?drop|(?:allotment|transaction|redemption|mandate)\s+status)\b", re.I),
 ]
 
 # 7. Help / Capabilities Query Patterns
@@ -273,21 +277,24 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
     # Check if this query qualifies for an explicit factual exemption from advisory
     is_exempt_from_advisory = any(p.search(clean_query) for p in ADVISORY_EXEMPTIONS)
 
-    # 4. Advisory Check (Fail-closed refusal unless explicitly exempted by a factual slot)
-    if not is_exempt_from_advisory:
-        for p in ADVISORY_PATTERNS:
-            m = p.search(clean_query)
-            if m:
-                matched_triggers.append(m.group(0))
-        if matched_triggers:
-            return IntentResult(
-                intent=IntentType.ADVISORY.value,
-                confidence=1.0,
-                is_refusal=True,
-                is_compound=has_factual,
-                secondary_intent=IntentType.FACTUAL.value if has_factual else None,
-                matched_triggers=matched_triggers,
-            )
+    # 4. Advisory Check (Fail-closed refusal). An exemption excuses only the words it matched:
+    # "Is the exit load safe from change, so should I invest now?" still trips "should I invest".
+    advisory_text = clean_query
+    for p in ADVISORY_EXEMPTIONS:
+        advisory_text = p.sub(" ", advisory_text)
+    for p in ADVISORY_PATTERNS:
+        m = p.search(advisory_text)
+        if m:
+            matched_triggers.append(m.group(0))
+    if matched_triggers:
+        return IntentResult(
+            intent=IntentType.ADVISORY.value,
+            confidence=1.0,
+            is_refusal=True,
+            is_compound=has_factual,
+            secondary_intent=IntentType.FACTUAL.value if has_factual else None,
+            matched_triggers=matched_triggers,
+        )
 
     # 5. Help / Capabilities Check
     for p in HELP_PATTERNS:
@@ -451,6 +458,13 @@ RESIDUAL_FILLER_WORDS = frozenset(
     category labeled labelled any has have how much many""".split()
 )
 RESIDUAL_MIN_WORDS = 3
+# "if sold in 6 months", "when redeemed within 1 year": the holding period an exit load or
+# lock-in depends on. Requires if/when so "sell in 6 months" alone is not stripped.
+REDEMPTION_TIMING_PATTERN = re.compile(
+    r"\b(?:if|when)\s+(?:it\s+is\s+|i\s+|units\s+are\s+)?(?:sold|redeemed|withdrawn|exited)\s+"
+    r"(?:in|within|after|before)\s+\d+\s+(?:days?|months?|years?|yrs?)\b",
+    re.I,
+)
 
 
 def _supported_lookup_residual(query: str) -> Optional[str]:
@@ -482,6 +496,9 @@ def _decision_residual(query: str, ent: Any) -> str:
     # Longest first so "hdfc small cap fund" is removed before "small cap"; whole words only.
     for alias in sorted({a.lower() for a in aliases if a}, key=len, reverse=True):
         text = re.sub(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", " ", text)
+    # For exit load / lock-in, "if sold in 6 months" is the condition of the fact itself.
+    if ent.field in ("exit_load", "lock_in"):
+        text = REDEMPTION_TIMING_PATTERN.sub(" ", text)
     tokens = [w for w in re.findall(r"[a-z0-9₹'-]+", text) if w not in RESIDUAL_FILLER_WORDS]
     return " ".join(tokens)
 
@@ -521,7 +538,11 @@ def classify_clause_level_intent(
                 # growth") fall inside the head's fail-closed margin and read as DECISION_REQUEST.
                 residual = _decision_residual(query, full_ent)
                 is_decision = classify_intent(query).is_refusal
-                if not is_decision and len(residual.split()) >= RESIDUAL_MIN_WORDS:
+                # Explicit exemptions ("would it be wise to check exit load", "suggest where an
+                # investor can find ...") mark an information action, not an investment decision;
+                # classify_intent already skips its head check for them, so this check does too.
+                is_exempt = any(p.search(query) for p in ADVISORY_EXEMPTIONS)
+                if not is_decision and not is_exempt and len(residual.split()) >= RESIDUAL_MIN_WORDS:
                     head_cat, *_ = classify_intent_head(residual)
                     is_decision = head_cat == "DECISION_REQUEST"
                 if is_decision:

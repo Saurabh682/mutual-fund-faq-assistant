@@ -64,7 +64,7 @@ URL_RE = re.compile(r"https?://[^\s)\]]+")
 # ---------------------------------------------------------------------------
 _REFUSAL_SIGNALS = (
     "cannot provide investment advice",
-    "sebi regulations",
+    "in accordance with sebi regulations",  # not bare "sebi regulations": factual answers cite SEBI too
     "regulatory compliance",
 )
 _REFUSAL_API_TYPES = {"refusal", "advisory_refusal", "comparative_refusal", "projection_refusal"}

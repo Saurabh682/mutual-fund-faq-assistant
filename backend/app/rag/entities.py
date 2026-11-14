@@ -425,9 +425,13 @@ def resolve_entities(
         and not is_unsupported_plan
     )
 
+    # Ask "which scheme?" only when the field was named outright. A field guessed by meaning
+    # alone ("autopay mandate for my SIP" -> min_sip) is usually a process question, not a
+    # request for that scheme fact, so it goes on to retrieval instead.
+    field_named_explicitly = detected_field is not None and not str(detected_field_alias).startswith("semantic_match:")
     is_ambiguous = (
         detected_scheme_id is None
-        and detected_field is not None
+        and field_named_explicitly
         and detected_field != "amc_name"
         and not has_external_amc
         and not is_unsupported_plan
