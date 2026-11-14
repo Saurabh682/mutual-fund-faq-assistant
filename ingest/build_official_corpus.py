@@ -115,7 +115,7 @@ OFFICIAL_DOCUMENTS: List[Dict[str, Any]] = [
                 "section": "AMFI Master Registration Details",
                 "content": (
                     "AMFI Scheme Code: 118989. Scheme Name: HDFC Mid-Cap Opportunities Fund - Direct Plan - Growth Option. "
-                    "ISIN: INF179K01BF8. Scheme Type: Open Ended. Category: Equity - Mid Cap Fund. "
+                    "ISIN: INF179K01XQ0. Scheme Type: Open Ended. Category: Equity - Mid Cap Fund. "
                     "Registrar and Transfer Agent (RTA): Computer Age Management Services Limited (CAMS)."
                 ),
             },
@@ -210,7 +210,7 @@ OFFICIAL_DOCUMENTS: List[Dict[str, Any]] = [
                 "section": "Master Classification & Identifiers",
                 "content": (
                     "AMFI Scheme Code: 130503. Name: HDFC Small Cap Fund - Direct Plan - Growth Option. "
-                    "ISIN: INF179K01726. Scheme Inception Date: April 03, 2008. Category: Equity - Small Cap Fund. "
+                    "ISIN: INF179KA1RW5. Scheme Inception Date: April 03, 2008. Category: Equity - Small Cap Fund. "
                     "RTA: Computer Age Management Services Limited (CAMS)."
                 ),
             },
@@ -285,17 +285,17 @@ OFFICIAL_DOCUMENTS: List[Dict[str, Any]] = [
     {
         "id": "doc_09_hdfc_largecap_amfi_master",
         "scheme_id": "hdfc_largecap_dg",
-        "title": "AMFI Scheme Master Record - HDFC Top 100 Fund (119062)",
+        "title": "AMFI Scheme Master Record - HDFC Top 100 Fund (119018)",
         "document_type": "AMFI Master Record",
         "publisher": "AMFI India",
-        "url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062",
+        "url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119018",
         "doc_date": "2026-10-25",
         "sections": [
             {
                 "section": "Registration Identifiers",
                 "content": (
-                    "AMFI Scheme Code: 119062. Scheme Name: HDFC Top 100 Fund - Direct Plan - Growth Option. "
-                    "ISIN: INF179K01BE1. Inception Date: October 11, 1996. Category: Equity - Large Cap Fund. "
+                    "AMFI Scheme Code: 119018. Scheme Name: HDFC Top 100 Fund - Direct Plan - Growth Option. "
+                    "ISIN: INF179K01YV8. Inception Date: October 11, 1996. Category: Equity - Large Cap Fund. "
                     "RTA: Computer Age Management Services Limited (CAMS)."
                 ),
             },
@@ -371,17 +371,17 @@ OFFICIAL_DOCUMENTS: List[Dict[str, Any]] = [
     {
         "id": "doc_12_hdfc_silver_fof_amfi_master",
         "scheme_id": "hdfc_silver_fof_dg",
-        "title": "AMFI Scheme Master Record - HDFC Silver ETF FoF (150186)",
+        "title": "AMFI Scheme Master Record - HDFC Silver ETF FoF (150737)",
         "document_type": "AMFI Master Record",
         "publisher": "AMFI India",
-        "url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186",
+        "url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150737",
         "doc_date": "2026-10-25",
         "sections": [
             {
                 "section": "AMFI Identification & Class",
                 "content": (
-                    "AMFI Scheme Code: 150186. Scheme Name: HDFC Silver ETF Fund of Fund - Direct Plan - Growth. "
-                    "ISIN: INF179K01VR0. Inception Date: October 28, 2022. Category: Commodities - Precious Metals FoF. "
+                    "AMFI Scheme Code: 150737. Scheme Name: HDFC Silver ETF Fund of Fund - Direct Plan - Growth. "
+                    "ISIN: INF179KC1DU7. Inception Date: October 28, 2022. Category: Commodities - Precious Metals FoF. "
                     "RTA: Computer Age Management Services Limited (CAMS)."
                 ),
             },
@@ -456,17 +456,17 @@ OFFICIAL_DOCUMENTS: List[Dict[str, Any]] = [
     {
         "id": "doc_15_hdfc_multicap_amfi_master",
         "scheme_id": "hdfc_multicap_dg",
-        "title": "AMFI Scheme Master Record - HDFC Multi Cap Fund (149262)",
+        "title": "AMFI Scheme Master Record - HDFC Multi Cap Fund (149368)",
         "document_type": "AMFI Master Record",
         "publisher": "AMFI India",
-        "url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262",
+        "url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149368",
         "doc_date": "2026-10-25",
         "sections": [
             {
                 "section": "Master Registration Data",
                 "content": (
-                    "AMFI Scheme Code: 149262. Scheme Name: HDFC Multi Cap Fund - Direct Plan - Growth Option. "
-                    "ISIN: INF179K01UD0. Inception Date: December 10, 2021. Category: Equity - Multi Cap Fund. "
+                    "AMFI Scheme Code: 149368. Scheme Name: HDFC Multi Cap Fund - Direct Plan - Growth Option. "
+                    "ISIN: INF179KC1BS5. Inception Date: December 10, 2021. Category: Equity - Multi Cap Fund. "
                     "RTA: Computer Age Management Services Limited (CAMS)."
                 ),
             },

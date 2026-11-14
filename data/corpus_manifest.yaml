@@ -114,8 +114,8 @@ schemes:
   option: Growth
   groww_url: https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-top-100-fund
-  amfi_scheme_code: '119062'
-  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062
+  amfi_scheme_code: '119018'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119018
   sebi_category: Large Cap Fund (Min 80% in Large Cap companies)
   aliases:
   - hdfc large cap fund
@@ -143,10 +143,10 @@ schemes:
     type: KIM_SID
     publisher: HDFC Asset Management Company
     url: https://www.hdfcfund.com/statutory-disclosure/scheme-information-documents-sid-kim
-  - title: AMFI Scheme Master Record - 119062
+  - title: AMFI Scheme Master Record - 119018
     type: AMFI Master
     publisher: AMFI India
-    url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062
+    url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119018
 - id: hdfc_silver_fof_dg
   name: HDFC Silver ETF Fund of Fund
   official_name: HDFC Silver ETF FoF (Direct - Growth)
@@ -157,8 +157,8 @@ schemes:
   option: Growth
   groww_url: https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-silver-etf-fund-fund
-  amfi_scheme_code: '150186'
-  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186
+  amfi_scheme_code: '150737'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150737
   sebi_category: Precious Metals FoF (Min 95% in Silver ETF)
   aliases:
   - hdfc silver etf fund of fund
@@ -186,10 +186,10 @@ schemes:
     type: KIM_SID
     publisher: HDFC Asset Management Company
     url: https://www.hdfcfund.com/statutory-disclosure/scheme-information-documents-sid-kim
-  - title: AMFI Scheme Master Record - 150186
+  - title: AMFI Scheme Master Record - 150737
     type: AMFI Master
     publisher: AMFI India
-    url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186
+    url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150737
 - id: hdfc_multicap_dg
   name: HDFC Multi Cap Fund
   official_name: HDFC Multi Cap Fund (Direct - Growth)
@@ -198,8 +198,8 @@ schemes:
   option: Growth
   groww_url: https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund
-  amfi_scheme_code: '149262'
-  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262
+  amfi_scheme_code: '149368'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149368
   sebi_category: Multi Cap Fund (Min 25% Large, 25% Mid, 25% Small Cap)
   aliases:
   - hdfc multi cap fund
@@ -227,10 +227,10 @@ schemes:
     type: KIM_SID
     publisher: HDFC Asset Management Company
     url: https://www.hdfcfund.com/statutory-disclosure/scheme-information-documents-sid-kim
-  - title: AMFI Scheme Master Record - 149262
+  - title: AMFI Scheme Master Record - 149368
     type: AMFI Master
     publisher: AMFI India
-    url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262
+    url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149368
 sources:
 - id: grw_midcap
   url: https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth
@@ -407,10 +407,10 @@ verified_public_documents:
   doc_date: '2026-10-25'
   scheme_id: hdfc_largecap_dg
 - id: doc_09_hdfc_largecap_amfi_master
-  title: AMFI Scheme Master Record - HDFC Top 100 Fund (119062)
+  title: AMFI Scheme Master Record - HDFC Top 100 Fund (119018)
   document_type: AMFI Master Record
   publisher: AMFI India
-  url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062
+  url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119018
   doc_date: '2026-10-25'
   scheme_id: hdfc_largecap_dg
 - id: doc_10_hdfc_silver_fof_factsheet
@@ -428,10 +428,10 @@ verified_public_documents:
   doc_date: '2026-10-25'
   scheme_id: hdfc_silver_fof_dg
 - id: doc_12_hdfc_silver_fof_amfi_master
-  title: AMFI Scheme Master Record - HDFC Silver ETF FoF (150186)
+  title: AMFI Scheme Master Record - HDFC Silver ETF FoF (150737)
   document_type: AMFI Master Record
   publisher: AMFI India
-  url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186
+  url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150737
   doc_date: '2026-10-25'
   scheme_id: hdfc_silver_fof_dg
 - id: doc_13_hdfc_multicap_factsheet
@@ -449,10 +449,10 @@ verified_public_documents:
   doc_date: '2026-10-25'
   scheme_id: hdfc_multicap_dg
 - id: doc_15_hdfc_multicap_amfi_master
-  title: AMFI Scheme Master Record - HDFC Multi Cap Fund (149262)
+  title: AMFI Scheme Master Record - HDFC Multi Cap Fund (149368)
   document_type: AMFI Master Record
   publisher: AMFI India
-  url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262
+  url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149368
   doc_date: '2026-10-25'
   scheme_id: hdfc_multicap_dg
 - id: doc_16_sebi_riskometer_circular
