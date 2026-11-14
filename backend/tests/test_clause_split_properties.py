@@ -24,6 +24,15 @@ PROPERTY_CASES = [
     ("What is the AUM of HDFC Small Cap and will it grow?", 2),
     ("What is the exit load for HDFC Multi Cap and would you recommend it?", 2),
     ("Tell me the benchmark of HDFC Silver FoF also should I switch?", 2),
+    # Imperative information verbs after 'and' start a new clause, so a decision clause
+    # in front of them is isolated (2026-11-14: "<decision> and define NAV" leaked a bare fact).
+    ("Is it prudent to commit spare cash ahead of elections and define NAV", 2),
+    ("Should I exit now and explain expense ratio", 2),
+    ("Is it wise to switch funds and state the lock-in for HDFC Top 100", 2),
+    ("Help me decide and check the exit load of HDFC Small Cap", 2),
+    # ...while coordinated noun phrases containing those words stay intact.
+    ("NAV and AUM statement", 1),
+    ("exit load and lock-in check", 1),
 ]
 
 

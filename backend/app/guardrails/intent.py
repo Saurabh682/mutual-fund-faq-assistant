@@ -7,10 +7,13 @@ educational, and procedural inquiries.
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class IntentType(str, Enum):
@@ -340,9 +343,25 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
 
     # 9. Embedding Intent Head (Decision Request vs Information Request)
     if not is_exempt_from_advisory:
+        # When the query resolves to a supported lookup (glossary term, procedure, or a
+        # scheme + field fact), judge only the residual words. Whole-query scoring refused
+        # plain questions like "Define Net Asset Value in mutual fund schemes." Queries that
+        # resolve to nothing keep the fail-closed whole-query check.
+        head_text = clean_query
+        residual = _supported_lookup_residual(clean_query)
+        if residual is not None:
+            if len(residual.split()) < RESIDUAL_MIN_WORDS:
+                return IntentResult(
+                    intent=IntentType.FACTUAL.value,
+                    confidence=0.85,
+                    is_refusal=False,
+                    is_compound=False,
+                    matched_triggers=["supported_lookup_residual"],
+                )
+            head_text = residual
         try:
             from app.guardrails.intent_head import classify_intent_head
-            head_cat, dec_s, info_s, unsup_s = classify_intent_head(clean_query)
+            head_cat, dec_s, info_s, unsup_s = classify_intent_head(head_text)
             if head_cat == "DECISION_REQUEST":
                 return IntentResult(
                     intent=IntentType.ADVISORY.value,
@@ -366,7 +385,7 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
         # 9b. Embedding Prototype Guardrail (Fail closed on un-regexed advisory & projections)
         try:
             from app.guardrails.intent_prototype import classify_clause_prototype
-            p_cat, p_adv, p_fac = classify_clause_prototype(clean_query)
+            p_cat, p_adv, p_fac = classify_clause_prototype(head_text)
             if p_cat == "ADVISORY" or (p_cat == "UNCERTAIN" and p_adv >= 0.28 and p_adv > p_fac):
                 return IntentResult(
                     intent=IntentType.ADVISORY.value,
@@ -401,7 +420,7 @@ def classify_intent(query: str, use_llm_fallback: bool = False) -> IntentResult:
 
 
 CLAUSE_SPLIT_PATTERN = re.compile(
-    r"(?:[?;.!]+|\s*,\s*(?:and|but|also|plus|or|whether)\s*|\s+(?:and|but|also|plus|whether|while|as well as)\s+(?=(?:should|can|could|would|will|is|are|am|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help|predict|whether|if|my|your|i|you|he|she|they|we|which)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|grow|switch|pick|choose)\b))",
+    r"(?:[?;.!]+|\s*,\s*(?:and|but|also|plus|or|whether)\s*|\s+(?:and|but|also|plus|whether|while|as well as)\s+(?=(?:should|can|could|would|will|is|are|am|do|does|did|how|what|why|who|where|tell|suggest|recommend|advise|give|help|predict|whether|if|my|your|i|you|he|she|they|we|which|define|explain|describe|list|state|share|provide|mention|show|check|confirm)\b|[a-z0-9\s-]+\b(?:invest|buy|sell|redeem|grow|switch|pick|choose)\b))",
     re.I,
 )
 
@@ -420,6 +439,51 @@ def split_clauses(query: str) -> List[str]:
         if c:
             clean_parts.append(c)
     return clean_parts
+
+
+# Single-clause compound check: words that only name the fact being asked about. Whatever
+# remains after removing these and the matched scheme/field aliases is the "residual"; a
+# residual shorter than RESIDUAL_MIN_WORDS is treated as a plain fact lookup.
+RESIDUAL_FILLER_WORDS = frozenset(
+    """a an the of for in on is are was what whats what's who whom which does do did tell me show
+    give please about its it this that fund funds scheme schemes plan direct growth regular option
+    hdfc mf mutual today current currently value amount percentage percent limit period level
+    category labeled labelled any has have how much many""".split()
+)
+RESIDUAL_MIN_WORDS = 3
+
+
+def _supported_lookup_residual(query: str) -> Optional[str]:
+    """Residual text if the query resolves to a glossary, procedure or scheme+field lookup, else None."""
+    from app.rag.entities import resolve_entities
+    from app.rag.glossary import lookup_glossary
+    from app.rag.procedures import lookup_procedure
+
+    try:
+        ent = resolve_entities(query)
+        if (ent.scheme_id and ent.field) or lookup_glossary(query) or lookup_procedure(query):
+            return _decision_residual(query, ent)
+    except Exception as e:  # fail closed: fall back to whole-query head scoring
+        logger.warning(f"Supported-lookup residual failed: {e}")
+    return None
+
+
+def _decision_residual(query: str, ent: Any) -> str:
+    """Returns the query text left after stripping scheme/field aliases and filler words."""
+    from app.rag.entities import FIELD_GLOSSARY, SCHEME_REGISTRY
+
+    text = query.lower()
+    aliases = [ent.matched_scheme_alias, ent.matched_field_alias]
+    aliases += FIELD_GLOSSARY.get(ent.field or "", [])
+    # Only the resolved scheme's aliases: stripping every registry alias turned
+    # "shift from large caps to small caps" into "shift from s to s" and hid the decision.
+    if ent.scheme_id in SCHEME_REGISTRY:
+        aliases += SCHEME_REGISTRY[ent.scheme_id].get("aliases", [])
+    # Longest first so "hdfc small cap fund" is removed before "small cap"; whole words only.
+    for alias in sorted({a.lower() for a in aliases if a}, key=len, reverse=True):
+        text = re.sub(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", " ", text)
+    tokens = [w for w in re.findall(r"[a-z0-9₹'-]+", text) if w not in RESIDUAL_FILLER_WORDS]
+    return " ".join(tokens)
 
 
 def classify_clause_level_intent(
@@ -452,8 +516,15 @@ def classify_clause_level_intent(
         if active_scheme and full_ent.field:
             fact_candidate = lookup_fact(query, session_scheme_id=active_scheme)
             if fact_candidate:
-                head_cat, *_ = classify_intent_head(query)
-                if head_cat == "DECISION_REQUEST":
+                # Classify only what is left once the scheme/field words are removed. Scoring the
+                # whole query let short keyword-style fact lookups ("TER for hdfc small cap direct
+                # growth") fall inside the head's fail-closed margin and read as DECISION_REQUEST.
+                residual = _decision_residual(query, full_ent)
+                is_decision = classify_intent(query).is_refusal
+                if not is_decision and len(residual.split()) >= RESIDUAL_MIN_WORDS:
+                    head_cat, *_ = classify_intent_head(residual)
+                    is_decision = head_cat == "DECISION_REQUEST"
+                if is_decision:
                     raw_text = fact_candidate["text"].split("\n\n")[0]
                     sentences = split_sentences(raw_text)
                     first_sentence = sentences[0] if sentences else raw_text
