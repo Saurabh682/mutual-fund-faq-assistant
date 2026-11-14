@@ -3,6 +3,7 @@ import yaml
 import pytest
 from fastapi.testclient import TestClient
 from app.core.config import settings
+from app.core.schemes import SCHEME_COUNT
 from app.main import app
 
 client = TestClient(app)
@@ -20,7 +21,7 @@ def test_health_endpoint():
     assert data["status"] == "healthy"
     assert data["llm_provider"] == "groq"
     assert data["llm_model"] in ["qwen/qwen3.8-27b", "llama-3.3-70b-versatile", "openai/gpt-oss-120b"]
-    assert data["schemes_count"] == 5
+    assert data["schemes_count"] == SCHEME_COUNT
 
 def test_meta_endpoint():
     response = client.get("/api/v1/meta")
@@ -28,27 +29,20 @@ def test_meta_endpoint():
     data = response.json()
     assert data["disclaimer"] == "Facts-only. No investment advice."
     assert len(data["starter_questions"]) == 3
-    assert len(data["schemes"]) == 5
+    assert len(data["schemes"]) == SCHEME_COUNT
 
-def test_corpus_manifest_strictly_5_groww_urls():
+def test_corpus_manifest_groww_urls_match_schemes():
     manifest_path = os.path.join(settings.DATA_DIR, "corpus_manifest.yaml")
     assert os.path.exists(manifest_path)
     
     with open(manifest_path, "r", encoding="utf-8") as f:
         manifest = yaml.safe_load(f)
         
-    expected_urls = {
-        "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth"
-    }
-    
+    expected_urls = {s["groww_url"] for s in manifest["schemes"]}
     source_urls = {s["url"] for s in manifest["sources"]}
-    assert source_urls == expected_urls, f"Manifest must contain strictly the 5 Groww URLs. Found: {source_urls}"
+    assert source_urls == expected_urls, f"Every scheme needs exactly its Groww page in sources. Found: {source_urls}"
     assert manifest["allowed_domains"] == ["groww.in"]
-    assert len(manifest["schemes"]) == 5
+    assert len(manifest["schemes"]) == SCHEME_COUNT
 
 def test_playwright_installed():
     from playwright.sync_api import sync_playwright

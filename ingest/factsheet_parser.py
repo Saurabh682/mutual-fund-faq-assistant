@@ -11,16 +11,12 @@ from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional
 
+from ingest.manifest import load_schemes
+
 FACTSHEETS_DIR = Path("data/factsheets")
 DB_PATH = Path("data/index/facts.db")
 
-SCHEME_NAME_MAP = {
-    "top100": "hdfc_largecap_dg",
-    "midcap": "hdfc_midcap_dg",
-    "smallcap": "hdfc_smallcap_dg",
-    "multicap": "hdfc_multicap_dg",
-    "silver_fof": "hdfc_silver_fof_dg",
-}
+SCHEME_NAME_MAP = {s["factsheet_key"]: sid for sid, s in load_schemes().items() if "factsheet_key" in s}
 
 
 @dataclass

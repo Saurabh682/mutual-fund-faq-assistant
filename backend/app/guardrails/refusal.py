@@ -17,6 +17,7 @@ Adheres strictly to the Response Contract:
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+from app.core.schemes import SCHEME_COUNT
 
 from app.guardrails.validator import (
     CANONICAL_LINKS,
@@ -53,10 +54,10 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
     "SMALLTALK": (
         "Hello! I am the Mutual Fund FAQ Assistant for HDFC Mutual Fund schemes. "
         "You can ask me factual questions regarding expense ratios, exit loads, minimum SIPs, "
-        "benchmarks, and riskometers for our 5 supported schemes."
+        f"benchmarks, and riskometers for our {SCHEME_COUNT} supported schemes."
     ),
     "HELP": (
-        "I can answer factual questions about 5 HDFC Mutual Fund schemes per the Groww scheme page and SEBI/AMFI regulatory guidelines. "
+        f"I can answer factual questions about {SCHEME_COUNT} HDFC Mutual Fund schemes per the Groww scheme page and SEBI/AMFI regulatory guidelines. "
         "You can query expense ratios (TER), exit loads, minimum SIP amounts, fund managers, benchmarks, riskometers, and ELSS lock-in rules. "
         "In accordance with SEBI regulations, investment advice, fund recommendations, and future return predictions are strictly prohibited."
     ),

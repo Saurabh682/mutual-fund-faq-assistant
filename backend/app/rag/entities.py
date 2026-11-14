@@ -17,153 +17,8 @@ import numpy as np
 logger = logging.getLogger(__name__)
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
 from app.guardrails.validator import validate_response
+from app.core.schemes import LISTED_NAMES_LIMIT, SCHEME_COUNT, SCHEME_REGISTRY, format_choices, scheme_label
 
-SCHEME_REGISTRY: Dict[str, Dict[str, Any]] = {
-    "hdfc_midcap_dg": {
-        "id": "hdfc_midcap_dg",
-        "name": "HDFC Mid-Cap Opportunities Fund",
-        "official_name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)",
-        "category": "Equity: Mid Cap",
-        "url": "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
-        "amc_url": "https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund",
-        "amfi_code": "118989",
-        "amfi_url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=118989",
-        "publisher": "HDFC Asset Management Company Limited",
-        "aliases": [
-            "hdfc mid-cap opportunities fund",
-            "hdfc mid cap opportunities fund",
-            "hdfc mid-cap opportunities",
-            "hdfc mid cap opportunities",
-            "mid-cap opportunities fund",
-            "mid cap opportunities fund",
-            "mid-cap opportunities",
-            "mid cap opportunities",
-            "hdfc mid-cap fund",
-            "hdfc mid cap fund",
-            "hdfc midcap opp fund",
-            "hdfc mid cap opp",
-            "hdfc midcap opp",
-            "mid cap opp",
-            "midcap opp",
-            "hdfc mid cap",
-            "hdfc midcap",
-            "mid cap fund",
-            "mid-cap fund",
-            "mid cap",
-            "midcap",
-        ],
-    },
-    "hdfc_smallcap_dg": {
-        "id": "hdfc_smallcap_dg",
-        "name": "HDFC Small Cap Fund",
-        "official_name": "HDFC Small Cap Fund (Direct - Growth)",
-        "category": "Equity: Small Cap",
-        "url": "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth",
-        "amc_url": "https://www.hdfcfund.com/our-products/hdfc-small-cap-fund",
-        "amfi_code": "130503",
-        "amfi_url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=130503",
-        "publisher": "HDFC Asset Management Company Limited",
-        "aliases": [
-            "hdfc small cap fund",
-            "hdfc small-cap fund",
-            "hdfc small-cap opportunities",
-            "small-cap opportunities",
-            "hdfc sml cap direct growth",
-            "hdfc sml cap",
-            "sml cap direct growth",
-            "sml cap fund",
-            "sml cap",
-            "smlcap",
-            "hdfc small cap",
-            "hdfc smallcap",
-            "small cap fund",
-            "small-cap fund",
-            "small cap",
-            "smallcap",
-        ],
-    },
-    "hdfc_largecap_dg": {
-        "id": "hdfc_largecap_dg",
-        "name": "HDFC Top 100 Fund",
-        "official_name": "HDFC Top 100 Fund (Direct - Growth)",
-        "category": "Equity: Large Cap",
-        "url": "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
-        "amc_url": "https://www.hdfcfund.com/our-products/hdfc-top-100-fund",
-        "amfi_code": "119062",
-        "amfi_url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062",
-        "publisher": "HDFC Asset Management Company Limited",
-        "aliases": [
-            "hdfc large cap fund",
-            "hdfc large-cap fund",
-            "hdfc top 100 fund",
-            "hdfc top 100",
-            "hdfc top100",
-            "top 100 fund",
-            "top 100",
-            "top100",
-            "hdfc large cap",
-            "hdfc largecap",
-            "large cap fund",
-            "large-cap fund",
-            "large cap",
-            "largecap",
-        ],
-    },
-    "hdfc_silver_fof_dg": {
-        "id": "hdfc_silver_fof_dg",
-        "name": "HDFC Silver ETF Fund of Fund",
-        "official_name": "HDFC Silver ETF FoF (Direct - Growth)",
-        "category": "Commodities: Silver FoF",
-        "url": "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth",
-        "amc_url": "https://www.hdfcfund.com/our-products/hdfc-silver-etf-fund-fund",
-        "amfi_code": "150186",
-        "amfi_url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186",
-        "publisher": "HDFC Asset Management Company Limited",
-        "aliases": [
-            "hdfc silver etf fund of fund",
-            "hdfc silver etf fund of funds",
-            "silver etf fund of funds",
-            "hdfc silver fof growth",
-            "hdfc silver etf fof",
-            "hdfc silver fof",
-            "silver etf fof",
-            "silver fof",
-            "hdfc silver etf",
-            "hdfc silver fund",
-            "hdfc silver",
-            "silver etf",
-            "silver fund",
-            "silver",
-        ],
-    },
-    "hdfc_multicap_dg": {
-        "id": "hdfc_multicap_dg",
-        "name": "HDFC Multi Cap Fund",
-        "official_name": "HDFC Multi Cap Fund (Direct - Growth)",
-        "category": "Equity: Multi Cap",
-        "url": "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth",
-        "amc_url": "https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund",
-        "amfi_code": "149262",
-        "amfi_url": "https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262",
-        "publisher": "HDFC Asset Management Company Limited",
-        "aliases": [
-            "hdfc multi cap fund",
-            "hdfc multi-cap fund",
-            "hdfc multi cap",
-            "hdfc multi-cap",
-            "hdfc multicap",
-            "multicap direct growth",
-            "hdfc multicap direct growth",
-            "multicap scheme",
-            "multicap fund",
-            "multicap",
-            "multi cap fund",
-            "multi-cap fund",
-            "multi cap",
-            "multi-cap",
-        ],
-    },
-}
 
 EXTERNAL_AMCS = [
     "sbi", "icici", "axis", "kotak", "nippon", "mirae", "tata",
@@ -476,7 +331,7 @@ def get_unsupported_plan_response(query: Optional[str] = None) -> Dict[str, Any]
     text = (
         "This assistant strictly indexes Direct Plan (Growth Option) schemes. "
         "Regular plans and IDCW options are not supported per the Groww scheme page. "
-        "Please query Direct Plan (Growth Option) metrics across our 5 supported HDFC funds."
+        f"Please query Direct Plan (Growth Option) metrics across our {SCHEME_COUNT} supported HDFC funds."
     )
     val_res = validate_response(text, None, citation, doc_date)
     return {
@@ -494,7 +349,7 @@ def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, A
     citation = "https://www.amfiindia.com/investor-corner/knowledge-center"
     amc_label = f"'{detected_amc.title()}'" if detected_amc else "external fund houses"
     text = (
-        f"I can only provide records for 5 selected HDFC Mutual Fund schemes per the Groww scheme page. "
+        f"I can only provide records for {SCHEME_COUNT} selected HDFC Mutual Fund schemes per the Groww scheme page. "
         f"Information regarding {amc_label} is not available in our records. "
         f"You can explore comprehensive scheme information on the AMFI portal."
     )
@@ -510,11 +365,9 @@ def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, A
 
 def get_disambiguation_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
     """Generates the required single-sentence clarification prompt when scheme is ambiguous."""
-    body = (
-        "Please specify which HDFC scheme you are inquiring about: "
-        "HDFC Mid-Cap Opportunities Fund, HDFC Small Cap Fund, HDFC Top 100 Fund, "
-        "HDFC Silver ETF FoF, or HDFC Multi Cap Fund."
-    )
+    labels = [scheme_label(m) for m in SCHEME_REGISTRY.values()]
+    sep = ", for example: " if len(labels) > LISTED_NAMES_LIMIT else ": "
+    body = f"Please specify which HDFC scheme you are inquiring about{sep}{format_choices(labels)}."
     url = CANONICAL_LINKS["ADVISORY"]
     doc_date = last_updated or get_default_corpus_date()
     val_res = validate_response(body, None, url, doc_date)
@@ -536,7 +389,7 @@ def get_scheme_meta(scheme_id: str) -> Optional[Dict[str, Any]]:
 def get_amc_out_of_scope_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
     """Generates deterministic out-of-scope response for AMC-level company inquiries without asking which scheme."""
     body = (
-        "I don't have that information. I can answer questions about TER, exit load, minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for 5 HDFC schemes. "
+        f"I don't have that information. I can answer questions about TER, exit load, minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} HDFC schemes. "
         "For corporate AMC information, please refer to regulatory filings."
     )
     url = "https://www.hdfcfund.com"

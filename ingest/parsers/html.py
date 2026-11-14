@@ -1,6 +1,7 @@
 import re
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
+from ingest.manifest import load_schemes
 
 def normalize_date_to_iso(date_str: str) -> str:
     """Converts varying date strings (e.g. '23-Oct-2026', '05-Nov-2026') into strict ISO YYYY-MM-DD format."""
@@ -30,21 +31,13 @@ def extract_active_fund_managers(soup: BeautifulSoup, scheme_id: str = "", defau
     # Discard Prashant Jain if present in any legacy field/card (stepped down July 2022)
     clean_mgrs = [m for m in active_managers if "Prashant Jain" not in m]
 
-    if scheme_id == "hdfc_largecap_dg":
-        # Rahul Baijal is the designated lead fund manager for HDFC Top 100 Fund since July 2022
-        return "Rahul Baijal"
+    # Lead manager(s) a human verified for this scheme (pinned_fund_manager in the manifest)
+    pinned = load_schemes().get(scheme_id, {}).get("pinned_fund_manager")
+    if pinned:
+        return pinned
 
-    if scheme_id in ("hdfc_midcap_dg", "hdfc_smallcap_dg"):
-        # Chirag Setalvad is the lead equity manager
-        return "Chirag Setalvad"
-
-    if scheme_id == "hdfc_silver_fof_dg":
-        return "Arun Agarwal, Nirman Morakhia"
-
-    if scheme_id == "hdfc_multicap_dg":
-        if any("Amar Kalkundrikar" in m for m in clean_mgrs):
-            return "Amar Kalkundrikar"
-        return "Amar Kalkundrikar"
+    if clean_mgrs:
+        return ", ".join(clean_mgrs)
 
     # Fallback to default if clean
     if default_name and "Prashant Jain" not in default_name:

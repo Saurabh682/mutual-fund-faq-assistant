@@ -1,6 +1,6 @@
 """Mutual Fund FAQ Assistant - Hugging Face Space Demo.
 
-Groww-styled Facts-Only Q&A Assistant bounded strictly to 5 HDFC Mutual Fund schemes.
+Groww-styled Facts-Only Q&A Assistant bounded strictly to the HDFC Mutual Fund schemes in data/corpus_manifest.yaml.
 Adheres strictly to the SEBI 5-Point Response Contract and Option C Stat Card output format.
 """
 
@@ -52,20 +52,14 @@ from app.api.guardrails import router as guardrails_router
 from app.api.rag import router as rag_router
 from app.api.threads import router as threads_router
 from app.core.config import settings
+from app.core.schemes import SCHEME_COUNT, scheme_label, scheme_options
 from app.api.rag import ask_query
 from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
 from app.rag.facts import SCHEME_REGISTRY, get_fact_from_db
 from app.schemas.synthesis import SynthesisQueryRequest
 
-SCHEME_MAP = {
-    "Auto-detect from Question": None,
-    "HDFC Mid-Cap Opportunities Fund (Direct - Growth)": "hdfc_midcap_dg",
-    "HDFC Small Cap Fund (Direct - Growth)": "hdfc_smallcap_dg",
-    "HDFC Top 100 Fund (Direct - Growth)": "hdfc_largecap_dg",
-    "HDFC Silver ETF FoF (Direct - Growth)": "hdfc_silver_fof_dg",
-    "HDFC Multi Cap Fund (Direct - Growth)": "hdfc_multicap_dg",
-}
+SCHEME_MAP = {"Auto-detect from Question": None, **{o["name"]: o["id"] for o in scheme_options()}}
 
 # Warm up models, intent classifiers, field embeddings, and query pipelines for Hugging Face entrypoint
 try:
@@ -268,7 +262,7 @@ def respond(
 
 
 def get_fact_explorer_data() -> str:
-    """Builds a formatted markdown table of all 5 verified HDFC schemes."""
+    """Builds a formatted markdown table of all verified HDFC schemes."""
     md = (
         "| Scheme Name | Category | NAV | AUM (Fund Size) | Expense Ratio | Exit Load |\n"
         "| :--- | :--- | :--- | :--- | :--- | :--- |\n"
@@ -289,12 +283,14 @@ def get_fact_explorer_data() -> str:
     return md
 
 
+_SCHEME_TAGS = "".join(f'<span class="scheme-tag">{scheme_label(m)}</span>' for m in SCHEME_REGISTRY.values())
+
 # Build Gradio Interface
 with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ Assistant") as demo:
     with gr.Column(elem_id="col-container"):
         # Header Section
         gr.HTML(
-            """
+            f"""
             <div class="groww-header">
                 <div class="groww-badge">Official AMC • Facts-Only • SEBI Compliant</div>
                 <h1 style="color: #FFFFFF; margin: 4px 0 8px 0; font-size: 24px; font-weight: 700;">
@@ -302,15 +298,11 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
                 </h1>
                 <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.5;">
                     Deterministic, verifiable mutual fund facts powered by hybrid retrieval across 
-                    5 official HDFC Mutual Fund schemes. Built on the principle: 
+                    {SCHEME_COUNT} official HDFC Mutual Fund schemes. Built on the principle: 
                     <strong style="color: #00D09C;">Accuracy over Intelligence</strong>.
                 </p>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;">
-                    <span class="scheme-tag">📈 Mid-Cap Opportunities</span>
-                    <span class="scheme-tag">🚀 Small Cap Fund</span>
-                    <span class="scheme-tag">🏛️ Top 100 (Large-Cap)</span>
-                    <span class="scheme-tag">🥈 Silver ETF FoF</span>
-                    <span class="scheme-tag">🌐 Multi Cap Fund</span>
+                    {_SCHEME_TAGS}
                 </div>
             </div>
             """
@@ -431,7 +423,7 @@ def custom_create_app(*args, **kwargs):
             "llm_provider": "groq",
             "llm_model": settings.GROQ_MODEL,
             "amc": "HDFC Mutual Fund",
-            "schemes_count": 5,
+            "schemes_count": SCHEME_COUNT,
         }
 
     @server_app.get("/api/v1/meta")
@@ -444,13 +436,7 @@ def custom_create_app(*args, **kwargs):
                 "What is the minimum SIP amount for HDFC Small Cap Fund?",
                 "What is the lock-in period for ELSS mutual funds?",
             ],
-            "schemes": [
-                {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},
-                {"id": "hdfc_smallcap_dg", "name": "HDFC Small Cap Fund (Direct - Growth)"},
-                {"id": "hdfc_largecap_dg", "name": "HDFC Top 100 Fund (Direct - Growth)"},
-                {"id": "hdfc_silver_fof_dg", "name": "HDFC Silver ETF FoF (Direct - Growth)"},
-                {"id": "hdfc_multicap_dg", "name": "HDFC Multi Cap Fund (Direct - Growth)"},
-            ],
+            "schemes": scheme_options(),
         }
 
     # Feeds the frontend's Scheme Fact Sheet. Without it the drawer silently shows "—" rows.

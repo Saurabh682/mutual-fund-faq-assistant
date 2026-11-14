@@ -13,6 +13,9 @@ official_allowed_domains:
 schemes:
 - id: hdfc_midcap_dg
   name: HDFC Mid-Cap Opportunities Fund
+  official_name: HDFC Mid-Cap Opportunities Fund (Direct - Growth)
+  also_called:
+  - HDFC Mid Cap Fund
   category: 'Equity: Mid Cap'
   plan: Direct
   option: Growth
@@ -21,6 +24,30 @@ schemes:
   amfi_scheme_code: '118989'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=118989
   sebi_category: Mid Cap Fund (Min 65% in Mid Cap companies)
+  aliases:
+  - hdfc mid-cap opportunities fund
+  - hdfc mid cap opportunities fund
+  - hdfc mid-cap opportunities
+  - hdfc mid cap opportunities
+  - mid-cap opportunities fund
+  - mid cap opportunities fund
+  - mid-cap opportunities
+  - mid cap opportunities
+  - hdfc mid-cap fund
+  - hdfc mid cap fund
+  - hdfc midcap opp fund
+  - hdfc mid cap opp
+  - hdfc midcap opp
+  - mid cap opp
+  - midcap opp
+  - hdfc mid cap
+  - hdfc midcap
+  - mid cap fund
+  - mid-cap fund
+  - mid cap
+  - midcap
+  pinned_fund_manager: Chirag Setalvad
+  factsheet_key: midcap
   official_documents:
   - title: HDFC Mid-Cap Opportunities Fund Scheme Factsheet
     type: Monthly Factsheet
@@ -36,6 +63,7 @@ schemes:
     url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=118989
 - id: hdfc_smallcap_dg
   name: HDFC Small Cap Fund
+  official_name: HDFC Small Cap Fund (Direct - Growth)
   category: 'Equity: Small Cap'
   plan: Direct
   option: Growth
@@ -44,6 +72,25 @@ schemes:
   amfi_scheme_code: '130503'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=130503
   sebi_category: Small Cap Fund (Min 65% in Small Cap companies)
+  aliases:
+  - hdfc small cap fund
+  - hdfc small-cap fund
+  - hdfc small-cap opportunities
+  - small-cap opportunities
+  - hdfc sml cap direct growth
+  - hdfc sml cap
+  - sml cap direct growth
+  - sml cap fund
+  - sml cap
+  - smlcap
+  - hdfc small cap
+  - hdfc smallcap
+  - small cap fund
+  - small-cap fund
+  - small cap
+  - smallcap
+  pinned_fund_manager: Chirag Setalvad
+  factsheet_key: smallcap
   official_documents:
   - title: HDFC Small Cap Fund Scheme Factsheet
     type: Monthly Factsheet
@@ -58,7 +105,10 @@ schemes:
     publisher: AMFI India
     url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=130503
 - id: hdfc_largecap_dg
-  name: HDFC Top 100 Fund (Large Cap)
+  name: HDFC Top 100 Fund
+  official_name: HDFC Top 100 Fund (Direct - Growth)
+  also_called:
+  - HDFC Large Cap Fund
   category: 'Equity: Large Cap'
   plan: Direct
   option: Growth
@@ -67,6 +117,23 @@ schemes:
   amfi_scheme_code: '119062'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062
   sebi_category: Large Cap Fund (Min 80% in Large Cap companies)
+  aliases:
+  - hdfc large cap fund
+  - hdfc large-cap fund
+  - hdfc top 100 fund
+  - hdfc top 100
+  - hdfc top100
+  - top 100 fund
+  - top 100
+  - top100
+  - hdfc large cap
+  - hdfc largecap
+  - large cap fund
+  - large-cap fund
+  - large cap
+  - largecap
+  pinned_fund_manager: Rahul Baijal
+  factsheet_key: top100
   official_documents:
   - title: HDFC Top 100 Fund Scheme Factsheet
     type: Monthly Factsheet
@@ -82,7 +149,10 @@ schemes:
     url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119062
 - id: hdfc_silver_fof_dg
   name: HDFC Silver ETF Fund of Fund
-  category: 'Commodities: Precious Metals FoF'
+  official_name: HDFC Silver ETF FoF (Direct - Growth)
+  also_called:
+  - HDFC Silver ETF FoF
+  category: 'Commodities: Silver FoF'
   plan: Direct
   option: Growth
   groww_url: https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth
@@ -90,6 +160,23 @@ schemes:
   amfi_scheme_code: '150186'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186
   sebi_category: Precious Metals FoF (Min 95% in Silver ETF)
+  aliases:
+  - hdfc silver etf fund of fund
+  - hdfc silver etf fund of funds
+  - silver etf fund of funds
+  - hdfc silver fof growth
+  - hdfc silver etf fof
+  - hdfc silver fof
+  - silver etf fof
+  - silver fof
+  - hdfc silver etf
+  - hdfc silver fund
+  - hdfc silver
+  - silver etf
+  - silver fund
+  - silver
+  pinned_fund_manager: Arun Agarwal, Nirman Morakhia
+  factsheet_key: silver_fof
   official_documents:
   - title: HDFC Silver ETF FoF Scheme Factsheet
     type: Monthly Factsheet
@@ -105,6 +192,7 @@ schemes:
     url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150186
 - id: hdfc_multicap_dg
   name: HDFC Multi Cap Fund
+  official_name: HDFC Multi Cap Fund (Direct - Growth)
   category: 'Equity: Multi Cap'
   plan: Direct
   option: Growth
@@ -113,6 +201,23 @@ schemes:
   amfi_scheme_code: '149262'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149262
   sebi_category: Multi Cap Fund (Min 25% Large, 25% Mid, 25% Small Cap)
+  aliases:
+  - hdfc multi cap fund
+  - hdfc multi-cap fund
+  - hdfc multi cap
+  - hdfc multi-cap
+  - hdfc multicap
+  - multicap direct growth
+  - hdfc multicap direct growth
+  - multicap scheme
+  - multicap fund
+  - multicap
+  - multi cap fund
+  - multi-cap fund
+  - multi cap
+  - multi-cap
+  pinned_fund_manager: Amar Kalkundrikar
+  factsheet_key: multicap
   official_documents:
   - title: HDFC Multi Cap Fund Scheme Factsheet
     type: Monthly Factsheet

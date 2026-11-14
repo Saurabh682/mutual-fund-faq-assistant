@@ -1007,6 +1007,7 @@ mf-faq-assistant/
 │   │   ├── main.py
 │   │   ├── api/                     # Routers: threads, messages, meta, admin
 │   │   ├── core/                    # Config, logging, rate limiting
+│   │   │   └── schemes.py           # Scheme catalogue built from data/corpus_manifest.yaml (registry, count, UI list)
 │   │   ├── guardrails/
 │   │   │   ├── pii.py               # Regex + Verhoeff checksum
 │   │   │   ├── intent.py            # Rules + model classifier
@@ -1097,4 +1098,4 @@ mf-faq-assistant/
 | **ADR-8** | **Metadata scheme pre-filter** | Pure semantic search | Prevents cross-scheme number mix-ups, the most damaging error class. |
 | **ADR-9** | **Source priority ordering (AMC > AMFI/SEBI > Groww)** | Equal weighting | Official documents are authoritative; Groww used as reference context only. |
 | **ADR-10**| **Per-thread isolated state, anonymous client ID** | Global memory / login | Meets multi-thread requirement with minimal privacy surface. |
-| **ADR-11**| **Manifest-driven scheme registry; add HDFC schemes before other AMCs** | Hand-edit each scheme in code; widen to other AMCs first | Today a scheme is wired into about 8 places by hand. One manifest source makes each addition a data change that tests can verify, and staying inside one AMC keeps the out-of-scope guardrail and all eval sets valid. Supersedes the "≤ 25 sources" sizing in ADR-7, to be re-measured per wave. |
+| **ADR-11**| **Manifest-driven scheme registry; add HDFC schemes before other AMCs** | Hand-edit each scheme in code; widen to other AMCs first | Before Phase 9.0 a scheme was wired into about 8 places by hand; `app/core/schemes.py` now builds the registry, count and UI list from the manifest. One manifest source makes each addition a data change that tests can verify, and staying inside one AMC keeps the out-of-scope guardrail and all eval sets valid. Supersedes the "≤ 25 sources" sizing in ADR-7, to be re-measured per wave. |

@@ -17,6 +17,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 
 from app.core.config import settings
+from app.core.schemes import SCHEME_COUNT
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date, normalize_date_footer
 
 import threading
@@ -301,7 +302,7 @@ def get_not_found_response(last_updated: Optional[str] = None) -> Dict[str, Any]
     """Generates deterministic safe fallback when query cannot be answered from corpus."""
     body = (
         "I don't have that information. I can answer questions about TER, exit load, "
-        "minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for 5 HDFC schemes."
+        f"minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} HDFC schemes."
     )
     url = CANONICAL_LINKS["ADVISORY"]
     doc_date = last_updated or get_default_corpus_date()

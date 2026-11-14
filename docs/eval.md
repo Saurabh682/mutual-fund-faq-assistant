@@ -347,11 +347,13 @@ Applies to every wave in [corpus-expansion-roadmap.md](corpus-expansion-roadmap.
 
 ### `EVAL-P9.1`: Registry Completeness
 - **Objective**: Every manifest scheme is fully wired.
-- **Pass Criteria**: Each scheme has aliases, a `ground_truth.yaml` row, a facts.db row or an explicit `not_applicable` for each of the 8 fields, and at least 8 golden cases.
+- **Pass Criteria**: Each scheme has aliases (none shared with another scheme), a `ground_truth.yaml` row, a facts.db row or an explicit `not_applicable` for each field, at least 8 golden cases, and a README entry. Enforced by `backend/tests/test_scheme_registry.py`.
 
 ### `EVAL-P9.2`: Refactor Equivalence (Phase 9.0)
 - **Objective**: Making the registry data-driven changes nothing.
-- **Pass Criteria**: With the count still at 5, golden, benign, adversarial, out-of-corpus and leak-probe results are identical to the pre-refactor baseline.
+- **Method**: `python -m eval.behaviour_snapshot snapshot <file>` on the baseline commit and on the changed tree with `GROQ_API_KEY` empty (so every answer is deterministic), then `... compare before.json after.json`. It records the answer, resolved entities and intent for every query in `eval/datasets/*.jsonl`, the static responses, and the scheme routes of the backend and the Space entry.
+- **Pass Criteria**: With the count still at 5, no shared value differs. Queries added to the datasets in the same change are listed, not failed. Then golden, benign, adversarial, out-of-corpus and leak-probe results match the baseline.
+- **Result (9.0)**: 15,051 shared values compared, 1 differs: the synthesis prompt lists the same schemes in manifest order.
 
 ### `EVAL-P9.3`: Alias Collision and Wrong-Scheme Isolation
 - **Objective**: Similar names never return another scheme's number.

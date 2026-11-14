@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.schemes import SCHEME_COUNT, scheme_options
 from app.api.guardrails import router as guardrails_router
 from app.api.rag import router as rag_router
 from app.api.threads import router as threads_router
@@ -118,7 +119,7 @@ def health_check():
         "llm_provider": "groq",
         "llm_model": settings.GROQ_MODEL,
         "amc": "HDFC Mutual Fund",
-        "schemes_count": 5
+        "schemes_count": SCHEME_COUNT
     }
 
 @app.get("/api/v1/facts/schemes")
@@ -137,13 +138,7 @@ def get_metadata():
             "What is the minimum SIP amount for HDFC Small Cap Fund?",
             "What is the lock-in period for ELSS mutual funds?"
         ],
-        "schemes": [
-            {"id": "hdfc_midcap_dg", "name": "HDFC Mid-Cap Opportunities Fund (Direct - Growth)"},
-            {"id": "hdfc_smallcap_dg", "name": "HDFC Small Cap Fund (Direct - Growth)"},
-            {"id": "hdfc_largecap_dg", "name": "HDFC Top 100 Fund (Direct - Growth)"},
-            {"id": "hdfc_silver_fof_dg", "name": "HDFC Silver ETF FoF (Direct - Growth)"},
-            {"id": "hdfc_multicap_dg", "name": "HDFC Multi Cap Fund (Direct - Growth)"}
-        ]
+        "schemes": scheme_options()
     }
 
 @app.post("/api/v1/feedback")

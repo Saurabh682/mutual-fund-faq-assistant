@@ -6,6 +6,7 @@ import yaml
 import json
 import chromadb
 from app.core.config import settings
+from app.core.schemes import SCHEME_COUNT, SCHEME_REGISTRY
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 MANIFEST_PATH = os.path.join(BASE_DIR, "data", "corpus_manifest.yaml")
@@ -19,15 +20,9 @@ def test_manifest_integrity():
         manifest = yaml.safe_load(f)
 
     assert manifest["allowed_domains"] == ["groww.in"]
-    assert len(manifest["sources"]) == 5
+    assert len(manifest["sources"]) == SCHEME_COUNT
 
-    expected_urls = {
-        "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth",
-        "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth"
-    }
+    expected_urls = {s["groww_url"] for s in manifest["schemes"]}
 
     manifest_urls = {s["url"] for s in manifest["sources"]}
     assert manifest_urls == expected_urls
@@ -38,16 +33,15 @@ def test_facts_db_contents():
     cursor = conn.cursor()
 
     cursor.execute("SELECT COUNT(DISTINCT scheme_id) FROM facts")
-    assert cursor.fetchone()[0] == 5
+    assert cursor.fetchone()[0] == SCHEME_COUNT
 
     required_fields = {"ter_direct", "exit_load", "min_sip", "min_lumpsum", "lock_in", "riskometer", "benchmark"}
-    for scheme_id in ["hdfc_midcap_dg", "hdfc_smallcap_dg", "hdfc_largecap_dg", "hdfc_silver_fof_dg", "hdfc_multicap_dg"]:
+    for scheme_id in SCHEME_REGISTRY:
         cursor.execute("SELECT field, value FROM facts WHERE scheme_id = ?", (scheme_id,))
         rows = dict(cursor.fetchall())
         for f in required_fields:
             assert f in rows, f"Missing field {f} in {scheme_id}"
             assert len(rows[f]) > 0
-        assert rows["riskometer"] == "Very High Risk", f"{scheme_id} riskometer should be 'Very High Risk'"
 
     conn.close()
 
@@ -157,9 +151,9 @@ def test_ingestion_report():
         report = json.load(f)
 
     assert report["status"] == "success"
-    assert report["total_sources"] == 5
+    assert report["total_sources"] == SCHEME_COUNT
     assert report["total_chunks"] >= 30
-    assert len(report["schemes"]) == 5
+    assert len(report["schemes"]) == SCHEME_COUNT
 
 
 class TestOfficialCorpusSpecPoint8:

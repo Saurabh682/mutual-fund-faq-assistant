@@ -15,6 +15,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.core.schemes import SCHEME_COUNT
 from app.rag.entities import (
     SCHEME_REGISTRY,
     get_disambiguation_response,
@@ -193,7 +194,7 @@ class TestEVAL_P3_3_OutOfCorpusFallback:
         assert data["resolution_type"] in ("not_found", "external_amc")
         assert (
             "I don't have that information" in data["text"]
-            or "5 selected HDFC Mutual Fund schemes" in data["text"]
+            or f"{SCHEME_COUNT} selected HDFC Mutual Fund schemes" in data["text"]
         )
         assert data["citation_url"] == "https://www.amfiindia.com/investor-corner/knowledge-center"
         assert "Last updated from sources:" in data["rendered"]

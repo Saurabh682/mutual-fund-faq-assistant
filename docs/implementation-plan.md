@@ -945,7 +945,7 @@ The full plan, candidate list with probed Groww URLs, risks and decision log liv
 
 | Step | Work | Gate |
 |---|---|---|
-| **9.0** | Make schemes data-driven: manifest is the single source for registry, aliases, UI list and the scheme count in user-facing text. Count stays 5. | Every existing eval gives identical results |
+| **9.0** ✅ | Make schemes data-driven: manifest is the single source for registry, aliases, UI list and the scheme count in user-facing text. Count stays 5. | Every existing eval gives identical results (met: 15,051 values compared, only the prompt's scheme order differs) |
 | **9.1** | Fetch gate per candidate: parse the 8 fields, cross-check against the page, defer anything unparsable | Fields present, not applicable, or deferred |
 | **9.2** | Instrument-type semantics: `not_applicable` facts for ETF exit load, ELSS lock-in, debt exit-load slabs | No "I don't have that" for facts that do not exist |
 | **9.3** | Entity-resolution safety: alias-collision tests, clarification on ambiguity, made-up fund resolves to nothing | 0 wrong-scheme answers |
@@ -953,6 +953,6 @@ The full plan, candidate list with probed Groww URLs, risks and decision log liv
 | **9.5** | Operations: daily CI time, scraping politeness, index size and Space memory, latency | p95 targets still met |
 
 ### Phase 9 Acceptance Criteria
-- [ ] Scheme count in refusals, prompts, UI and README is derived from the registry, never hand-typed.
-- [ ] Registry completeness test passes for every scheme.
+- [x] Scheme count in refusals, prompts and UI is derived from the registry; the README is checked against it by a test. (9.0)
+- [x] Registry completeness test passes for every scheme. (9.0)
 - [ ] Waves 1 to 3 each meet the Definition of Done in the roadmap, or the wave is deferred with the reason logged.

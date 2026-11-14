@@ -34,6 +34,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../b
 
 from fastapi.testclient import TestClient
 from app.main import app, _IP_REQUEST_TIMESTAMPS
+from app.core.schemes import SCHEME_COUNT
 
 client = TestClient(app)
 
@@ -180,7 +181,7 @@ def evaluate_benchmark(dataset_path: str, report_output_path: str) -> Dict[str, 
     report_lines = [
         "# 📊 Mutual Fund FAQ Assistant — Golden Evaluation Report",
         f"\n**Execution Timestamp**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
-        f"**Corpus Target**: Strictly 5 HDFC Mutual Fund Groww Schemes",
+        f"**Corpus Target**: Strictly {SCHEME_COUNT} HDFC Mutual Fund Groww Schemes",
         f"**LLM Provider**: Groq (`qwen/qwen3.8-27b`)",
         f"**Total Benchmark Test Cases**: {total_queries}\n",
         "## 1. Executive Metric Scorecard\n",

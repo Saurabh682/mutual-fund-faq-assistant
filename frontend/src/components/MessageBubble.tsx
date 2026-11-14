@@ -352,7 +352,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
             {title}
           </span>
           <p className="text-[14px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
-            {message.text || 'I can only answer factual questions about these 5 HDFC schemes.'}
+            {message.text || 'I can only answer factual questions about these HDFC schemes.'}
           </p>
         </div>
       </div>

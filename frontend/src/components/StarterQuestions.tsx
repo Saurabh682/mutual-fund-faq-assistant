@@ -32,7 +32,7 @@ export const StarterQuestions: React.FC = () => {
       {/* Title & Subtitle */}
       <div className="flex flex-col gap-1.5 mb-5">
         <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0F172A] dark:text-[#dde4df] tracking-tight">
-          Ask facts about 5 HDFC schemes
+          {schemes.length > 0 ? `Ask facts about ${schemes.length} HDFC schemes` : 'Ask facts about HDFC schemes'}
         </h1>
         <p className="text-[14px] sm:text-[15px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
           Expense ratio, exit load, minimum SIP, riskometer, benchmark and more. Answers cite their

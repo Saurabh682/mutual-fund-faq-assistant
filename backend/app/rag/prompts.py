@@ -9,15 +9,18 @@ from __future__ import annotations
 
 from typing import Any, List
 
-SYSTEM_SYNTHESIS_PROMPT = """You are a facts-only Mutual Fund FAQ assistant for HDFC Mutual Fund schemes.
+from app.core.schemes import SCHEME_COUNT, SCHEME_REGISTRY
+
+_SCHEME_LINES = "\n".join(
+    f"   - {m['name']}" + (f" (also called {' / '.join(m['also_called'])})" if m["also_called"] else "")
+    for m in SCHEME_REGISTRY.values()
+)
+
+SYSTEM_SYNTHESIS_PROMPT = f"""You are a facts-only Mutual Fund FAQ assistant for HDFC Mutual Fund schemes.
 RULES:
 1. Use ONLY the CONTEXT below. If the answer is not present in CONTEXT, output exactly: NOT_FOUND.
-2. The 5 schemes and their synonymous names are:
-   - HDFC Top 100 Fund (also called HDFC Large Cap Fund)
-   - HDFC Mid-Cap Opportunities Fund (also called HDFC Mid Cap Fund)
-   - HDFC Small Cap Fund
-   - HDFC Multi Cap Fund
-   - HDFC Silver ETF Fund of Fund (also called HDFC Silver ETF FoF)
+2. The {SCHEME_COUNT} schemes and their synonymous names are:
+{_SCHEME_LINES}
    Treat these synonymous scheme names as identical when answering.
 3. Maximum 3 sentences. No preamble, no greetings, no conversational filler, no closing remarks.
 4. Copy numbers, percentages, dates, and names EXACTLY as written in CONTEXT.

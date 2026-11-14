@@ -1,7 +1,7 @@
 # 🗺️ Corpus Expansion Roadmap
 # Growing from 5 HDFC schemes to ~19 (funds, index funds, ETFs, FoFs)
 
-> **Status:** Planned, nothing implemented yet. This is Phase 9 of [implementation-plan.md](implementation-plan.md).
+> **Status:** Phase 9.0 done (2026-11-15). 9.1 onwards planned, no new schemes added yet. This is Phase 9 of [implementation-plan.md](implementation-plan.md).
 > **Last checked:** 2026-11-14 (Groww candidate URLs probed; see [Candidate list](#2-candidate-list-groww-pages-probed-2026-11-14)).
 
 ---
@@ -54,7 +54,7 @@ Waves are ordered by risk: Wave 1 reuses the equity field set the system already
 
 ## 3. What Is Hard-Wired To "5 Schemes" Today
 
-Adding a scheme currently means editing all of these by hand, which is where mistakes creep in. This is the main reason for Phase 9.0.
+Before 9.0, adding a scheme meant editing all of these by hand, which is where mistakes creep in. 9.0 removed that: the manifest is now the source, except for the static claims and hand-written documents noted in the Risks table.
 
 | Area | Where | Problem |
 |---|---|---|
@@ -71,25 +71,29 @@ Adding a scheme currently means editing all of these by hand, which is where mis
 
 ## 4. Phases
 
-### Phase 9.0: Make schemes data-driven (no new funds yet)
+### Phase 9.0: Make schemes data-driven (no new funds yet): ✅ done 2026-11-15
 
-**Goal:** adding a scheme becomes one manifest entry plus a ground-truth row. Ship this alone, with the count still at 5, so behaviour changes are zero and provable.
+**Goal:** adding a scheme becomes one manifest entry plus a ground-truth row. Shipped alone, with the count still at 5, so behaviour changes are zero and provable.
 
-1. `corpus_manifest.yaml` becomes the single source of truth: id, display name, category, `instrument_type` (`equity | index | etf | fof | hybrid | elss | debt`), Groww URL, aliases, AMFI code.
-2. Build `SCHEME_REGISTRY`, the UI dropdown list and the `/api/v1/facts/schemes` response from the manifest at startup. Delete the duplicate lists in `app.py` and `main.py`.
-3. Replace "5 HDFC schemes" wording with a count derived from the registry (`len(SCHEME_REGISTRY)`), including the refusal, validator and retriever strings and the tests that assert them.
-4. Replace per-scheme branches in the corpus build and HTML parser with `instrument_type` handling.
-5. Clarification answer ("which scheme?") lists at most the **top 5 matches** by category, not every scheme.
-6. Add a **registry completeness test**: every manifest scheme has aliases, a ground-truth row, a facts.db row for each applicable field, and a golden case.
+What was built:
 
-**Gate:** full suite, golden eval, leak probe and benign eval produce the **same results as today** (59/59, 0 leaks, 105/105, 60/60).
+1. **One source of truth.** The `schemes` list in `data/corpus_manifest.yaml` now carries everything the code needs: id, `name`, `official_name`, category, Groww/AMC/AMFI URLs and code, `aliases`, `also_called` (prompt synonyms), `pinned_fund_manager`, `factsheet_key`. `backend/app/core/schemes.py` turns it into `SCHEME_REGISTRY`, `SCHEME_COUNT` and the dropdown list; `ingest/manifest.py` serves the ingestion code.
+   - **Not added: `instrument_type`.** Nothing in 9.0 behaves differently by type, so the field arrives in 9.2 together with the code that reads it.
+   - Where manifest and registry disagreed (Top 100's `name`, Silver FoF's `category`) the manifest adopted the registry value, because that is what users see.
+2. **Duplicate lists deleted.** `SCHEME_REGISTRY` (`entities.py`), `/api/v1/meta` (`main.py` and `app.py`), the Space dropdown, the Gradio header tags and the health `schemes_count` all read the catalogue.
+3. **Counts derived.** "5 HDFC schemes" in the refusal, validator, retriever, entity and prompt text is `SCHEME_COUNT`; the frontend heading uses `meta.schemes.length`. Text is identical at 5. Blanket claims about *every* scheme in static text (`procedures.py`, one knowledge-base document) are **not** derived, because their wording (minimum amount, lock-in, "non-ELSS") can go false independent of the number. A test fails when the count they cite no longer matches the registry, forcing a re-read.
+4. **Per-scheme branches moved to data.** Fund-manager pins in `ingest/parsers/html.py` are now `pinned_fund_manager` in the manifest (a scheme with no pin uses the managers scraped from its page); the factsheet filename map in `ingest/factsheet_parser.py` is built from `factsheet_key`. The 15 hand-written official documents in `ingest/build_official_corpus.py` are **content, not branches**, so they stay; how a *new* scheme gets such documents is a 9.1 decision.
+5. **Clarification.** The "which scheme?" answer names the first 5 schemes in manifest order and says "for example" when there are more. A bare category that matches several schemes is 9.3.
+6. **Completeness tests** (`backend/tests/test_scheme_registry.py`): each scheme has its names, URLs and aliases, exactly one Groww `sources` row and one AMC `official_sources` row, no alias shared with another scheme, a ground-truth row, facts for 10 fields, at least 8 golden cases (two projection-refusal cases were added for Silver FoF and Multi Cap to reach 8), and a README entry.
+
+**Gate (met):** `eval/behaviour_snapshot.py` records the answer, entities and intent for 468 queries plus the static responses and the scheme routes of both the backend and the Space entry, with the LLM off so everything is deterministic. Before and after: 15,051 shared values, **1 difference**: the synthesis prompt lists the same five schemes in manifest order instead of a hand-picked order. Every answer, entity, intent, static response and route is identical. Then the full suite, leak probe (0 of 353 queries leaked), benign eval (105/105), adversarial (60/60) and golden eval (61/61, the two new cases included) all pass.
 
 ### Phase 9.1: Fetch gate for each candidate
 
 For every candidate in a wave, before adding it:
-1. Fetch the Groww page with the existing fetcher (polite delay, same user agent policy as Phase 1).
+1. Fetch the Groww page with the existing fetcher (polite delay, same user agent policy as Phase 1). Decide where the scheme's official documents come from: the 15 existing ones are hand-written, which does not scale.
 2. Parse all 8 fields. Record which are **present, not applicable** (e.g. an ETF with no exit load), or **missing**.
-3. Cross-check TER, exit load and minimum SIP against the page text by hand once and store them in `ground_truth.yaml`.
+3. Cross-check TER, exit load, minimum SIP and the fund manager against the page text by hand once, store them in `ground_truth.yaml`, and set `pinned_fund_manager` in the manifest.
 4. Reject or defer any scheme whose key fields cannot be parsed; log it in the decision table at the end of this file.
 
 ### Phase 9.2: Instrument-type semantics
@@ -149,6 +153,8 @@ Repeat for each wave:
 | Groww layout differs by category | Parser breaks for one type | Per-type parser tests from saved snapshots |
 | Groww blocks or rate-limits the scraper | Stale data | Polite delay, fail loudly, keep last good values |
 | Hosted Space runs out of memory | App down | Measure after each wave; stop expanding if headroom is thin |
+| Static text that speaks for "all supported schemes" (`procedures.py` minimum amount and lock-in, the ELSS knowledge-base document) | Becomes false when ELSS, Liquid or an ETF joins | `test_blanket_claims_about_all_schemes_are_reviewed_when_the_count_changes` fails on any new scheme; reword each claim, then update its number |
+| New scheme has no `pinned_fund_manager` | Fund manager comes from the scraped page, which is unverified | Phase 9.1 hand-check; pin it once confirmed |
 
 ---
 
@@ -160,7 +166,7 @@ Repeat for each wave:
 - [ ] 0 advice leaks in the leak probe, 100% adversarial refusal, 0 over-refusal on benign queries.
 - [ ] Alias collision tests green; a made-up HDFC fund resolves to no scheme.
 - [ ] Latency targets met; daily ingestion finishes within its time budget.
-- [ ] README, architecture and eval docs show the new count (derived, not hand-typed).
+- [ ] README, architecture and eval docs show the new count (the README is checked against the registry by a test; the others by hand).
 - [ ] Deployed and one fact per new scheme checked live.
 
 ---
@@ -171,5 +177,8 @@ Repeat for each wave:
 |---|---|---|
 | 2026-11-14 | Stay within HDFC AMC for this expansion | Keeps the out-of-scope AMC guardrail and all eval sets valid |
 | 2026-11-14 | Data-driven registry first (9.0), at unchanged count | Proves refactor safety before behaviour changes |
+| 2026-11-15 | `instrument_type` deferred from 9.0 to 9.2 | No 9.0 code behaves differently by type; add it with its first reader |
+| 2026-11-15 | README count is test-checked, not generated | A generator for one table is more machinery than a failing test that says what to edit |
+| 2026-11-15 | Hand-written official documents stay in `build_official_corpus.py` | They are content; 9.1 decides how new schemes get theirs |
 | 2026-11-14 | Waves ordered by field-semantics risk | Index/equity first, ETF/FoF second, debt/ELSS/thematic last |
 | _tbd_ | Which candidates are deferred after the fetch gate | Filled in as Phase 9.1 runs |
