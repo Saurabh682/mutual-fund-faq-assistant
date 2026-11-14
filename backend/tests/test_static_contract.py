@@ -311,7 +311,7 @@ class TestTypoResolutionAndAdversarialRecall:
         with open(dataset_path, "r", encoding="utf-8") as f:
             cases = [json.loads(line) for line in f if line.strip()]
 
-        assert len(cases) == 30, f"Expected 30 adversarial cases, found {len(cases)}"
+        assert len(cases) == 60, f"Expected 60 adversarial cases, found {len(cases)}"
 
         failed_cases = []
         for c in cases:

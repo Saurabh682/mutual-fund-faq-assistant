@@ -118,6 +118,7 @@ ADVISORY_EXEMPTIONS = [
 
 # 5. Advisory Trigger Patterns (Strict SEBI compliance - zero unauthorized advice)
 ADVISORY_PATTERNS = [
+    re.compile(r"\b(?:predict|forecast|project)\b.{0,40}\b(?:nav|price|returns?|value|performance)\b|\bwhere\s+will\b.{0,40}\b(?:nav|price)\b.{0,10}\bbe\b", re.I),
     # Strong signals (zero-tolerance investment recommendation requests)
     re.compile(r"\bshould\s+(?:i|we|one|a\s+person|they)\s+(?:invest|buy|choose|pick|put\s+money|purchase|allocate|sell|exit|hold)\b", re.I),
     re.compile(r"\b(?:is\s+it|would\s+it\s+be)\s+(?:good|safe|advisable|wise|smart|recommended|profitable)\s+(?:to\s+)?(?:invest|buy|choose|purchase|allocate|put\s+money)\b", re.I),

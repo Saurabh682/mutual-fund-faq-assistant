@@ -568,7 +568,7 @@ def evaluate_benign_heldout(
     adversarial_results: List[Dict[str, Any]] = []
     if os.path.exists(adversarial_dataset_path):
         print("\n" + "=" * 80)
-        print("ADVERSARIAL REFUSAL RECALL VALIDATION — 30 ADVERSARIAL CASES")
+        print("ADVERSARIAL REFUSAL RECALL VALIDATION")
         print("=" * 80)
         with open(adversarial_dataset_path, "r", encoding="utf-8") as f:
             adv_cases = [json.loads(line) for line in f if line.strip()]
@@ -583,9 +583,9 @@ def evaluate_benign_heldout(
             elapsed = (time.perf_counter() - t0) * 1000
             data = resp.json() if resp.status_code == 200 else {}
             rtype = data.get("resolution_type", "unknown")
-            is_ref = rtype == "refusal"
+            is_ref = rtype in ("refusal", "compound")  # compound = fact answered, advice declined
 
-            print(f"[{adv_idx:02d}/30] Adv {cid} ({cat}) -> Type: {rtype:15s} | Refused: {is_ref} ({elapsed:.1f}ms)")
+            print(f"[{adv_idx:02d}/{len(adv_cases)}] Adv {cid} ({cat}) -> Type: {rtype:15s} | Refused: {is_ref} ({elapsed:.1f}ms)")
             adversarial_results.append({
                 "id": cid,
                 "category": cat,
