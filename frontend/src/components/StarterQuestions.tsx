@@ -1,24 +1,17 @@
 import React, { useState } from 'react';
-import { ArrowRight, HelpCircle, Search, ShieldCheck, Table2, X } from 'lucide-react';
+import { ArrowRight, HelpCircle, X } from 'lucide-react';
 import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
-import { fundHouseNames, groupByFundHouse } from '../lib/schemes';
+import { fundHouseNames } from '../lib/schemes';
 
 const CATEGORY_TAGS = ['Exit Rules', 'Investment Minimums', 'Fund Norms'];
-const CHIPS_SHOWN = 5;
 const WELCOME_KEY = 'fundfacts.welcomeDismissed';
-const HOW_IT_WORKS = [
-  { icon: Search, title: 'Ask', text: 'Pick a scheme or type a question about TER, exit load, SIP or benchmark.' },
-  { icon: Table2, title: 'Get a fact', text: 'One sentence plus a stat table, with its source link and date.' },
-  { icon: ShieldCheck, title: 'No advice', text: 'Recommendations, comparisons and return predictions are politely declined (SEBI rules).' },
-];
 
 export const StarterQuestions: React.FC = () => {
-  const { meta, selectedSchemeId, setSelectedSchemeId, sendUserMessage, isSending, setAboutModalOpen } =
+  const { meta, sendUserMessage, isSending, setAboutModalOpen } =
     useChatStore();
 
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showWelcome, setShowWelcome] = useState(() => {
     try {
       return localStorage.getItem(WELCOME_KEY) !== '1';
@@ -43,10 +36,6 @@ export const StarterQuestions: React.FC = () => {
   ];
 
   const schemes = meta?.schemes || [];
-
-  const handleChipClick = (schemeId: string) => {
-    setSelectedSchemeId(schemeId);
-  };
 
   const handleQuestionClick = (question: string) => {
     if (isSending) return;
@@ -80,88 +69,16 @@ export const StarterQuestions: React.FC = () => {
         </div>
       )}
       {/* Title & Subtitle */}
-      <div className="flex flex-col gap-1.5 mb-5">
+      <div className="flex flex-col gap-1.5 mb-6">
         <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0F172A] dark:text-[#f1f5f9] tracking-tight">
           {schemes.length > 0
             ? `Ask facts about ${schemes.length} ${fundHouseNames(schemes) || 'mutual fund'} schemes`
             : 'Ask facts about mutual fund schemes'}
         </h1>
         <p className="text-[14px] sm:text-[15px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
-          A facts-only assistant: expense ratio, exit load, minimum SIP, riskometer, benchmark and
-          more. Every answer comes from the Groww scheme page, with its source and date.
+          Expense ratio, exit load, minimum SIP, riskometer, benchmark and more, each with its
+          source and date. Pick a scheme above or try a question below.
         </p>
-      </div>
-
-      {/* How it works: explains the refusals before anyone hits one */}
-      <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6" aria-label="How it works">
-        {HOW_IT_WORKS.map(({ icon: Icon, title, text }, i) => (
-          <li
-            key={title}
-            className="flex gap-3 p-3.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]"
-          >
-            <span className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center bg-teal-50 text-[#0D9488] dark:bg-[#2d353b] dark:text-[#6ee7b7]">
-              <Icon className="w-4 h-4" aria-hidden="true" />
-            </span>
-            <span className="flex flex-col gap-0.5">
-              <span className="text-[14px] font-semibold text-[#0F172A] dark:text-[#f1f5f9]">
-                {i + 1}. {title}
-              </span>
-              <span className="text-[13px] leading-snug text-[#475569] dark:text-[#94a3b8]">{text}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-
-      {/* Scheme chips, one row per fund house; long lists collapse */}
-      <div className="flex flex-wrap gap-2 mb-6" aria-label="Scheme quick selector">
-        {groupByFundHouse(schemes).map((g) => {
-          const isOpen = expanded[g.house] || g.schemes.length <= CHIPS_SHOWN + 1;
-          const visible = isOpen
-            ? g.schemes
-            : g.schemes.filter((s, i) => i < CHIPS_SHOWN || s.id === selectedSchemeId);
-          return (
-          <div key={g.house} className="w-full flex flex-wrap gap-2 items-center">
-            {g.house && (
-              <span className="w-full text-[12px] font-semibold uppercase tracking-wide text-[#64748B] dark:text-[#94a3b8]">
-                {g.house} ({g.schemes.length})
-              </span>
-            )}
-            {visible.map((s) => {
-          const isSelected = s.id === selectedSchemeId;
-          return (
-            <button
-              key={s.id}
-              onClick={() => handleChipClick(s.id)}
-              className={`min-h-[44px] px-3.5 py-1.5 rounded-xl text-[13px] font-medium flex items-center gap-2 transition-all cursor-pointer border ${
-                isSelected
-                  ? 'bg-teal-50 text-[#0D9488] border-[#0D9488]/30 font-semibold dark:bg-[#2d353b] dark:text-[#f1f5f9] dark:border-[#6ee7b7]/50'
-                  : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A] dark:bg-[#22282c] dark:text-[#94a3b8] dark:border-[#2d353b] dark:hover:bg-[#2d353b] dark:hover:text-[#f1f5f9]'
-              }`}
-              type="button"
-              aria-pressed={isSelected}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isSelected ? 'bg-[#0D9488] dark:bg-[#6ee7b7]' : 'bg-transparent'
-                }`}
-              />
-              <span>{s.name.replace(' (Direct - Growth)', '').replace(' (Direct Growth)', '')}</span>
-            </button>
-          );
-            })}
-            {g.schemes.length > CHIPS_SHOWN + 1 && (
-              <button
-                type="button"
-                onClick={() => setExpanded((e) => ({ ...e, [g.house]: !isOpen }))}
-                aria-expanded={isOpen}
-                className="min-h-[44px] px-3.5 py-1.5 rounded-xl text-[13px] font-semibold border border-dashed cursor-pointer text-[#0D9488] border-[#0D9488]/40 hover:bg-teal-50 dark:text-[#6ee7b7] dark:border-[#6ee7b7]/40 dark:hover:bg-[#2d353b]"
-              >
-                {isOpen ? 'Show fewer' : `+${g.schemes.length - visible.length} more`}
-              </button>
-            )}
-          </div>
-          );
-        })}
       </div>
 
       {/* 3 Starter Action Cards */}
