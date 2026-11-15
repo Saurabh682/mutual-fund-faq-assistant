@@ -24,6 +24,7 @@ from app.rag.entities import (
     get_unsupported_plan_response,
     resolve_entities,
 )
+from app.rag.crossfund import answer_cross_fund
 from app.rag.facts import lookup_fact
 from app.rag.followups import generate_followup_suggestions
 from app.rag.retriever import HybridRetriever, get_not_found_response
@@ -201,6 +202,36 @@ async def post_message(
         if thread.title in _DEFAULT_THREAD_TITLES:
             clean_title = user_query[:35] + ("..." if len(user_query) > 35 else "")
             _store.update_thread_title(thread_id, clean_title)
+
+        # 1b. Cross-fund lookups ("exit load of all schemes"); rankings get the comparison refusal
+        cross = answer_cross_fund(user_query)
+        if cross:
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            asst_msg = MessageDTO(
+                id=f"msg_{uuid.uuid4().hex[:12]}",
+                role="assistant",
+                type=cross["type"],
+                text=cross["text"],
+                sentence_count=len(split_sentences(cross["text"].split("\n\n")[0])),
+                citation_url=cross["citation_url"],
+                last_updated=cross["last_updated"],
+                rendered=cross["rendered"],
+                suggested_followups=cross["followups"],
+                latency_ms=elapsed_ms,
+            )
+            _store.append_message(thread_id, asst_msg)
+            record_audit_entry(
+                thread_id=thread_id,
+                client_id=client_id,
+                redacted_query=user_query,
+                resolution_type=cross["type"],
+                intent="CROSS_FUND",
+                field=cross["field"],
+                citation_url=cross["citation_url"],
+                sentence_count=asst_msg.sentence_count,
+                latency_ms=elapsed_ms,
+            )
+            return asst_msg
 
         # 2. Intent Classification (Compliance Stage)
         intent_res = classify_intent(user_query)
