@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sqlite3
 import uuid
@@ -63,6 +64,12 @@ def init_session_db(db_path: Optional[str] = None) -> None:
             );
             """
         )
+
+        # Added after the first release: older databases get the columns on start-up
+        have = {r[1] for r in cursor.execute("PRAGMA table_info(messages);")}
+        for column in ("suggested_followups", "options"):
+            if column not in have:
+                cursor.execute(f"ALTER TABLE messages ADD COLUMN {column} TEXT;")
 
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_threads_client ON threads(client_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id);")
@@ -146,6 +153,8 @@ class SessionStore:
                 rendered=m["rendered"],
                 timestamp=datetime.fromisoformat(m["timestamp"]),
                 latency_ms=m["latency_ms"],
+                suggested_followups=json.loads(m["suggested_followups"] or "[]"),
+                options=json.loads(m["options"]) if m["options"] else None,
             )
             for m in m_rows
         ]
@@ -225,8 +234,8 @@ class SessionStore:
                 """
                 INSERT INTO messages (
                     id, thread_id, role, type, text, sentence_count, citation_url,
-                    last_updated, rendered, timestamp, latency_ms
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    last_updated, rendered, timestamp, latency_ms, suggested_followups, options
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     message.id,
@@ -240,6 +249,8 @@ class SessionStore:
                     message.rendered,
                     now,
                     message.latency_ms,
+                    json.dumps(message.suggested_followups),
+                    json.dumps(message.options) if message.options is not None else None,
                 ),
             )
             cursor.execute(

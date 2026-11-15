@@ -3,6 +3,7 @@ import {
   AlertCircle,
   Check,
   CheckCircle,
+  ChevronRight,
   Copy,
   ExternalLink,
   HelpCircle,
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
 import { parseAnswerText } from '../lib/answerText';
-import { formatDate } from '../lib/format';
+import { formatDate, groupIndian } from '../lib/format';
 import type { Message } from '../types/chat';
 import { shortSchemeName } from '../lib/schemes';
 
@@ -28,7 +29,7 @@ interface Props {
 }
 
 export const MessageBubble: React.FC<Props> = ({ message }) => {
-  const { meta, activeThread, sendUserMessage, submitMessageFeedback, isSending } = useChatStore();
+  const { meta, schemeFacts, activeThread, sendUserMessage, submitMessageFeedback, isSending } = useChatStore();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = (textToCopy: string) => {
@@ -185,18 +186,35 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
             Which scheme did you mean? Please select one to view its facts:
           </span>
         </div>
-        <div className="flex flex-wrap gap-2 pt-1">
-          {choices.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => sendUserMessage(c.prompt)}
-              disabled={isSending}
-              className="min-h-[44px] px-4 py-2 rounded-xl text-[13px] font-medium border transition-colors cursor-pointer bg-[#F8FAFC] border-[#CBD5E1] text-[#0F172A] hover:bg-emerald-50 hover:border-[#047857] hover:text-[#047857] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#242c28] dark:hover:text-[#10b981]"
-              type="button"
-            >
-              {c.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-2 pt-1">
+          {choices.map((c) => {
+            const house = meta?.schemes.find((s) => s.id === c.id)?.amc_name;
+            const facts = schemeFacts.find((f) => f.scheme_id === c.id);
+            const nav = facts?.nav?.value;
+            const aum = facts?.aum?.value;
+            return (
+              <button
+                key={c.id}
+                onClick={() => sendUserMessage(c.prompt)}
+                disabled={isSending}
+                className="group w-full min-h-[56px] px-4 py-3 rounded-xl text-left border transition-colors cursor-pointer flex items-center gap-3 bg-[#F8FAFC] border-[#E2E8F0] hover:bg-emerald-50 hover:border-[#047857] dark:bg-[#16201b] dark:border-[#2f3633] dark:hover:bg-[#242c28] disabled:opacity-50"
+                type="button"
+              >
+                <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <span className="text-[14px] font-semibold text-[#0F172A] group-hover:text-[#047857] dark:text-[#dde4df] dark:group-hover:text-[#10b981]">
+                    {c.label}
+                  </span>
+                  {(house || aum) && (
+                    <span className="text-[12px] text-[#64748B] dark:text-[#94a3b8]">
+                      {[house, aum && `AUM ${groupIndian(aum)}`].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </span>
+                {nav && <span className="text-[13px] font-semibold num-tabular text-[#0F172A] dark:text-[#dde4df]">NAV {nav}</span>}
+                <ChevronRight className="w-4 h-4 shrink-0 text-[#64748B] dark:text-[#94a3b8]" aria-hidden="true" />
+              </button>
+            );
+          })}
         </div>
       </div>
     );

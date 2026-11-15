@@ -177,3 +177,14 @@ def test_thread_clarification_carries_its_options():
     assert msg["type"] == "clarification"
     assert [o["id"] for o in msg["options"]] == ["hdfc_largecap_dg", "mahindra_largecap_dg"]
     assert all("minimum SIP" in o["prompt"] for o in msg["options"])
+
+
+def test_reloading_a_thread_keeps_clarification_options_and_followups():
+    thread = client.post("/api/v1/threads", json={"client_id": "multi-amc-reload"}).json()
+    headers = {"X-Client-Id": "multi-amc-reload"}
+    sent = client.post(
+        f"/api/v1/threads/{thread['id']}/messages", json={"text": "What is the exit load of mid cap fund?"}, headers=headers
+    ).json()
+    reloaded = client.get(f"/api/v1/threads/{thread['id']}", headers=headers).json()["messages"][-1]
+    assert reloaded["options"] == sent["options"] and len(sent["options"]) == 2
+    assert reloaded["suggested_followups"] == sent["suggested_followups"]

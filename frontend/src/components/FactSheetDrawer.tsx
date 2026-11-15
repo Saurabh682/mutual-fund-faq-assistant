@@ -25,6 +25,15 @@ interface FactSheetContentProps {
   titleId?: string;
 }
 
+/** Riskometer pill colour: green for low, through amber, to red for very high. */
+function riskTone(label: string): string {
+  const l = label.toLowerCase();
+  if (l.includes('very high')) return 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300';
+  if (l.includes('high')) return 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300';
+  if (l.includes('moderate')) return 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
+  return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300';
+}
+
 export const FactSheetContent: React.FC<FactSheetContentProps> = ({
   onClose,
   isModalOrDrawer = false,
@@ -34,6 +43,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
 
   const schemes = meta?.schemes || [];
   const activeFacts = schemeFacts.find((s) => s.scheme_id === selectedSchemeId);
+  const activeScheme = schemes.find((s) => s.id === selectedSchemeId);
 
   const fallbackIso = activeFacts && typeof activeFacts.as_of === 'string' ? activeFacts.as_of : '';
   const getMetric = (key: string): { val: string; iso: string; date: string } => {
@@ -124,6 +134,21 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
           </div>
         </div>
       </div>
+
+      {activeFacts && (
+        <div className="flex flex-wrap gap-2 pt-1 pb-2" aria-label="Scheme classification">
+          {activeScheme?.category && (
+            <span className="px-2.5 py-1 rounded-full text-[12px] font-semibold border bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#94a3b8]">
+              {activeScheme.category}
+            </span>
+          )}
+          {riskometer.val !== '—' && (
+            <span className={`px-2.5 py-1 rounded-full text-[12px] font-semibold ${riskTone(riskometer.val)}`}>
+              {riskometer.val}
+            </span>
+          )}
+        </div>
+      )}
 
       {!activeFacts ? (
         factsState === 'loading' ? (

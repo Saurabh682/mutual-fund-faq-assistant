@@ -1,16 +1,39 @@
 import React, { useState } from 'react';
-import { ArrowRight, HelpCircle, X } from 'lucide-react';
+import { ArrowRight, HelpCircle, Search, ShieldCheck, Table2, X } from 'lucide-react';
 import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
 import { fundHouseNames, groupByFundHouse } from '../lib/schemes';
 
 const CATEGORY_TAGS = ['Exit Rules', 'Investment Minimums', 'Fund Norms'];
+const CHIPS_SHOWN = 5;
+const WELCOME_KEY = 'fundfacts.welcomeDismissed';
+const HOW_IT_WORKS = [
+  { icon: Search, title: 'Ask', text: 'Pick a scheme or type a question about TER, exit load, SIP or benchmark.' },
+  { icon: Table2, title: 'Get a fact', text: 'One sentence plus a stat table, with its source link and date.' },
+  { icon: ShieldCheck, title: 'No advice', text: 'Recommendations, comparisons and return predictions are politely declined (SEBI rules).' },
+];
 
 export const StarterQuestions: React.FC = () => {
-  const { meta, selectedSchemeId, setSelectedSchemeId, sendUserMessage, isSending } =
+  const { meta, selectedSchemeId, setSelectedSchemeId, sendUserMessage, isSending, setAboutModalOpen } =
     useChatStore();
 
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return localStorage.getItem(WELCOME_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  });
+  const dismissWelcome = () => {
+    setShowWelcome(false);
+    try {
+      localStorage.setItem(WELCOME_KEY, '1');
+    } catch {
+      /* private mode: the banner just comes back next visit */
+    }
+  };
   const guideRef = useDialogA11y(isGuideOpen, () => setIsGuideOpen(false));
 
   const starterQuestions = meta?.starter_questions || [
@@ -32,6 +55,30 @@ export const StarterQuestions: React.FC = () => {
 
   return (
     <section className="rounded-2xl p-5 sm:p-7 shadow-sm border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620]">
+      {showWelcome && (
+        <div
+          role="note"
+          className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 p-3 rounded-xl border bg-emerald-50 border-[#047857]/20 text-[13px] text-[#0F172A] dark:bg-[#16201b] dark:border-[#10b981]/30 dark:text-[#dde4df]"
+        >
+          <span className="flex-1 min-w-[200px]">
+            <strong>New here?</strong> This assistant answers factual questions only. It won&apos;t recommend funds.
+          </span>
+          <button
+            type="button"
+            onClick={() => setAboutModalOpen(true)}
+            className="min-h-[44px] px-2 font-semibold text-[#047857] dark:text-[#10b981] hover:underline cursor-pointer"
+          >
+            Learn more
+          </button>
+          <button
+            type="button"
+            onClick={dismissWelcome}
+            className="min-h-[44px] px-4 rounded-lg font-semibold cursor-pointer bg-[#047857] text-white hover:bg-[#065f46]"
+          >
+            Got it
+          </button>
+        </div>
+      )}
       {/* Title & Subtitle */}
       <div className="flex flex-col gap-1.5 mb-5">
         <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0F172A] dark:text-[#dde4df] tracking-tight">
@@ -40,21 +87,46 @@ export const StarterQuestions: React.FC = () => {
             : 'Ask facts about mutual fund schemes'}
         </h1>
         <p className="text-[14px] sm:text-[15px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
-          Expense ratio, exit load, minimum SIP, riskometer, benchmark and more. Answers cite their
-          source and date.
+          A facts-only assistant: expense ratio, exit load, minimum SIP, riskometer, benchmark and
+          more. Every answer comes from the Groww scheme page, with its source and date.
         </p>
       </div>
 
-      {/* Scheme chips, one row per fund house */}
+      {/* How it works: explains the refusals before anyone hits one */}
+      <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-6" aria-label="How it works">
+        {HOW_IT_WORKS.map(({ icon: Icon, title, text }, i) => (
+          <li
+            key={title}
+            className="flex gap-3 p-3.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]"
+          >
+            <span className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center bg-emerald-50 text-[#047857] dark:bg-[#242c28] dark:text-[#10b981]">
+              <Icon className="w-4 h-4" aria-hidden="true" />
+            </span>
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[14px] font-semibold text-[#0F172A] dark:text-[#dde4df]">
+                {i + 1}. {title}
+              </span>
+              <span className="text-[13px] leading-snug text-[#475569] dark:text-[#94a3b8]">{text}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      {/* Scheme chips, one row per fund house; long lists collapse */}
       <div className="flex flex-wrap gap-2 mb-6" aria-label="Scheme quick selector">
-        {groupByFundHouse(schemes).map((g) => (
+        {groupByFundHouse(schemes).map((g) => {
+          const isOpen = expanded[g.house] || g.schemes.length <= CHIPS_SHOWN + 1;
+          const visible = isOpen
+            ? g.schemes
+            : g.schemes.filter((s, i) => i < CHIPS_SHOWN || s.id === selectedSchemeId);
+          return (
           <div key={g.house} className="w-full flex flex-wrap gap-2 items-center">
             {g.house && (
               <span className="w-full text-[12px] font-semibold uppercase tracking-wide text-[#64748B] dark:text-[#94a3b8]">
-                {g.house}
+                {g.house} ({g.schemes.length})
               </span>
             )}
-            {g.schemes.map((s) => {
+            {visible.map((s) => {
           const isSelected = s.id === selectedSchemeId;
           return (
             <button
@@ -77,13 +149,24 @@ export const StarterQuestions: React.FC = () => {
             </button>
           );
             })}
+            {g.schemes.length > CHIPS_SHOWN + 1 && (
+              <button
+                type="button"
+                onClick={() => setExpanded((e) => ({ ...e, [g.house]: !isOpen }))}
+                aria-expanded={isOpen}
+                className="min-h-[44px] px-3.5 py-1.5 rounded-xl text-[13px] font-semibold border border-dashed cursor-pointer text-[#047857] border-[#047857]/40 hover:bg-emerald-50 dark:text-[#10b981] dark:border-[#10b981]/40 dark:hover:bg-[#242c28]"
+              >
+                {isOpen ? 'Show fewer' : `+${g.schemes.length - visible.length} more`}
+              </button>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* 3 Starter Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-4">
-        {starterQuestions.slice(0, 3).map((q, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
+        {starterQuestions.slice(0, 4).map((q, idx) => (
           <button
             key={idx}
             onClick={() => handleQuestionClick(q)}
@@ -95,7 +178,7 @@ export const StarterQuestions: React.FC = () => {
               &ldquo;{q}&rdquo;
             </span>
             <div className="flex items-center justify-between text-[13px] pt-1 text-[#64748B] dark:text-[#94a3b8]">
-              <span>{CATEGORY_TAGS[idx] || 'Fund Inquiry'}</span>
+              <span>{CATEGORY_TAGS[idx] || 'Risk Level'}</span>
               <ArrowRight className="w-4 h-4 text-[#047857] dark:text-[#10b981] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </button>

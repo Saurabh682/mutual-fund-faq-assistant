@@ -78,7 +78,7 @@ FUND_HOUSE_NAMES = _join_names([h["name"] for h in FUND_HOUSES.values()])
 def scheme_options() -> List[Dict[str, str]]:
     """The scheme entries /api/v1/meta lists, with the fund house the UI groups them by."""
     return [
-        {"id": s["id"], "name": s["official_name"], "amc": s["amc"], "amc_name": s["amc_name"]}
+        {"id": s["id"], "name": s["official_name"], "amc": s["amc"], "amc_name": s["amc_name"], "category": s["category"]}
         for s in SCHEME_REGISTRY.values()
     ]
 

@@ -61,6 +61,7 @@ export interface SchemeInfo {
   name: string;
   amc?: string;
   amc_name?: string;
+  category?: string;
 }
 
 export interface MetaData {
