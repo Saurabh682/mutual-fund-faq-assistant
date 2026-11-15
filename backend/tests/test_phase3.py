@@ -213,7 +213,7 @@ class TestProceduralFAQRetrieval:
         assert top_chunk.metadata["scheme_id"] == "hdfc_midcap_dg"
 
     def test_invest_procedural_faq_retrieved(self):
-        res = retriever.search("How to invest in HDFC Top 100?", scheme_id="hdfc_largecap_dg")
+        res = retriever.search("How to invest in HDFC Large Cap Fund?", scheme_id="hdfc_largecap_dg")
         assert len(res.chunks) > 0
         top_chunk = res.chunks[0]
         text_lower = " ".join(top_chunk.text.lower().split())

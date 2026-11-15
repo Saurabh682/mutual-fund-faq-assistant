@@ -402,6 +402,9 @@ mutual-fund-faq-assistant/
 
 ## ⚠️ Known Limitations
 
+- **Mahindra Manulife risk labels come from Groww.** The riskometer for these schemes is Groww's label (Low / Moderate / High / Very High). For debt funds it can differ from the AMC's SEBI riskometer, and an AMC factsheet cross-check is still pending.
+- **Shared names need a fund house.** "Mid cap fund", "large cap fund" and "multi cap fund" exist at both fund houses, so the assistant asks which one you mean.
+
 - **Narrow scope by design:** only the 20 HDFC and Mahindra Manulife schemes above for now (expansion is [planned](docs/corpus-expansion-roadmap.md)). Everything else gets a "not covered" answer.
 - **Cautious wording handling:** harmless questions phrased with words like *"recommend"*, *"wise"* or *"better"* may get a fact plus a refusal note.
 - **Data freshness** depends on the daily ingestion job; the footer date shows exactly when the sources were last read.

@@ -28,7 +28,7 @@ def test_meta_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["disclaimer"] == "Facts-only. No investment advice."
-    assert len(data["starter_questions"]) == 3
+    assert len(data["starter_questions"]) == 4
     assert len(data["schemes"]) == SCHEME_COUNT
 
 def test_corpus_manifest_groww_urls_match_schemes():

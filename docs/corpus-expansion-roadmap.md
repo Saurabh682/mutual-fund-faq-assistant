@@ -71,6 +71,10 @@ Before 9.0, adding a scheme meant editing all of these by hand, which is where m
 
 ## 4. Phases
 
+### Mahindra Manulife wave (out of the original plan): ✅ built 2026-11-15, 15 schemes, total 20
+
+Fund houses are a manifest list (`fund_houses`), each scheme has `amc` and `isin`, and resolution is fund-house aware: a house word narrows matching, a shared bare name yields a clarification with one option per scheme, and "Kotak Mahindra" stays out of scope. Covered by `backend/tests/test_multi_amc.py`.
+
 ### Phase 9.0: Make schemes data-driven (no new funds yet): ✅ done 2026-11-15
 
 **Goal:** adding a scheme becomes one manifest entry plus a ground-truth row. Shipped alone, with the count still at 5, so behaviour changes are zero and provable.
@@ -176,6 +180,8 @@ Repeat for each wave:
 | Date | Decision | Reason |
 |---|---|---|
 | 2026-11-14 | Stay within HDFC AMC for this expansion | Keeps the out-of-scope AMC guardrail and all eval sets valid |
+| 2026-11-15 | **Superseded:** add Mahindra Manulife (all 15 Direct-Growth schemes) as a second fund house first; HDFC ETF/fund batch deferred | User choice. Fund houses moved into the manifest; names both houses use (mid/large/multi cap) now ask which scheme instead of guessing |
+| 2026-11-15 | New Mahindra schemes ship with Groww-page facts and chunks only; the 20 hand-written official documents stay | Same sources as the HDFC Groww facts; AMC factsheet cross-check is pending |
 | 2026-11-14 | Data-driven registry first (9.0), at unchanged count | Proves refactor safety before behaviour changes |
 | 2026-11-15 | `instrument_type` deferred from 9.0 to 9.2 | No 9.0 code behaves differently by type; add it with its first reader |
 | 2026-11-15 | README count is test-checked, not generated | A generator for one table is more machinery than a failing test that says what to edit |
