@@ -45,6 +45,10 @@ _JUDGEMENT = re.compile(
     r"\b(?:best|better|top|safest|safer|worst|lowest|highest|cheapest|cheaper|least|most|recommend\w*|suggest\w*"
     r"|should|compar\w*|rank\w*|suitable|ideal|good|outperform\w*|pick|choose)\b"
 )
+# "least risky among all": a lookup of the extreme riskometer level on the page, worded as data, never as "safest"
+_EXTREME = re.compile(r"\b(?:least|lowest|most|highest)\s+risk\w*|\briskiest\b")
+_ALL = re.compile(r"\b(?:among|all|every|any)\b")
+_LEVELS = ["low", "low to moderate", "moderate", "moderately high", "high", "very high"]
 _RISK_LEVEL = re.compile(r"\b(very high|moderately high|low to moderate|moderate|low|high)\b(?: risk)?")
 
 
@@ -67,9 +71,10 @@ def _followups(field: str) -> list[str]:
 def answer_cross_fund(query: str) -> Optional[Dict[str, Any]]:
     """A ready message payload (type, text, citation_url, last_updated, rendered, followups) or None if this is not a cross-fund question."""
     q = query.lower()
-    if not _SCOPE.search(q):
+    extreme = _EXTREME.search(q)
+    if not (_SCOPE.search(q) or (extreme and _ALL.search(q))):
         return None
-    field = next((f for f, pat in _FIELDS.items() if re.search(pat, q)), None)
+    field = "riskometer" if extreme else next((f for f, pat in _FIELDS.items() if re.search(pat, q)), None)
     if field is None:
         return None
     # A scheme named in the question makes it a single-fund question ("all the charges for HDFC Small Cap Fund")
@@ -77,7 +82,7 @@ def answer_cross_fund(query: str) -> Optional[Dict[str, Any]]:
     if named.scheme_id or named.ambiguous_scheme_ids:
         return None
 
-    if _JUDGEMENT.search(q):
+    if not extreme and _JUDGEMENT.search(q):
         refusal = generate_refusal("COMPARATIVE")
         return {
             "type": "refusal", "field": field, "text": refusal["text"], "citation_url": refusal["citation_url"],
@@ -94,19 +99,30 @@ def answer_cross_fund(query: str) -> Optional[Dict[str, Any]]:
         if field in facts:
             rows.append((scheme_label(info), _show(field, facts[field]["value"]), facts[field]["as_of"]))
 
-    level = _RISK_LEVEL.search(q) if field == "riskometer" else None
+    level = _RISK_LEVEL.search(q) if field == "riskometer" and not extreme else None
     if level:
         want = level.group(1)
         rows = [r for r in rows if r[1].lower().removesuffix(" risk") == want]
     title = _TITLES[field]
+    if extreme:
+        rows = [r for r in rows if r[1].lower().removesuffix(" risk") in _LEVELS]
+        rank = lambda r: _LEVELS.index(r[1].lower().removesuffix(" risk"))
+        low = bool(re.search(r"least|lowest", extreme.group()))
+        end = (min if low else max)((rank(r) for r in rows), default=None)
+        total, rows = len(rows), [r for r in rows if rank(r) == end]
     if not rows:
         body = f"No scheme lists a riskometer of {level.group(1).title()} on its Groww scheme page." if level else (
             f"{title} is not available for these schemes.")
     else:
-        scope = f"the {len(rows)} schemes" if not level else f"the {len(rows)} schemes rated {level.group(1).title()} Risk"
+        if extreme:
+            lead = (f"The {'lowest' if low else 'highest'} riskometer level among the {total} schemes is {rows[0][1]}, "
+                    f"listed for the {len(rows)} below per each Groww scheme page. "
+                    f"The riskometer is SEBI's risk class for a scheme, not a suitability view.")
+        else:
+            scope = f"the {len(rows)} schemes" if not level else f"the {len(rows)} schemes rated {level.group(1).title()} Risk"
+            lead = f"{title} across {scope}, per each Groww scheme page."
         table = "\n".join(f"| {name} | {value} |" for name, value, _ in rows)
-        body = (f"{title} across {scope}, per each Groww scheme page.\n\n"
-                f"| Scheme | {title} |\n| --- | --- |\n{table}")
+        body = f"{lead}\n\n| Scheme | {title} |\n| --- | --- |\n{table}"
     date = normalize_date_footer(max((r[2] for r in rows), default=None))
     return {
         "type": "fact_store", "field": field, "text": body, "citation_url": CITATION_URL, "last_updated": date,

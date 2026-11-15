@@ -25,7 +25,6 @@ def test_fund_house_narrows_the_table():
 
 
 @pytest.mark.parametrize("q", [
-    "Which fund has the lowest risk?",
     "Which funds have the lowest expense ratio?",
     "Which scheme is the cheapest by TER across all funds?",
 ])
@@ -43,3 +42,16 @@ def test_rankings_are_refused_with_a_lookup_suggestion(q):
 ])
 def test_other_questions_fall_through(q):
     assert answer_cross_fund(q) is None
+
+
+@pytest.mark.parametrize("q,level", [
+    ("among all which is the least risky", "Low Risk"),
+    ("Which fund has the lowest risk?", "Low Risk"),
+    ("which scheme has the highest risk among all", "Very High Risk"),
+])
+def test_risk_extremes_answer_as_the_riskometer_level_listed(q, level):
+    r = answer_cross_fund(q)
+    assert r["type"] == "fact_store" and f"is {level}" in r["text"]
+    rows = [l for l in r["text"].splitlines() if l.startswith("| ") and "Scheme" not in l and "---" not in l]
+    assert rows and all(l.endswith(f"| {level} |") for l in rows)
+    assert "safest" not in r["text"].lower() and "best" not in r["text"].lower()
