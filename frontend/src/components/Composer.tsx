@@ -45,9 +45,9 @@ export const Composer: React.FC = () => {
   const isTooLong = charCount > 1000;
 
   return (
-    <div className="w-full rounded-2xl p-3 sm:p-4 shadow-lg sticky bottom-2 z-20 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620]">
+    <div className="w-full rounded-2xl p-3 sm:p-4 shadow-lg sticky bottom-2 z-20 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#181d20] dark:border-[#2d353b]">
       {/* Textarea container */}
-      <div className="relative rounded-xl p-3 transition-colors bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#047857] dark:bg-[#16201b] dark:border-[#1f2c25] dark:focus-within:bg-[#242c28]">
+      <div className="relative rounded-xl p-3 transition-colors bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#0D9488] dark:bg-[#22282c] dark:border-[#2d353b] dark:focus-within:bg-[#2d353b]">
         <label htmlFor="chat-textarea" className="sr-only">
           Ask a factual question about mutual funds
         </label>
@@ -60,7 +60,7 @@ export const Composer: React.FC = () => {
           maxLength={1000}
           rows={2}
           placeholder="Ask about TER, exit load, minimum SIP, benchmark, or riskometer..."
-          className="w-full bg-transparent resize-none text-[14px] sm:text-[15px] leading-relaxed focus:outline-none placeholder:text-[#94a3b8] text-[#0F172A] dark:text-[#dde4df]"
+          className="w-full bg-transparent resize-none text-[14px] sm:text-[15px] leading-relaxed focus:outline-none placeholder:text-[#94a3b8] text-[#0F172A] dark:text-[#f1f5f9]"
         />
 
         {/* Action bar inside composer */}
@@ -81,7 +81,7 @@ export const Composer: React.FC = () => {
             {charCount > 0 && (
               <button
                 onClick={handleClear}
-                className="min-h-[44px] px-3 py-1.5 text-[13px] font-medium text-[#64748B] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:text-[#dde4df] rounded-lg transition-colors cursor-pointer"
+                className="min-h-[44px] px-3 py-1.5 text-[13px] font-medium text-[#64748B] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:text-[#f1f5f9] rounded-lg transition-colors cursor-pointer"
                 type="button"
               >
                 Clear
@@ -92,7 +92,7 @@ export const Composer: React.FC = () => {
             <button
               onClick={handleSend}
               disabled={!text.trim() || isSending || isTooLong}
-              className="min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center shadow-xs transition-all cursor-pointer bg-[#047857] text-white hover:bg-[#065f46] disabled:opacity-40 disabled:cursor-not-allowed dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3]"
+              className="min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center shadow-xs transition-all cursor-pointer bg-[#0D9488] text-white hover:bg-[#0F766E] disabled:opacity-40 disabled:cursor-not-allowed dark:bg-[#6ee7b7] dark:text-[#132e27] dark:hover:bg-[#6ee7b7]"
               type="button"
               aria-label="Send message"
             >
@@ -105,7 +105,7 @@ export const Composer: React.FC = () => {
       {/* Subtext info row */}
       <div className="px-1 pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[13px] text-[#64748B] dark:text-[#94a3b8]">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Lock className="w-3.5 h-3.5 text-[#B45309] dark:text-[#ffb95f] shrink-0" />
+          <Lock className="w-3.5 h-3.5 text-[#B45309] dark:text-[#fcd34d] shrink-0" />
           <span className="truncate">
             Do not share PAN, Aadhaar, folio numbers, OTPs, or banking PINs.
           </span>

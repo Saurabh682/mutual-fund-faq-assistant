@@ -18,7 +18,7 @@ export const App: React.FC = () => {
   }, [init]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#F8FAFC] dark:bg-[#0e1512] text-[#0F172A] dark:text-[#dde4df] transition-colors">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#F8FAFC] dark:bg-[#121517] text-[#0F172A] dark:text-[#f1f5f9] transition-colors">
       {/* 1. Top Compliance Disclaimer Header */}
       <DisclaimerBanner />
 
@@ -64,7 +64,7 @@ export const App: React.FC = () => {
 
             {/* Desktop Fact Sheet Panel (Visible when screen >= 1280px / xl) */}
             <aside
-              className="hidden xl:flex w-[420px] border-l flex-col overflow-hidden shrink-0 p-5 bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620]"
+              className="hidden xl:flex w-[420px] border-l flex-col overflow-hidden shrink-0 p-5 bg-white border-[#E2E8F0] dark:bg-[#181d20] dark:border-[#2d353b]"
               aria-label="Scheme fact sheet panel"
             >
               <FactSheetContent />

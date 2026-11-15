@@ -31,7 +31,7 @@ function riskTone(label: string): string {
   if (l.includes('very high')) return 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300';
   if (l.includes('high')) return 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300';
   if (l.includes('moderate')) return 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
-  return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300';
+  return 'bg-teal-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300';
 }
 
 export const FactSheetContent: React.FC<FactSheetContentProps> = ({
@@ -84,11 +84,11 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header with Scheme Switcher */}
-      <div className="flex flex-col gap-2.5 pb-3 border-b border-[#E2E8F0] dark:border-[#2f3633] shrink-0">
+      <div className="flex flex-col gap-2.5 pb-3 border-b border-[#E2E8F0] dark:border-[#2d353b] shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#047857] dark:bg-[#10b981]" />
-            <h2 id={titleId} className="text-[17px] font-bold text-[#0F172A] dark:text-[#dde4df]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#0D9488] dark:bg-[#6ee7b7]" />
+            <h2 id={titleId} className="text-[17px] font-bold text-[#0F172A] dark:text-[#f1f5f9]">
               Scheme Fact Sheet
             </h2>
           </div>
@@ -96,7 +96,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
             <button
               onClick={onClose}
               aria-label="Close fact sheet"
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[#64748B] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:text-[#dde4df] hover:bg-[#F1F5F9] dark:hover:bg-[#242c28] transition-colors cursor-pointer"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[#64748B] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:text-[#f1f5f9] hover:bg-[#F1F5F9] dark:hover:bg-[#2d353b] transition-colors cursor-pointer"
               type="button"
             >
               {isModalOrDrawer ? <X className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
@@ -114,7 +114,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
               id="drawer-scheme-select"
               value={selectedSchemeId}
               onChange={(e) => setSelectedSchemeId(e.target.value)}
-              className="w-full bg-[#F8FAFC] dark:bg-[#16201b] border border-[#E2E8F0] dark:border-[#1f2824] hover:bg-[#F1F5F9] dark:hover:bg-[#242c28] text-[#0F172A] dark:text-[#dde4df] text-[13px] sm:text-[14px] font-medium px-3.5 py-2.5 rounded-xl appearance-none cursor-pointer focus:outline-none transition-colors truncate pr-8"
+              className="w-full bg-[#F8FAFC] dark:bg-[#22282c] border border-[#E2E8F0] dark:border-[#2d353b] hover:bg-[#F1F5F9] dark:hover:bg-[#2d353b] text-[#0F172A] dark:text-[#f1f5f9] text-[13px] sm:text-[14px] font-medium px-3.5 py-2.5 rounded-xl appearance-none cursor-pointer focus:outline-none transition-colors truncate pr-8"
             >
               {groupByFundHouse(schemes).map((g) => (
                 <optgroup key={g.house} label={g.house || 'Schemes'}>
@@ -122,7 +122,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
                 <option
                   key={s.id}
                   value={s.id}
-                  className="bg-white text-[#0F172A] dark:bg-[#16201b] dark:text-[#dde4df]"
+                  className="bg-white text-[#0F172A] dark:bg-[#22282c] dark:text-[#f1f5f9]"
                 >
                   {s.name}
                 </option>
@@ -138,7 +138,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
       {activeFacts && (
         <div className="flex flex-wrap gap-2 pt-1 pb-2" aria-label="Scheme classification">
           {activeScheme?.category && (
-            <span className="px-2.5 py-1 rounded-full text-[12px] font-semibold border bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#94a3b8]">
+            <span className="px-2.5 py-1 rounded-full text-[12px] font-semibold border bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] dark:bg-[#22282c] dark:border-[#2d353b] dark:text-[#94a3b8]">
               {activeScheme.category}
             </span>
           )}
@@ -154,7 +154,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         factsState === 'loading' ? (
           <div role="status" aria-label="Loading fact sheet" className="flex-1 py-3 space-y-2 animate-pulse">
             {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="h-[52px] rounded-xl bg-[#E2E8F0] dark:bg-[#242c28]" />
+              <div key={i} className="h-[52px] rounded-xl bg-[#E2E8F0] dark:bg-[#2d353b]" />
             ))}
           </div>
         ) : (
@@ -165,7 +165,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
             <button
               type="button"
               onClick={() => reloadSchemeFacts()}
-              className="min-h-[44px] px-4 rounded-xl text-[13px] font-semibold border cursor-pointer bg-white border-[#E2E8F0] text-[#0F172A] hover:bg-[#F8FAFC] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#242c28]"
+              className="min-h-[44px] px-4 rounded-xl text-[13px] font-semibold border cursor-pointer bg-white border-[#E2E8F0] text-[#0F172A] hover:bg-[#F8FAFC] dark:bg-[#22282c] dark:border-[#2d353b] dark:text-[#f1f5f9] dark:hover:bg-[#2d353b]"
             >
               Try again
             </button>
@@ -174,74 +174,74 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
       ) : (
       <div className="overflow-y-auto flex-1 py-3 space-y-2 text-[13px]">
         {/* Row 1: TER (Direct) */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">TER (Direct)</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">TER (Direct)</span>
             {rowDate(ter)}
           </div>
-          <span className="text-[15px] font-bold text-[#047857] dark:text-[#10b981] num-tabular">
+          <span className="text-[15px] font-bold text-[#0D9488] dark:text-[#6ee7b7] num-tabular">
             {ter.val}
           </span>
         </div>
 
         {/* Row 2: Exit load */}
-        <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824] gap-2">
+        <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b] gap-2">
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Exit load</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">Exit load</span>
             {rowDate(exitLoad)}
           </div>
-          <span className="text-[13px] text-right text-[#0F172A] dark:text-[#dde4df] font-medium max-w-[200px]">
+          <span className="text-[13px] text-right text-[#0F172A] dark:text-[#f1f5f9] font-medium max-w-[200px]">
             {plainExitLoad(exitLoad.val)}
           </span>
         </div>
 
         {/* Row 3: Minimum SIP */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Minimum SIP</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">Minimum SIP</span>
             {rowDate(minSip)}
           </div>
-          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
+          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#f1f5f9] num-tabular">
             {minSip.val}
           </span>
         </div>
 
         {/* Row 4: Minimum lumpsum */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Minimum lumpsum</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">Minimum lumpsum</span>
             {rowDate(minLumpsum)}
           </div>
-          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
+          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#f1f5f9] num-tabular">
             {minLumpsum.val}
           </span>
         </div>
 
         {/* Row 5: Lock-in */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Lock-in</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">Lock-in</span>
             {rowDate(lockIn)}
           </div>
-          <span className="text-[13px] font-medium text-[#0F172A] dark:text-[#dde4df]">
+          <span className="text-[13px] font-medium text-[#0F172A] dark:text-[#f1f5f9]">
             {lockIn.val}
           </span>
         </div>
 
         {/* Row 6: Riskometer (6-segment visual bar) */}
-        <div className="p-3 rounded-xl border flex flex-col gap-2 bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="p-3 rounded-xl border flex flex-col gap-2 bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Riskometer</span>
+              <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">Riskometer</span>
               {rowDate(riskometer)}
             </div>
             <span
               className={`text-[13px] font-bold px-2 py-0.5 rounded-md ${
                 riskInfo.level >= 5
-                  ? 'bg-red-100 text-red-700 dark:bg-[#3d1a1d] dark:text-[#ffb4ab] border border-red-300 dark:border-[#690005]'
+                  ? 'bg-red-100 text-red-700 dark:bg-[#3b1c1c] dark:text-[#fca5a5] border border-red-300 dark:border-[#690005]'
                   : riskInfo.level >= 3
-                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-[#ffb95f]'
-                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-[#4edea3]'
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-[#fcd34d]'
+                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-[#6ee7b7]'
               }`}
             >
               {riskInfo.label}
@@ -255,31 +255,31 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
           >
             <div
               className={`h-full rounded-sm ${
-                riskInfo.level >= 1 ? 'bg-[#10b981]' : 'bg-[#E2E8F0] dark:bg-[#2f3633]'
+                riskInfo.level >= 1 ? 'bg-[#6ee7b7]' : 'bg-[#E2E8F0] dark:bg-[#2d353b]'
               }`}
               title="Low"
             />
             <div
               className={`h-full rounded-sm ${
-                riskInfo.level >= 2 ? 'bg-[#34d399]' : 'bg-[#E2E8F0] dark:bg-[#2f3633]'
+                riskInfo.level >= 2 ? 'bg-[#6ee7b7]' : 'bg-[#E2E8F0] dark:bg-[#2d353b]'
               }`}
               title="Low to Moderate"
             />
             <div
               className={`h-full rounded-sm ${
-                riskInfo.level >= 3 ? 'bg-[#facc15]' : 'bg-[#E2E8F0] dark:bg-[#2f3633]'
+                riskInfo.level >= 3 ? 'bg-[#facc15]' : 'bg-[#E2E8F0] dark:bg-[#2d353b]'
               }`}
               title="Moderate"
             />
             <div
               className={`h-full rounded-sm ${
-                riskInfo.level >= 4 ? 'bg-[#fb923c]' : 'bg-[#E2E8F0] dark:bg-[#2f3633]'
+                riskInfo.level >= 4 ? 'bg-[#fb923c]' : 'bg-[#E2E8F0] dark:bg-[#2d353b]'
               }`}
               title="Moderately High"
             />
             <div
               className={`h-full rounded-sm ${
-                riskInfo.level >= 5 ? 'bg-[#f87171]' : 'bg-[#E2E8F0] dark:bg-[#2f3633]'
+                riskInfo.level >= 5 ? 'bg-[#f87171]' : 'bg-[#E2E8F0] dark:bg-[#2d353b]'
               }`}
               title="High"
             />
@@ -287,14 +287,14 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
               className={`h-full rounded-sm ${
                 riskInfo.level >= 6
                   ? 'bg-[#ef4444] shadow-[0_0_6px_rgba(239,68,68,0.8)] ring-1 ring-red-400'
-                  : 'bg-[#E2E8F0] dark:bg-[#2f3633]'
+                  : 'bg-[#E2E8F0] dark:bg-[#2d353b]'
               }`}
               title="Very High"
             />
           </div>
           <div className="flex justify-between text-[13px] text-[#64748B] dark:text-[#94a3b8] px-0.5">
             <span>Low</span>
-            <span className="font-medium text-[#0F172A] dark:text-[#dde4df]">
+            <span className="font-medium text-[#0F172A] dark:text-[#f1f5f9]">
               Level {riskInfo.level} / 6
             </span>
             <span>Very High</span>
@@ -302,47 +302,47 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
         </div>
 
         {/* Row 7: Benchmark */}
-        <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824] gap-2">
+        <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b] gap-2">
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">Benchmark</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">Benchmark</span>
             {rowDate(benchmark)}
           </div>
-          <span className="text-[13px] text-right font-medium text-[#0F172A] dark:text-[#dde4df] max-w-[200px]">
+          <span className="text-[13px] text-right font-medium text-[#0F172A] dark:text-[#f1f5f9] max-w-[200px]">
             {benchmark.val}
           </span>
         </div>
 
         {/* Row 8: Fund manager (labeled: "Fund manager (as listed on source page)") */}
-        <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824] gap-2">
+        <div className="flex items-start justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b] gap-2">
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">
               Fund manager (as listed on source page)
             </span>
             {rowDate(fundManager)}
           </div>
-          <span className="text-[13px] text-right font-medium text-[#0F172A] dark:text-[#dde4df] max-w-[190px]">
+          <span className="text-[13px] text-right font-medium text-[#0F172A] dark:text-[#f1f5f9] max-w-[190px]">
             {fundManager.val}
           </span>
         </div>
 
         {/* Row 9: NAV */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">NAV</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">NAV</span>
             {rowDate(nav)}
           </div>
-          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
+          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#f1f5f9] num-tabular">
             {nav.val}
           </span>
         </div>
 
         {/* Row 10: AUM */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2824]">
+        <div className="flex items-center justify-between p-2.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#22282c] dark:border-[#2d353b]">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#0F172A] dark:text-[#dde4df]">AUM</span>
+            <span className="font-semibold text-[#0F172A] dark:text-[#f1f5f9]">AUM</span>
             {rowDate(aum)}
           </div>
-          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#dde4df] num-tabular">
+          <span className="text-[14px] font-bold text-[#0F172A] dark:text-[#f1f5f9] num-tabular">
             {groupIndian(aum.val)}
           </span>
         </div>
@@ -352,7 +352,7 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
 
       {/* Footer */}
       {activeFacts && (
-        <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2f3633] shrink-0 text-center">
+        <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#2d353b] shrink-0 text-center">
           <p className="text-[13px] text-[#64748B] dark:text-[#94a3b8] leading-relaxed">
             Source: Groww scheme page{sheetDate ? ` · Data as of ${sheetDate}` : ''}
           </p>
@@ -382,11 +382,11 @@ export const FactSheetDrawer: React.FC = () => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-factsheet-title"
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] md:hidden rounded-t-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up bg-white border-t border-[#E2E8F0] dark:bg-[#161d1a] dark:border-[#29352e]"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] md:hidden rounded-t-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up bg-white border-t border-[#E2E8F0] dark:bg-[#1e2427] dark:border-[#2d353b]"
       >
         {/* Drag Bar Handle */}
         <div className="w-full pt-3 pb-1 flex justify-center items-center shrink-0">
-          <div className="w-10 h-1.5 rounded-full bg-[#CBD5E1] dark:bg-[#3c4a42]" />
+          <div className="w-10 h-1.5 rounded-full bg-[#CBD5E1] dark:bg-[#2d353b]" />
         </div>
         <div className="p-4 flex-1 overflow-hidden flex flex-col">
           <FactSheetContent titleId="mobile-factsheet-title" onClose={() => toggleFactSheet(false)} isModalOrDrawer={true} />
@@ -398,7 +398,7 @@ export const FactSheetDrawer: React.FC = () => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="tablet-factsheet-title"
-        className="fixed top-0 right-0 bottom-0 w-[420px] max-w-[90vw] z-50 hidden md:flex xl:hidden flex-col shadow-2xl p-5 animate-slide-in-right bg-white border-l border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1f2824]"
+        className="fixed top-0 right-0 bottom-0 w-[420px] max-w-[90vw] z-50 hidden md:flex xl:hidden flex-col shadow-2xl p-5 animate-slide-in-right bg-white border-l border-[#E2E8F0] dark:bg-[#181d20] dark:border-[#2d353b]"
       >
         <FactSheetContent titleId="tablet-factsheet-title" onClose={() => toggleFactSheet(false)} isModalOrDrawer={true} />
       </div>

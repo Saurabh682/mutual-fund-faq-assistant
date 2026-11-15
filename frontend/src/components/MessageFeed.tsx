@@ -57,21 +57,21 @@ export const MessageFeed: React.FC = () => {
         <div
           role="status"
           aria-live="polite"
-          className="w-full rounded-2xl p-5 shadow-xs flex flex-col gap-3.5 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620] animate-fade-in"
+          className="w-full rounded-2xl p-5 shadow-xs flex flex-col gap-3.5 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#181d20] dark:border-[#2d353b] animate-fade-in"
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#047857] dark:bg-[#10b981] animate-ping" />
-            <span className="text-[14px] sm:text-[15px] font-semibold text-[#047857] dark:text-[#10b981]">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#0D9488] dark:bg-[#6ee7b7] animate-ping" />
+            <span className="text-[14px] sm:text-[15px] font-semibold text-[#0D9488] dark:text-[#6ee7b7]">
               Checking sources...
             </span>
           </div>
           <div className="space-y-2.5 animate-pulse pt-1">
-            <div className="h-4 rounded-md w-5/6 bg-[#E2E8F0] dark:bg-[#242c28]" />
-            <div className="h-4 rounded-md w-3/4 bg-[#E2E8F0] dark:bg-[#242c28]" />
+            <div className="h-4 rounded-md w-5/6 bg-[#E2E8F0] dark:bg-[#2d353b]" />
+            <div className="h-4 rounded-md w-3/4 bg-[#E2E8F0] dark:bg-[#2d353b]" />
             <div className="grid grid-cols-3 gap-3 pt-2">
-              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#242c28]" />
-              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#242c28]" />
-              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#242c28]" />
+              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#2d353b]" />
+              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#2d353b]" />
+              <div className="h-10 rounded-lg bg-[#E2E8F0] dark:bg-[#2d353b]" />
             </div>
           </div>
         </div>

@@ -28,12 +28,12 @@ export const StaleBanner: React.FC = () => {
   return (
     <div
       role="status"
-      className="w-full px-4 py-2.5 rounded-xl border flex items-center justify-between text-[13px] transition-colors bg-amber-50 border-amber-200 text-[#92400E] dark:bg-[#242c28] dark:border-[#2b3a32] dark:text-[#ffb95f]"
+      className="w-full px-4 py-2.5 rounded-xl border flex items-center justify-between text-[13px] transition-colors bg-amber-50 border-amber-200 text-[#92400E] dark:bg-[#2d353b] dark:border-[#2d353b] dark:text-[#fcd34d]"
     >
       <div className="flex items-center gap-2">
-        <History className="w-4 h-4 shrink-0 text-[#B45309] dark:text-[#ffb95f]" />
+        <History className="w-4 h-4 shrink-0 text-[#B45309] dark:text-[#fcd34d]" />
         <span className="font-semibold">Notice:</span>
-        <span className="text-[#78350F] dark:text-[#dde4df]">
+        <span className="text-[#78350F] dark:text-[#f1f5f9]">
           Data is older than 7 days (as of {formatDate(rawDate)})
         </span>
       </div>

@@ -23,21 +23,21 @@ export const AboutModal: React.FC = () => {
       onClick={() => setAboutModalOpen(false)}
     >
       <div
-        className="w-full max-w-lg rounded-2xl p-6 shadow-2xl relative border bg-white border-[#E2E8F0] text-[#0F172A] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df]"
+        className="w-full max-w-lg rounded-2xl p-6 shadow-2xl relative border bg-white border-[#E2E8F0] text-[#0F172A] dark:bg-[#22282c] dark:border-[#2d353b] dark:text-[#f1f5f9]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] dark:border-[#2f3633]">
-          <div className="flex items-center gap-2.5 text-[#B45309] dark:text-[#ffb95f]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] dark:border-[#2d353b]">
+          <div className="flex items-center gap-2.5 text-[#B45309] dark:text-[#fcd34d]">
             <Info className="w-5 h-5 shrink-0" />
-            <h2 id="about-modal-title" className="text-[17px] font-bold text-[#0F172A] dark:text-[#dde4df]">
+            <h2 id="about-modal-title" className="text-[17px] font-bold text-[#0F172A] dark:text-[#f1f5f9]">
               About FundFacts
             </h2>
           </div>
           <button
             onClick={() => setAboutModalOpen(false)}
             aria-label="Close details modal"
-            className="w-11 h-11 flex items-center justify-center rounded-lg text-[#64748B] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:text-[#dde4df] hover:bg-[#F1F5F9] dark:hover:bg-[#242c28] transition-colors cursor-pointer"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-[#64748B] hover:text-[#0F172A] dark:text-[#94a3b8] dark:hover:text-[#f1f5f9] hover:bg-[#F1F5F9] dark:hover:bg-[#2d353b] transition-colors cursor-pointer"
             type="button"
           >
             <X className="w-5 h-5" />
@@ -49,14 +49,14 @@ export const AboutModal: React.FC = () => {
           <p>
             FundFacts provides objective, factual information on mutual fund schemes sourced directly from scheme pages on Groww.
           </p>
-          <p className="text-[#0F172A] dark:text-[#dde4df] font-medium">
+          <p className="text-[#0F172A] dark:text-[#f1f5f9] font-medium">
             This service is strictly computational and non-interpretive. It does not provide portfolio recommendations, comparison advice, or future market forecasts.
           </p>
-          <div className="p-3.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1f2824]">
-            <span className="text-[13px] font-semibold text-[#047857] dark:text-[#10b981] uppercase tracking-wide block mb-1">
+          <div className="p-3.5 rounded-xl border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#181d20] dark:border-[#2d353b]">
+            <span className="text-[13px] font-semibold text-[#0D9488] dark:text-[#6ee7b7] uppercase tracking-wide block mb-1">
               Coverage Scope
             </span>
-            <span className="text-[14px] text-[#0F172A] dark:text-[#dde4df]">
+            <span className="text-[14px] text-[#0F172A] dark:text-[#f1f5f9]">
               Covers {schemeCount ? `${schemeCount} ` : 'the '}{houses ? `${houses} ` : ''}Direct-Growth schemes as indexed in the snapshot catalog.
             </span>
           </div>
@@ -66,7 +66,7 @@ export const AboutModal: React.FC = () => {
         <div className="flex justify-end pt-3">
           <button
             onClick={() => setAboutModalOpen(false)}
-            className="min-h-[44px] px-5 py-2.5 rounded-xl font-semibold text-[14px] shadow-sm transition-colors bg-[#047857] text-white hover:bg-[#065f46] dark:bg-[#10b981] dark:text-[#00422b] dark:hover:bg-[#4edea3] cursor-pointer"
+            className="min-h-[44px] px-5 py-2.5 rounded-xl font-semibold text-[14px] shadow-sm transition-colors bg-[#0D9488] text-white hover:bg-[#0F766E] dark:bg-[#6ee7b7] dark:text-[#132e27] dark:hover:bg-[#6ee7b7] cursor-pointer"
             type="button"
           >
             Acknowledge &amp; Dismiss
