@@ -18,9 +18,11 @@ from bs4 import BeautifulSoup
 
 from app.core.config import settings
 from app.core.schemes import (
+    FUND_HOUSES,
     LISTED_NAMES_LIMIT,
     SCHEME_COUNT,
     SCHEME_REGISTRY,
+    SCOPE_NAME,
     format_choices,
     scheme_label,
     scheme_options,
@@ -62,12 +64,27 @@ def test_scheme_entry_is_complete(scheme_id):
 
 
 def test_aliases_belong_to_one_scheme():
+    """An alias names one scheme, except a bare category name ("mid cap fund") two fund houses both use:
+    the resolver asks which one is meant (test_multi_amc.py)."""
     owners = {}
     for sid, meta in SCHEME_REGISTRY.items():
         for alias in meta["aliases"]:
             assert alias == alias.lower().strip(), f"{sid}: alias {alias!r} must be lower case"
-            assert alias not in owners, f"alias {alias!r} is claimed by {owners[alias]} and {sid}"
-            owners[alias] = sid
+            owners.setdefault(alias, []).append(sid)
+    house_words = [a for h in FUND_HOUSES.values() for a in h["aliases"]]
+    for alias, sids in owners.items():
+        houses = [SCHEME_REGISTRY[s]["amc"] for s in sids]
+        assert len(houses) == len(set(houses)), f"alias {alias!r} is claimed twice within one fund house: {sids}"
+        if len(sids) > 1:
+            assert not any(alias.startswith(w) for w in house_words), f"{alias!r} names a fund house but is shared: {sids}"
+
+
+def test_every_scheme_belongs_to_a_fund_house_and_is_named_after_it():
+    for sid, meta in SCHEME_REGISTRY.items():
+        house = FUND_HOUSES[meta["amc"]]
+        assert sid.startswith(meta["amc"] + "_"), sid
+        assert meta["name"].startswith(house["short_name"]), f"{sid}: {meta['name']!r} should start with {house['short_name']!r}"
+        assert meta["publisher"] == house["publisher"]
 
 
 def test_every_scheme_has_a_ground_truth_row():
@@ -99,21 +116,30 @@ def test_every_scheme_has_enough_golden_cases():
 
 def test_readme_lists_every_scheme_and_the_count():
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    assert f"{SCHEME_COUNT} HDFC Mutual Fund" in readme
+    assert f"{SCHEME_COUNT} {SCOPE_NAME} Mutual Fund" in readme
     for meta in SCHEME_REGISTRY.values():
         assert scheme_label(meta) in readme, f"README does not list {scheme_label(meta)}"
 
 
-def test_blanket_claims_about_all_schemes_are_reviewed_when_the_count_changes():
-    """Static text says things like 'all 5 supported HDFC schemes have 0 lock-in'.
+def test_blanket_claims_about_lock_in_are_reviewed_when_an_elss_scheme_is_added():
+    """procedures.py and the ELSS source document say which supported scheme carries the ELSS lock-in and
+    that the rest have none.
 
-    When this fails, a scheme was added: re-read those claims (minimum amount, lock-in, ELSS wording)
-    and fix them, then update the number.
+    When this fails, an ELSS scheme was added or removed: re-read those claims, fix them, then update the set.
     """
+    elss = {sid for sid, meta in SCHEME_REGISTRY.items() if "ELSS" in meta["category"]}
+    assert elss == {"mahindra_elss_dg"}
     for rel in ("backend/app/rag/procedures.py", "ingest/build_official_corpus.py"):
         text = (REPO_ROOT / rel).read_text(encoding="utf-8")
-        for n in re.findall(r"(\d+) supported HDFC schemes", text):
-            assert int(n) == SCHEME_COUNT, f"{rel} claims {n} supported schemes, registry has {SCHEME_COUNT}"
+        assert "Mahindra Manulife ELSS Tax Saver Fund" in text, rel
+        assert not re.search(r"\d+ supported \w+ schemes", text), f"{rel} states a scheme count: say it with SCHEME_COUNT or leave it out"
+
+
+def test_not_listed_marker_is_the_same_in_ingest_and_backend():
+    from app.rag.facts import NOT_LISTED
+    from ingest.parsers.html import NOT_LISTED as INGEST_NOT_LISTED
+
+    assert NOT_LISTED == INGEST_NOT_LISTED
 
 
 def test_format_choices():

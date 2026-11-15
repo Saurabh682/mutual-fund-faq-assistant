@@ -19,6 +19,7 @@ import { useChatStore } from '../store/useChatStore';
 import { parseAnswerText } from '../lib/answerText';
 import { formatDate } from '../lib/format';
 import type { Message } from '../types/chat';
+import { shortSchemeName } from '../lib/schemes';
 
 const NO_INFO_PREFIX = "I don't have that information";
 
@@ -169,7 +170,13 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
 
   // 6. Clarification / Disambiguation Card
   if (message.type === 'clarification') {
-    const schemes = meta?.schemes || [];
+    const choices = message.options?.length
+      ? message.options
+      : (meta?.schemes || []).slice(0, 5).map((s) => ({
+          id: s.id,
+          label: shortSchemeName(s.name),
+          prompt: `Show facts for ${s.name}`,
+        }));
     return (
       <div className="w-full rounded-2xl p-5 shadow-sm flex flex-col gap-3.5 border transition-colors bg-white border-[#E2E8F0] dark:bg-[#131a17] dark:border-[#1b2620] animate-fade-in">
         <div className="flex items-center gap-2.5">
@@ -179,15 +186,15 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
           </span>
         </div>
         <div className="flex flex-wrap gap-2 pt-1">
-          {schemes.map((s) => (
+          {choices.map((c) => (
             <button
-              key={s.id}
-              onClick={() => sendUserMessage(`Show facts for ${s.name}`)}
+              key={c.id}
+              onClick={() => sendUserMessage(c.prompt)}
               disabled={isSending}
               className="min-h-[44px] px-4 py-2 rounded-xl text-[13px] font-medium border transition-colors cursor-pointer bg-[#F8FAFC] border-[#CBD5E1] text-[#0F172A] hover:bg-emerald-50 hover:border-[#047857] hover:text-[#047857] dark:bg-[#16201b] dark:border-[#2f3633] dark:text-[#dde4df] dark:hover:bg-[#242c28] dark:hover:text-[#10b981]"
               type="button"
             >
-              {s.name.replace(' (Direct - Growth)', '').replace(' (Direct Growth)', '')}
+              {c.label}
             </button>
           ))}
         </div>
@@ -304,7 +311,7 @@ export const MessageBubble: React.FC<Props> = ({ message }) => {
             {title}
           </span>
           <p className="text-[14px] leading-relaxed whitespace-pre-line text-[#475569] dark:text-[#94a3b8]">
-            {info.prose || message.text || 'I can only answer factual questions about these HDFC schemes.'}
+            {info.prose || message.text || 'I can only answer factual questions about these schemes.'}
           </p>
           {info.metrics.length > 0 && (
             <dl className="grid grid-cols-1 gap-2.5 rounded-xl p-3.5 border bg-[#F8FAFC] border-[#E2E8F0] dark:bg-[#16201b] dark:border-[#1f2c25]">

@@ -16,6 +16,9 @@ from app.core.config import settings
 from app.guardrails.validator import normalize_date_footer, validate_response
 from app.rag.entities import SCHEME_REGISTRY, resolve_entities
 
+# What ingest/parsers/html.py stores when the Groww page has no value for a field (a test pins both copies)
+NOT_LISTED = "Not listed on the Groww page"
+
 _FACTS_DB_PATH = os.path.join(settings.DATA_DIR, "index", "facts.db")
 
 FIELD_LABELS = {
@@ -83,12 +86,13 @@ def get_fact_from_db(
         row = cursor.fetchone()
         if not row:
             meta = SCHEME_REGISTRY.get(scheme_id, {})
+            site = meta.get("amc_domain", "the AMC website")
             if field == "nav_source":
                 return {
                     "scheme_id": scheme_id,
                     "field": field,
-                    "value": "AMFI official portal (amfiindia.com) and hdfcfund.com",
-                    "value_str": "AMFI official portal (amfiindia.com) and hdfcfund.com",
+                    "value": f"AMFI official portal (amfiindia.com) and {site}",
+                    "value_str": f"AMFI official portal (amfiindia.com) and {site}",
                     "value_num": None,
                     "as_of": "2026-11-05",
                     "doc_date": "2026-11-05",
@@ -97,8 +101,8 @@ def get_fact_from_db(
                 return {
                     "scheme_id": scheme_id,
                     "field": field,
-                    "value": "Monthly Factsheet available on hdfcfund.com",
-                    "value_str": "Monthly Factsheet available on hdfcfund.com",
+                    "value": f"Monthly Factsheet available on {site}",
+                    "value_str": f"Monthly Factsheet available on {site}",
                     "value_num": None,
                     "as_of": "2026-11-05",
                     "doc_date": "2026-11-05",
@@ -107,8 +111,8 @@ def get_fact_from_db(
                 return {
                     "scheme_id": scheme_id,
                     "field": field,
-                    "value": "Disclosed in monthly scheme factsheet on hdfcfund.com",
-                    "value_str": "Disclosed in monthly scheme factsheet on hdfcfund.com",
+                    "value": f"Disclosed in monthly scheme factsheet on {site}",
+                    "value_str": f"Disclosed in monthly scheme factsheet on {site}",
                     "value_num": None,
                     "as_of": "2026-11-05",
                     "doc_date": "2026-11-05",
@@ -117,8 +121,8 @@ def get_fact_from_db(
                 return {
                     "scheme_id": scheme_id,
                     "field": field,
-                    "value": meta.get("publisher", "HDFC Asset Management Company Limited"),
-                    "value_str": meta.get("publisher", "HDFC Asset Management Company Limited"),
+                    "value": meta.get("publisher", "the asset management company"),
+                    "value_str": meta.get("publisher", "the asset management company"),
                     "value_num": None,
                     "as_of": "2026-11-05",
                     "doc_date": "2026-11-05",
@@ -215,13 +219,17 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     meta = SCHEME_REGISTRY.get(scheme_id, {})
     scheme_name = meta.get("official_name", meta.get("name", scheme_id))
     citation_url = meta.get("url", "https://groww.in")
+    site = meta.get("amc_domain", "the AMC website")
+    publisher = meta.get("publisher", "the asset management company")
     amc_url = meta.get("amc_url")
     amfi_code = meta.get("amfi_code")
     field_title = FIELD_LABELS.get(field, field.replace("_", " ").title())
 
     # Build compliant single-sentence narrative prose
     val_clean = str(raw_val).rstrip(".")
-    if field in ("expense_ratio", "ter_direct"):
+    if str(raw_val).startswith(NOT_LISTED):
+        narrative = f"The {field_title} of {scheme_name} is not listed on the Groww scheme page."
+    elif field in ("expense_ratio", "ter_direct"):
         val_display = f"{raw_val}%" if not str(raw_val).endswith("%") else str(raw_val)
         narrative = (
             f"The Total Expense Ratio (TER) of {scheme_name} (Direct Plan - Growth Option) is "
@@ -257,13 +265,13 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     elif field == "lock_in":
         narrative = f"The lock-in period for {scheme_name} is {val_clean} per the Groww scheme page."
     elif field == "nav_source":
-        narrative = f"Unitholders can verify daily NAV for {scheme_name} on the AMFI portal (amfiindia.com) and the AMC website (hdfcfund.com)."
+        narrative = f"Unitholders can verify daily NAV for {scheme_name} on the AMFI portal (amfiindia.com) and the AMC website ({site})."
     elif field == "factsheet":
-        narrative = f"The monthly scheme factsheet for {scheme_name} is published and available for download on hdfcfund.com."
+        narrative = f"The monthly scheme factsheet for {scheme_name} is published and available for download on {site}."
     elif field == "portfolio_turnover":
-        narrative = f"The portfolio turnover ratio for {scheme_name} is documented in the monthly scheme factsheet on hdfcfund.com."
+        narrative = f"The portfolio turnover ratio for {scheme_name} is documented in the monthly scheme factsheet on {site}."
     elif field == "amc_name":
-        narrative = f"The asset management company (AMC) for {scheme_name} is HDFC Asset Management Company Limited."
+        narrative = f"The asset management company (AMC) for {scheme_name} is {publisher}."
     else:
         narrative = f"The {field_title} for {scheme_name} is {val_clean}."
 
@@ -276,7 +284,7 @@ def format_fact_response(fact: Dict[str, Any]) -> Dict[str, Any]:
     ]
     if amfi_code:
         stat_card_rows.append(f"| **AMFI Code** | {amfi_code} |")
-    stat_card_rows.append("| **Fund House** | HDFC Asset Management Company Limited |")
+    stat_card_rows.append(f"| **Fund House** | {publisher} |")
     stat_card_rows.append("| **Data Source** | Groww scheme page |")
     doc_date = normalize_iso_date(fact.get("as_of") or fact.get("doc_date", ""))
 
@@ -304,6 +312,8 @@ def format_multi_fact_response(
     meta = SCHEME_REGISTRY.get(scheme_id, {})
     scheme_name = meta.get("official_name", meta.get("name", scheme_id))
     citation_url = meta.get("url", "https://groww.in")
+    site = meta.get("amc_domain", "the AMC website")
+    publisher = meta.get("publisher", "the asset management company")
 
     narrative_sentences = []
     stat_card_rows = [
@@ -324,7 +334,9 @@ def format_multi_fact_response(
             if d > latest_doc_date:
                 latest_doc_date = d
 
-        if f_name in ("ter_direct", "expense_ratio"):
+        if str(val).startswith(NOT_LISTED):
+            narrative_sentences.append(f"The {title} is not listed on the Groww scheme page.")
+        elif f_name in ("ter_direct", "expense_ratio"):
             val_disp = f"{val}%" if not str(val).endswith("%") else str(val)
             narrative_sentences.append(f"The Total Expense Ratio (TER) is {val_disp}.")
         elif f_name == "exit_load":
@@ -342,7 +354,7 @@ def format_multi_fact_response(
 
     if meta.get("amfi_code"):
         stat_card_rows.append(f"| **AMFI Code** | {meta['amfi_code']} |")
-    stat_card_rows.append("| **Fund House** | HDFC Asset Management Company Limited |")
+    stat_card_rows.append(f"| **Fund House** | {publisher} |")
     stat_card_rows.append("| **Data Source** | Groww scheme page |")
 
     narrative = f"For {scheme_name}: " + " ".join(narrative_sentences)
@@ -421,7 +433,7 @@ def lookup_fact(
 
 
 def get_all_scheme_facts_from_db() -> list[dict]:
-    """Returns verified scheme facts for all 5 indexed schemes."""
+    """Returns verified scheme facts for every indexed scheme."""
     from app.rag.entities import SCHEME_REGISTRY
     result = []
     for sid, info in SCHEME_REGISTRY.items():

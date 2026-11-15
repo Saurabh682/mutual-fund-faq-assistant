@@ -12,7 +12,7 @@ license: mit
 
 # 📊 Mutual Fund FAQ Assistant (Facts-Only Q&A)
 
-> A retrieval-augmented (RAG) assistant that answers **factual** questions about 5 HDFC Mutual Fund schemes, with Groww as the reference product.
+> A retrieval-augmented (RAG) assistant that answers **factual** questions about 20 HDFC and Mahindra Manulife Mutual Fund schemes, with Groww as the reference product.
 > Guiding principle: **"Accuracy over intelligence"**. Every answer is short, cites one official source and carries a freshness date. It never gives investment advice.
 
 <p>
@@ -78,7 +78,7 @@ This assistant avoids both:
 
 ## 🎯 Scope: Schemes & Sources
 
-Answers are limited to **5 HDFC Mutual Fund Direct-Growth schemes**:
+Answers are limited to **20 HDFC and Mahindra Manulife Mutual Fund Direct-Growth schemes**:
 
 | # | Category | Scheme |
 |---|---|---|
@@ -87,6 +87,21 @@ Answers are limited to **5 HDFC Mutual Fund Direct-Growth schemes**:
 | 3 | Large-Cap | [HDFC Top 100 Fund](https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth) |
 | 4 | Precious Metals FoF | [HDFC Silver ETF FoF](https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth) |
 | 5 | Multi-Cap | [HDFC Multi Cap Fund](https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth) |
+| 6 | Aggressive Hybrid | [Mahindra Manulife Aggressive Hybrid Fund](https://groww.in/mutual-funds/mahindra-manulife-aggressive-hybrid-fund-direct-growth) |
+| 7 | Arbitrage | [Mahindra Manulife Arbitrage Fund](https://groww.in/mutual-funds/mahindra-manulife-arbitrage-fund-direct-growth) |
+| 8 | Thematic | [Mahindra Manulife Consumption Fund](https://groww.in/mutual-funds/mahindra-manulife-consumption-fund-direct-growth) |
+| 9 | Dynamic Term | [Mahindra Manulife Dynamic Term Fund](https://groww.in/mutual-funds/mahindra-manulife-dynamic-term-fund-direct-growth) |
+| 10 | ELSS | [Mahindra Manulife ELSS Tax Saver Fund](https://groww.in/mutual-funds/mahindra-manulife-elss-tax-saver-fund-direct-growth) |
+| 11 | Equity Savings | [Mahindra Manulife Equity Savings Fund](https://groww.in/mutual-funds/mahindra-manulife-equity-savings-fund-direct-growth) |
+| 12 | Focused | [Mahindra Manulife Focused Fund](https://groww.in/mutual-funds/mahindra-manulife-focused-fund-direct-growth) |
+| 13 | Large Cap | [Mahindra Manulife Large Cap Fund](https://groww.in/mutual-funds/mahindra-manulife-large-cap-fund-direct-growth) |
+| 14 | Large & MidCap | [Mahindra Manulife Large & Mid Cap Fund](https://groww.in/mutual-funds/mahindra-manulife-large-mid-cap-fund-direct-growth) |
+| 15 | Liquid | [Mahindra Manulife Liquid Fund](https://groww.in/mutual-funds/mahindra-manulife-liquid-fund-direct-growth) |
+| 16 | Mid Cap | [Mahindra Manulife Mid Cap Fund](https://groww.in/mutual-funds/mahindra-manulife-mid-cap-fund-direct-growth) |
+| 17 | Multi Cap | [Mahindra Manulife Multi Cap Fund](https://groww.in/mutual-funds/mahindra-manulife-multi-cap-fund-direct-growth) |
+| 18 | Overnight | [Mahindra Manulife Overnight Fund](https://groww.in/mutual-funds/mahindra-manulife-overnight-fund-direct-growth) |
+| 19 | Ultra Short Term | [Mahindra Manulife Ultra Short Term Fund](https://groww.in/mutual-funds/mahindra-manulife-ultra-short-term-fund-direct-growth) |
+| 20 | Ultra Short to Short Term | [Mahindra Manulife Ultra Short to Short Term Fund](https://groww.in/mutual-funds/mahindra-manulife-ultra-short-to-short-term-fund-direct-growth) |
 
 Refusals and general guidance point to official investor resources: [AMFI Knowledge Center](https://www.amfiindia.com/investor-corner/knowledge-center), [SEBI](https://sebi.gov.in) and [CAMS](https://www.camsonline.com).
 
@@ -387,7 +402,7 @@ mutual-fund-faq-assistant/
 
 ## ⚠️ Known Limitations
 
-- **Narrow scope by design:** only the 5 HDFC schemes above for now (expansion is [planned](docs/corpus-expansion-roadmap.md)). Everything else gets a "not covered" answer.
+- **Narrow scope by design:** only the 20 HDFC and Mahindra Manulife schemes above for now (expansion is [planned](docs/corpus-expansion-roadmap.md)). Everything else gets a "not covered" answer.
 - **Cautious wording handling:** harmless questions phrased with words like *"recommend"*, *"wise"* or *"better"* may get a fact plus a refusal note.
 - **Data freshness** depends on the daily ingestion job; the footer date shows exactly when the sources were last read.
 - **Cold starts:** the free Hugging Face Space sleeps when idle, so the first request after a while is slower.

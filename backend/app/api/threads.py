@@ -19,7 +19,7 @@ from app.guardrails.refusal import (
 )
 from app.guardrails.validator import split_sentences
 from app.rag.entities import (
-    get_disambiguation_response,
+    get_clarification_response,
     get_external_amc_response,
     get_unsupported_plan_response,
     resolve_entities,
@@ -272,7 +272,7 @@ async def post_message(
 
         # Check Unsupported Plans (Regular plans / IDCW options) (EC-AUDIT-4.5)
         if entity_res.is_unsupported_plan:
-            plan_resp = get_unsupported_plan_response()
+            plan_resp = get_unsupported_plan_response(house_ids=entity_res.named_fund_house_ids)
             elapsed_ms = (time.perf_counter() - t0) * 1000
             sentences = split_sentences(plan_resp["text"])
             followups = generate_followup_suggestions(resolution_type="unsupported_plan")
@@ -341,7 +341,7 @@ async def post_message(
         # Ambiguity & Educational Glossary Handling (EC-ENT-01 & EC-AUDIT-4.4)
         if entity_res.is_ambiguous:
             from app.rag.glossary import lookup_glossary
-            glossary_match = lookup_glossary(user_query)
+            glossary_match = None if entity_res.needs_scheme_choice else lookup_glossary(user_query)
             if glossary_match:
                 elapsed_ms = (time.perf_counter() - t0) * 1000
                 sentences = split_sentences(glossary_match["text"])
@@ -377,7 +377,7 @@ async def post_message(
                 )
                 return asst_msg
 
-            clarification = get_disambiguation_response()
+            clarification = get_clarification_response(entity_res)
             elapsed_ms = (time.perf_counter() - t0) * 1000
             sentences = split_sentences(clarification["text"])
             followups = generate_followup_suggestions(resolution_type="clarification")
@@ -386,6 +386,7 @@ async def post_message(
                 id=f"msg_{uuid.uuid4().hex[:12]}",
                 role="assistant",
                 type="clarification",
+                options=clarification.get("options"),
                 text=clarification["text"],
                 sentence_count=len(sentences),
                 citation_url=clarification["citation_url"],

@@ -17,7 +17,17 @@ import numpy as np
 logger = logging.getLogger(__name__)
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
 from app.guardrails.validator import validate_response
-from app.core.schemes import LISTED_NAMES_LIMIT, SCHEME_COUNT, SCHEME_REGISTRY, format_choices, scheme_label
+from app.core.schemes import (
+    FUND_HOUSES,
+    LISTED_NAMES_LIMIT,
+    SCHEME_COUNT,
+    SCHEME_REGISTRY,
+    SCOPE_NAME,
+    format_choices,
+    fund_house_word_pattern,
+    fund_houses_named,
+    scheme_label,
+)
 
 
 EXTERNAL_AMCS = [
@@ -157,6 +167,42 @@ class EntityResolutionResult:
     matched_scheme_ids: List[str] = dc_field(default_factory=list)
     matched_scheme_alias: Optional[str] = None
     matched_field_alias: Optional[str] = None
+    # Schemes of different fund houses that go by the same name ("mid cap fund"): ask, never guess
+    ambiguous_scheme_ids: List[str] = dc_field(default_factory=list)
+    named_fund_house_ids: List[str] = dc_field(default_factory=list)
+    # No scheme resolved, but the words look like one fund's name ("ultra short term fund"): offered as options
+    suggested_scheme_ids: List[str] = dc_field(default_factory=list)
+
+    @property
+    def needs_scheme_choice(self) -> bool:
+        """A fund-specific question (a field is named) whose scheme name fits several schemes: ask before any generic answer."""
+        return bool(self.ambiguous_scheme_ids and self.field)
+
+
+def _core_aliases() -> Dict[str, List[str]]:
+    """Each scheme's aliases with the fund house prefix removed. They name a scheme only when the fund house is
+    named too ("liquid fund of Mahindra"); on their own they are common words ("What is a liquid fund?")."""
+    cores: Dict[str, List[str]] = {}
+    for sid, info in SCHEME_REGISTRY.items():
+        prefixes = sorted(FUND_HOUSES[info["amc"]]["aliases"], key=len, reverse=True)
+        found = []
+        for alias in info["aliases"]:
+            for prefix in prefixes:
+                if alias.startswith(prefix + " "):
+                    core = alias[len(prefix) + 1:]
+                    if core not in info["aliases"] and core not in found:
+                        found.append(core)
+                    break
+        cores[sid] = found
+    return cores
+
+
+_CORE_ALIASES = _core_aliases()
+
+
+def _normalize(text: str) -> str:
+    """Lower case, '&' as 'and', and hyphens or runs of spaces as one space."""
+    return re.sub(r"[-\s]+", " ", text.lower().replace("&", " and "))
 
 
 def resolve_entities(
@@ -168,62 +214,105 @@ def resolve_entities(
     pronoun/anaphora resolution, and fuzzy string similarity for typos.
     """
     clean_query = query.lower()
-    norm_query = re.sub(r"[-\s]+", " ", clean_query)
+    norm_query = _normalize(query)
 
-    # 1. Match Scheme Entity (Longest exact alias match first)
-    detected_scheme_id = None
-    detected_scheme_alias = None
-    matched_scheme_ids = []
-
+    # 1. Match Scheme Entity (longest alias wins, one match per scheme)
+    named_houses = fund_houses_named(norm_query)
+    matches = []  # (scheme_id, alias, (start, end))
     for sid, info in SCHEME_REGISTRY.items():
-        sorted_aliases = sorted(info["aliases"], key=len, reverse=True)
-        for alias in sorted_aliases:
-            norm_alias = re.sub(r"[-\s]+", " ", alias.lower())
-            pattern = r"\b" + re.escape(norm_alias) + r"\b"
-            if re.search(pattern, norm_query) or re.search(r"\b" + re.escape(alias) + r"\b", clean_query):
-                if sid not in matched_scheme_ids:
-                    matched_scheme_ids.append(sid)
-                if detected_scheme_alias is None or len(alias) > len(detected_scheme_alias):
-                    detected_scheme_id = sid
-                    detected_scheme_alias = alias
+        aliases = info["aliases"] + (_CORE_ALIASES[sid] if info["amc"] in named_houses else [])
+        for alias in sorted(aliases, key=len, reverse=True):
+            m = re.search(r"\b" + re.escape(_normalize(alias)) + r"\b", norm_query)
+            if m:
+                matches.append((sid, alias, m.span()))
                 break
 
+    # A query that names a fund house can only mean that fund house's schemes
+    if named_houses:
+        matches = [m for m in matches if SCHEME_REGISTRY[m[0]]["amc"] in named_houses]
+    # "mid cap" inside "large and mid cap fund" is part of the longer name, not a second scheme
+    matches = [
+        m for m in matches
+        if not any(o is not m and o[2] != m[2] and o[2][0] <= m[2][0] and m[2][1] <= o[2][1] for o in matches)
+    ]
+
+    ambiguous_scheme_ids: List[str] = []
+    if len(matches) > 1 and len({m[2] for m in matches}) == 1:
+        # The same words name schemes of several fund houses. Keep the fund house the conversation is about, else ask.
+        session_house = SCHEME_REGISTRY.get(session_scheme_id or "", {}).get("amc")
+        same_house = [m for m in matches if SCHEME_REGISTRY[m[0]]["amc"] == session_house]
+        if len(same_house) == 1:
+            matches = same_house
+        else:
+            ambiguous_scheme_ids = [m[0] for m in matches]
+            matches = []
+
+    detected_scheme_id = None
+    detected_scheme_alias = None
+    matched_scheme_ids = [m[0] for m in matches]
+    if matches:
+        best = max(matches, key=lambda m: len(m[1]))
+        detected_scheme_id, detected_scheme_alias = best[0], best[1]
+
     # 1b. Fuzzy Matching for Typos & Abbreviations (e.g. 'sml cap', 'midcap opp')
-    if not detected_scheme_id:
-        words = norm_query.split()
-        candidate_ngrams = []
-        for n in (1, 2, 3):
-            for i in range(len(words) - n + 1):
-                candidate_ngrams.append(" ".join(words[i:i+n]))
+    if not detected_scheme_id and not ambiguous_scheme_ids:
+        # Fund house words and "mutual fund" / "AMC" name no scheme: leave them out on both sides, so they cannot
+        # make "mahindra manulife amc" look like "mahindra manulife large cap".
+        generic = re.compile(
+            r"\b(?:" + fund_house_word_pattern() + r"|mutual fund|mutual|mf|amc|asset management(?: company)?|fund house)\b"
+        )
+
+        def bare(text: str) -> str:
+            return re.sub(r"\s+", " ", generic.sub(" ", text)).strip()
+
+        words = bare(norm_query).split()
+        candidate_ngrams = [" ".join(words[i:i + n]) for n in (1, 2, 3) for i in range(len(words) - n + 1)]
+        candidate_ngrams = [g for g in candidate_ngrams if len(g) >= 4]
 
         best_score = 0.0
-        best_sid = None
-        best_alias = None
+        best_hits: List[Tuple[str, str]] = []
 
         for sid, info in SCHEME_REGISTRY.items():
+            if named_houses and info["amc"] not in named_houses:
+                continue
             for alias in info["aliases"]:
-                norm_alias = re.sub(r"[-\s]+", " ", alias.lower())
+                norm_alias = _normalize(alias)
+                core = bare(norm_alias)
+                if core != norm_alias and info["amc"] not in named_houses:
+                    continue  # a name that includes its fund house counts only when the question names that fund house
+                norm_alias = core
+                al_w = norm_alias.split()
                 for ngram in candidate_ngrams:
-                    if len(ngram) < 4:
+                    sm = difflib.SequenceMatcher(None, ngram, norm_alias)
+                    # cheap upper bounds first: most pairs are nowhere near the threshold
+                    if sm.real_quick_ratio() < 0.78 or sm.quick_ratio() < 0.78:
                         continue
-                    if ngram in ("hdfc mutual fund", "mutual fund", "hdfc mutual", "mutual fund amc", "hdfc mf", "hdfc amc", "asset management"):
-                        continue
-                    sim = difflib.SequenceMatcher(None, ngram, norm_alias).ratio()
+                    sim = sm.ratio()
                     # "flexi cap" must not fuzzy-match "large cap": every word has to be close to its alias word
-                    ng_w, al_w = ngram.split(), norm_alias.split()
+                    ng_w = ngram.split()
                     if len(ng_w) == len(al_w) and not all(
                         a.startswith(g) or difflib.SequenceMatcher(None, g, a).ratio() >= 0.75
                         for g, a in zip(ng_w, al_w)
                     ):
                         continue
-                    if sim > best_score and sim >= 0.78:
-                        best_score = sim
-                        best_sid = sid
-                        best_alias = alias
+                    if sim >= 0.78:
+                        if sim > best_score + 1e-9:
+                            best_score, best_hits = sim, [(sid, alias)]
+                        elif abs(sim - best_score) <= 1e-9:
+                            best_hits.append((sid, alias))
 
-        if best_sid:
-            detected_scheme_id = best_sid
-            detected_scheme_alias = best_alias
+        if best_hits:
+            if len({SCHEME_REGISTRY[sid]["amc"] for sid, _ in best_hits} | set()) > 1 and len({a for _, a in best_hits}) == 1:
+                # equally close to the same name at two fund houses: ask
+                ambiguous_scheme_ids = [sid for sid, _ in best_hits]
+            else:
+                detected_scheme_id, detected_scheme_alias = best_hits[0]
+
+    suggested_scheme_ids: List[str] = []
+    if not detected_scheme_id and not ambiguous_scheme_ids:
+        for sid, cores in _CORE_ALIASES.items():
+            if any(len(c) >= 5 and re.search(r"\b" + re.escape(_normalize(c)) + r"\b", norm_query) for c in cores):
+                suggested_scheme_ids.append(sid)
 
     # 2. Pronoun / Anaphora Resolution (EC-ENT-02)
     if not detected_scheme_id and session_scheme_id in SCHEME_REGISTRY:
@@ -268,6 +357,8 @@ def resolve_entities(
     if has_external_amc:
         detected_scheme_id = None
         detected_scheme_alias = None
+        ambiguous_scheme_ids = []
+        suggested_scheme_ids = []
 
     # Check Unsupported Plan / Option (Regular Plan or IDCW/Dividend)
     is_unsupported_plan = bool(
@@ -277,11 +368,12 @@ def resolve_entities(
 
     # AMC-level out-of-scope check (Rule: AMC named, no scheme resolved, no scheme fact field matched)
     is_amc_named = bool(
-        re.search(r"\b(?:hdfc|amc|asset\s+management(?:\s+company)?|fund\s+house)\b", clean_query, re.I)
+        re.search(r"\b(?:" + fund_house_word_pattern() + r"|amc|asset\s+management(?:\s+company)?|fund\s+house)\b", clean_query, re.I)
     )
     is_amc_out_of_scope = (
         is_amc_named
         and detected_scheme_id is None
+        and not ambiguous_scheme_ids
         and detected_field in (None, "amc_name")
         and not has_external_amc
         and not is_unsupported_plan
@@ -291,7 +383,7 @@ def resolve_entities(
     # alone ("autopay mandate for my SIP" -> min_sip) is usually a process question, not a
     # request for that scheme fact, so it goes on to retrieval instead.
     field_named_explicitly = detected_field is not None and not str(detected_field_alias).startswith("semantic_match:")
-    is_ambiguous = (
+    is_ambiguous = bool(ambiguous_scheme_ids) or (
         detected_scheme_id is None
         and field_named_explicitly
         and detected_field != "amc_name"
@@ -321,17 +413,27 @@ def resolve_entities(
         matched_scheme_ids=matched_scheme_ids,
         matched_scheme_alias=detected_scheme_alias,
         matched_field_alias=detected_field_alias,
+        ambiguous_scheme_ids=ambiguous_scheme_ids,
+        named_fund_house_ids=named_houses,
+        suggested_scheme_ids=suggested_scheme_ids,
     )
 
 
-def get_unsupported_plan_response(query: Optional[str] = None) -> Dict[str, Any]:
+def _house_site(house_ids: Optional[List[str]]) -> str:
+    """The fund house's own site when the question named exactly one, else AMFI's investor page."""
+    if house_ids and len(house_ids) == 1 and house_ids[0] in FUND_HOUSES:
+        return FUND_HOUSES[house_ids[0]]["website"]
+    return CANONICAL_LINKS["ADVISORY"]
+
+
+def get_unsupported_plan_response(query: Optional[str] = None, house_ids: Optional[List[str]] = None) -> Dict[str, Any]:
     """Returns compliant response when user queries Regular plans or IDCW options."""
     doc_date = get_default_corpus_date()
-    citation = "https://www.hdfcfund.com"
+    citation = _house_site(house_ids)
     text = (
         "This assistant strictly indexes Direct Plan (Growth Option) schemes. "
         "Regular plans and IDCW options are not supported per the Groww scheme page. "
-        f"Please query Direct Plan (Growth Option) metrics across our {SCHEME_COUNT} supported HDFC funds."
+        f"Please query Direct Plan (Growth Option) metrics across our {SCHEME_COUNT} supported {SCOPE_NAME} funds."
     )
     val_res = validate_response(text, None, citation, doc_date)
     return {
@@ -344,12 +446,12 @@ def get_unsupported_plan_response(query: Optional[str] = None) -> Dict[str, Any]
 
 
 def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, Any]:
-    """Returns compliant response when user asks about a non-HDFC AMC."""
+    """Returns compliant response when user asks about a fund house outside the supported ones."""
     doc_date = get_default_corpus_date()
     citation = "https://www.amfiindia.com/investor-corner/knowledge-center"
     amc_label = f"'{detected_amc.title()}'" if detected_amc else "external fund houses"
     text = (
-        f"I can only provide records for {SCHEME_COUNT} selected HDFC Mutual Fund schemes per the Groww scheme page. "
+        f"I can only provide records for {SCHEME_COUNT} selected {SCOPE_NAME} Mutual Fund schemes per the Groww scheme page. "
         f"Information regarding {amc_label} is not available in our records. "
         f"You can explore comprehensive scheme information on the AMFI portal."
     )
@@ -363,14 +465,46 @@ def get_external_amc_response(detected_amc: Optional[str] = None) -> Dict[str, A
     }
 
 
-def get_disambiguation_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
-    """Generates the required single-sentence clarification prompt when scheme is ambiguous."""
-    labels = [scheme_label(m) for m in SCHEME_REGISTRY.values()]
-    sep = ", for example: " if len(labels) > LISTED_NAMES_LIMIT else ": "
-    body = f"Please specify which HDFC scheme you are inquiring about{sep}{format_choices(labels)}."
+_FIELD_QUESTIONS = {
+    "ter_direct": "What is the expense ratio of {n}?",
+    "exit_load": "What is the exit load of {n}?",
+    "min_sip": "What is the minimum SIP of {n}?",
+    "benchmark": "What is the benchmark of {n}?",
+    "riskometer": "What is the riskometer of {n}?",
+    "nav": "What is the NAV of {n}?",
+    "aum": "What is the AUM of {n}?",
+    "lock_in": "What is the lock-in period of {n}?",
+    "fund_manager": "Who manages {n}?",
+}
+
+
+def get_disambiguation_response(
+    last_updated: Optional[str] = None,
+    candidate_ids: Optional[List[str]] = None,
+    field: Optional[str] = None,
+    house_ids: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """The clarification prompt, with one button-ready option per scheme the user may have meant.
+
+    candidate_ids are the schemes that share the name the user typed; without them the first few schemes are offered.
+    Each option's prompt repeats the question the user asked, so one tap answers it.
+    """
+    in_named_houses = [sid for sid, info in SCHEME_REGISTRY.items() if info["amc"] in (house_ids or [])]
+    ids = [c for c in (candidate_ids or in_named_houses or list(SCHEME_REGISTRY)) if c in SCHEME_REGISTRY]
+    labels = [scheme_label(SCHEME_REGISTRY[c]) for c in ids]
+    if candidate_ids:
+        body = f"Please specify which scheme you mean: {format_choices(labels)}."
+    else:
+        sep = ", for example: " if len(labels) > LISTED_NAMES_LIMIT else ": "
+        body = f"Please specify which scheme you are inquiring about{sep}{format_choices(labels)}."
     url = CANONICAL_LINKS["ADVISORY"]
     doc_date = last_updated or get_default_corpus_date()
     val_res = validate_response(body, None, url, doc_date)
+    template = _FIELD_QUESTIONS.get(field or "", "Show facts for {n}")
+    options = [
+        {"id": sid, "label": label, "prompt": template.format(n=label)}
+        for sid, label in list(zip(ids, labels))[:LISTED_NAMES_LIMIT]
+    ]
 
     return {
         "text": val_res.text,
@@ -378,6 +512,7 @@ def get_disambiguation_response(last_updated: Optional[str] = None) -> Dict[str,
         "last_updated": val_res.last_updated,
         "rendered": val_res.rendered,
         "is_clarification": True,
+        "options": options,
     }
 
 
@@ -386,13 +521,23 @@ def get_scheme_meta(scheme_id: str) -> Optional[Dict[str, Any]]:
     return SCHEME_REGISTRY.get(scheme_id)
 
 
-def get_amc_out_of_scope_response(last_updated: Optional[str] = None) -> Dict[str, Any]:
+def get_clarification_response(entity_res: "EntityResolution") -> Dict[str, Any]:
+    """Clarification for a question whose scheme is unresolved: the schemes that share the name, else the
+    ones its words suggest, else the named fund house's, else the first few."""
+    return get_disambiguation_response(
+        candidate_ids=entity_res.ambiguous_scheme_ids or entity_res.suggested_scheme_ids or None,
+        field=entity_res.field,
+        house_ids=entity_res.named_fund_house_ids,
+    )
+
+
+def get_amc_out_of_scope_response(last_updated: Optional[str] = None, house_ids: Optional[List[str]] = None) -> Dict[str, Any]:
     """Generates deterministic out-of-scope response for AMC-level company inquiries without asking which scheme."""
     body = (
-        f"I don't have that information. I can answer questions about TER, exit load, minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} HDFC schemes. "
+        f"I don't have that information. I can answer questions about TER, exit load, minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} {SCOPE_NAME} schemes. "
         "For corporate AMC information, please refer to regulatory filings."
     )
-    url = "https://www.hdfcfund.com"
+    url = _house_site(house_ids)
     doc_date = last_updated or get_default_corpus_date()
     val_res = validate_response(body, None, url, doc_date)
 

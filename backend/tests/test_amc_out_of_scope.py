@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.core.schemes import SCHEME_COUNT
+from app.core.schemes import SCHEME_COUNT, SCOPE_NAME
 from app.rag.entities import resolve_entities
 
 client = TestClient(app)
@@ -39,4 +39,4 @@ def test_amc_level_questions_route_to_out_of_scope_without_clarification(query: 
     assert data["resolution_type"] in ("out_of_scope", "not_found")
     assert "Please specify which HDFC scheme" not in data["rendered"]
     assert "i don't have that information" in data["rendered"].lower()
-    assert f"{SCHEME_COUNT} HDFC schemes" in data["rendered"]
+    assert f"{SCHEME_COUNT} {SCOPE_NAME} schemes" in data["rendered"]

@@ -32,8 +32,8 @@ const META = {
   disclaimer: 'Facts-only. No investment advice.',
   starter_questions: ['What is the exit load for HDFC Mid-Cap Opportunities Fund?'],
   schemes: [
-    { id: 'hdfc_midcap_dg', name: 'HDFC Mid-Cap Opportunities Fund (Direct - Growth)' },
-    { id: 'hdfc_smallcap_dg', name: 'HDFC Small Cap Fund (Direct - Growth)' },
+    { id: 'hdfc_midcap_dg', name: 'HDFC Mid-Cap Opportunities Fund (Direct - Growth)', amc: 'hdfc', amc_name: 'HDFC Mutual Fund' },
+    { id: 'hdfc_smallcap_dg', name: 'HDFC Small Cap Fund (Direct - Growth)', amc: 'hdfc', amc_name: 'HDFC Mutual Fund' },
   ],
 };
 

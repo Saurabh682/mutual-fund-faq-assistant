@@ -17,7 +17,7 @@ from app.guardrails.refusal import (
 )
 from app.guardrails.validator import split_sentences
 from app.rag.entities import (
-    get_disambiguation_response,
+    get_clarification_response,
     get_external_amc_response,
     get_unsupported_plan_response,
     resolve_entities,
@@ -158,7 +158,7 @@ def retrieve_query(request: RetrievalQueryRequest):
 
     # Unsupported Plan check (Regular Plan, IDCW)
     if entity_res.is_unsupported_plan:
-        plan_resp = get_unsupported_plan_response(request.query)
+        plan_resp = get_unsupported_plan_response(request.query, entity_res.named_fund_house_ids)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return RetrievalQueryResponse(
             query=request.query,
@@ -193,7 +193,7 @@ def retrieve_query(request: RetrievalQueryRequest):
         )
 
     # Non-scheme procedures and glossary routing
-    if entity_res.scheme_id is None:
+    if entity_res.scheme_id is None and not entity_res.needs_scheme_choice:
         proc_match = lookup_procedure(request.query)
         if proc_match:
             elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -237,7 +237,7 @@ def retrieve_query(request: RetrievalQueryRequest):
     # AMC-level out-of-scope check (Rule: AMC named, no scheme, no supported topic)
     if entity_res.is_amc_out_of_scope:
         from app.rag.entities import get_amc_out_of_scope_response
-        amc_resp = get_amc_out_of_scope_response()
+        amc_resp = get_amc_out_of_scope_response(house_ids=entity_res.named_fund_house_ids)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return RetrievalQueryResponse(
             query=request.query,
@@ -257,7 +257,7 @@ def retrieve_query(request: RetrievalQueryRequest):
     # AMC-level out-of-scope check (Rule: AMC named, no scheme, no supported topic)
     if entity_res.is_amc_out_of_scope:
         from app.rag.entities import get_amc_out_of_scope_response
-        amc_resp = get_amc_out_of_scope_response()
+        amc_resp = get_amc_out_of_scope_response(house_ids=entity_res.named_fund_house_ids)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(amc_resp["text"])
         return SynthesisQueryResponse(
@@ -279,7 +279,7 @@ def retrieve_query(request: RetrievalQueryRequest):
         )
 
     if entity_res.is_ambiguous:
-        clarification = get_disambiguation_response()
+        clarification = get_clarification_response(entity_res)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return RetrievalQueryResponse(
             query=request.query,
@@ -506,7 +506,7 @@ def ask_query(request: SynthesisQueryRequest):
 
     # Unsupported Plan check (Regular Plan, IDCW)
     if entity_res.is_unsupported_plan:
-        plan_resp = get_unsupported_plan_response(request.query)
+        plan_resp = get_unsupported_plan_response(request.query, entity_res.named_fund_house_ids)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(plan_resp["text"])
         followups = generate_followup_suggestions(
@@ -563,7 +563,7 @@ def ask_query(request: SynthesisQueryRequest):
         )
 
     # Non-scheme procedures and glossary routing
-    if entity_res.scheme_id is None:
+    if entity_res.scheme_id is None and not entity_res.needs_scheme_choice:
         proc_match = lookup_procedure(request.query)
         if proc_match:
             elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -613,7 +613,7 @@ def ask_query(request: SynthesisQueryRequest):
     # AMC-level out-of-scope check (Rule: AMC named, no scheme, no supported topic)
     if entity_res.is_amc_out_of_scope:
         from app.rag.entities import get_amc_out_of_scope_response
-        amc_resp = get_amc_out_of_scope_response()
+        amc_resp = get_amc_out_of_scope_response(house_ids=entity_res.named_fund_house_ids)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(amc_resp["text"])
         return SynthesisQueryResponse(
@@ -635,7 +635,7 @@ def ask_query(request: SynthesisQueryRequest):
         )
 
     if entity_res.is_ambiguous:
-        clarification = get_disambiguation_response()
+        clarification = get_clarification_response(entity_res)
         elapsed_ms = (time.perf_counter() - t0) * 1000
         sentences = split_sentences(clarification["text"])
         followups = generate_followup_suggestions(intent="HELP")

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.schemes import SCHEME_COUNT, scheme_options
+from app.core.schemes import FUND_HOUSE_NAMES, SCHEME_COUNT, SCOPE_NAME, scheme_options
 from app.api.guardrails import router as guardrails_router
 from app.api.rag import router as rag_router
 from app.api.threads import router as threads_router
@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Mutual Fund FAQ Assistant API",
-    description="Deterministic facts-only Q&A assistant for HDFC Mutual Fund schemes operating under SEBI guidelines.",
+    description=f"Deterministic facts-only Q&A assistant for {SCOPE_NAME} Mutual Fund schemes operating under SEBI guidelines.",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -118,7 +118,7 @@ def health_check():
         "environment": settings.ENVIRONMENT,
         "llm_provider": "groq",
         "llm_model": settings.GROQ_MODEL,
-        "amc": "HDFC Mutual Fund",
+        "amc": FUND_HOUSE_NAMES,
         "schemes_count": SCHEME_COUNT
     }
 
@@ -132,11 +132,12 @@ def get_scheme_facts_list():
 def get_metadata():
     return {
         "disclaimer": "Facts-only. No investment advice.",
-        "amc": "HDFC Mutual Fund",
+        "amc": FUND_HOUSE_NAMES,
         "starter_questions": [
             "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
             "What is the minimum SIP amount for HDFC Small Cap Fund?",
-            "What is the lock-in period for ELSS mutual funds?"
+            "What is the lock-in period for ELSS mutual funds?",
+            "What is the riskometer of Mahindra Manulife Arbitrage Fund?",
         ],
         "schemes": scheme_options()
     }

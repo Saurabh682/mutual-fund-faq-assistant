@@ -32,6 +32,8 @@ export interface Message {
   last_updated?: string;
   rendered?: string;
   suggested_followups?: string[];
+  /** Clarification choices: one per scheme the question may mean; prompt repeats the question */
+  options?: { id: string; label: string; prompt: string }[];
   timestamp: string;
   latency_ms?: number;
   fact_portion?: string;
@@ -57,6 +59,8 @@ export interface Thread extends ThreadSummary {
 export interface SchemeInfo {
   id: string;
   name: string;
+  amc?: string;
+  amc_name?: string;
 }
 
 export interface MetaData {

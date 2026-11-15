@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from conftest import ter
 from app.main import app
-from app.core.schemes import SCHEME_COUNT
+from app.core.schemes import SCHEME_COUNT, SCOPE_NAME
 from app.guardrails.validator import (
     BANNED_LEXICON,
     DATE_FOOTER_PATTERN,
@@ -302,7 +302,7 @@ class TestEndToEndAskEndpoint:
         assert resp.status_code == 200
         data = resp.json()
         assert data["resolution_type"] == "clarification"
-        assert "Please specify which HDFC scheme" in data["text"]
+        assert "Please specify which scheme" in data["text"]
         assert data["sentence_count"] == 1
 
     def test_ask_out_of_corpus_fallback_path(self):
@@ -315,7 +315,7 @@ class TestEndToEndAskEndpoint:
         assert data["resolution_type"] in ("not_found", "external_amc")
         assert (
             "I don't have that information" in data["text"]
-            or f"{SCHEME_COUNT} selected HDFC Mutual Fund schemes" in data["text"]
+            or f"{SCHEME_COUNT} selected {SCOPE_NAME} Mutual Fund schemes" in data["text"]
         )
         assert data["citation_url"] == "https://www.amfiindia.com/investor-corner/knowledge-center"
 

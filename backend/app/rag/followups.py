@@ -66,45 +66,46 @@ SCHEME_FIELD_SUGGESTIONS = {
 GLOSSARY_FOLLOWUPS = {
     "ter": [
         "What is the TER of HDFC Small Cap Fund?",
-        "What is the TER of HDFC Top 100 Fund?",
+        "What is the TER of Mahindra Manulife Mid Cap Fund?",
         "Explain exit load",
     ],
     "exit_load": [
         "What is the exit load for HDFC Mid-Cap?",
-        "What is the exit load for HDFC Silver FoF?",
+        "What is the exit load for Mahindra Manulife Liquid Fund?",
         "What is lock-in period?",
     ],
     "sip": [
         "What is the minimum SIP for HDFC Small Cap?",
-        "What is the minimum SIP for HDFC Multi Cap?",
+        "What is the minimum SIP for Mahindra Manulife Focused Fund?",
         "What is Total Expense Ratio?",
     ],
     "nav": [
         "What is the NAV of HDFC Top 100 Fund?",
-        "What is the NAV of HDFC Mid-Cap?",
+        "What is the NAV of Mahindra Manulife Large Cap Fund?",
     ],
     "riskometer": [
         "What is the riskometer rating for HDFC Small Cap?",
-        "What is the riskometer rating for HDFC Silver FoF?",
+        "What is the riskometer rating for Mahindra Manulife Arbitrage Fund?",
     ],
     "benchmark": [
         "What is the benchmark for HDFC Multi Cap Fund?",
-        "What is the benchmark for HDFC Small Cap?",
+        "What is the benchmark for Mahindra Manulife Aggressive Hybrid Fund?",
     ],
     "lock_in": [
         "What is the lock-in period for ELSS mutual funds?",
         "Does HDFC Mid-Cap have any lock-in period?",
+        "What is the lock-in period of Mahindra Manulife ELSS Tax Saver Fund?",
     ],
     "aum": [
         "What is the AUM of HDFC Top 100 Fund?",
-        "What is the AUM of HDFC Small Cap?",
+        "What is the AUM of Mahindra Manulife Mid Cap Fund?",
     ],
 }
 
 DEFAULT_SUGGESTIONS = [
     "What is the TER of HDFC Mid-Cap Opportunities Fund?",
     "What is the exit load for HDFC Small Cap Fund?",
-    "What is the benchmark for HDFC Multi Cap Fund?",
+    "What is the benchmark for Mahindra Manulife Multi Cap Fund?",
 ]
 
 
@@ -127,7 +128,7 @@ def generate_followup_suggestions(
     if intent in ("HELP", "SMALLTALK"):
         return [
             "What is the TER of HDFC Top 100 Fund?",
-            "What is the minimum SIP for HDFC Multi Cap Fund?",
+            "What is the minimum SIP for Mahindra Manulife Multi Cap Fund?",
             "Explain exit load",
         ]
 
@@ -151,7 +152,7 @@ def generate_followup_suggestions(
     if resolution_type == "clarification":
         return [
             "What is the TER of HDFC Small Cap?",
-            "What is the exit load for HDFC Mid-Cap?",
+            "What is the exit load for Mahindra Manulife Mid Cap Fund?",
             "What is the benchmark for HDFC Top 100?",
         ]
 
@@ -159,7 +160,7 @@ def generate_followup_suggestions(
     if resolution_type in ("not_found", "out_of_scope", "unsupported_plan", "external_amc"):
         return [
             "What is the TER of HDFC Small Cap (Direct - Growth)?",
-            "What is the exit load for HDFC Top 100?",
+            "What is the exit load for Mahindra Manulife Liquid Fund?",
             "What schemes are supported?",
         ]
 

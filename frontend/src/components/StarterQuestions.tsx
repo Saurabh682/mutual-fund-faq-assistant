@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, HelpCircle, X } from 'lucide-react';
 import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
+import { fundHouseNames, groupByFundHouse } from '../lib/schemes';
 
 const CATEGORY_TAGS = ['Exit Rules', 'Investment Minimums', 'Fund Norms'];
 
@@ -34,7 +35,9 @@ export const StarterQuestions: React.FC = () => {
       {/* Title & Subtitle */}
       <div className="flex flex-col gap-1.5 mb-5">
         <h1 className="text-[22px] sm:text-[26px] font-bold text-[#0F172A] dark:text-[#dde4df] tracking-tight">
-          {schemes.length > 0 ? `Ask facts about ${schemes.length} HDFC schemes` : 'Ask facts about HDFC schemes'}
+          {schemes.length > 0
+            ? `Ask facts about ${schemes.length} ${fundHouseNames(schemes) || 'mutual fund'} schemes`
+            : 'Ask facts about mutual fund schemes'}
         </h1>
         <p className="text-[14px] sm:text-[15px] leading-relaxed text-[#475569] dark:text-[#94a3b8]">
           Expense ratio, exit load, minimum SIP, riskometer, benchmark and more. Answers cite their
@@ -42,9 +45,16 @@ export const StarterQuestions: React.FC = () => {
         </p>
       </div>
 
-      {/* 5 Scheme Chips */}
+      {/* Scheme chips, one row per fund house */}
       <div className="flex flex-wrap gap-2 mb-6" aria-label="Scheme quick selector">
-        {schemes.map((s) => {
+        {groupByFundHouse(schemes).map((g) => (
+          <div key={g.house} className="w-full flex flex-wrap gap-2 items-center">
+            {g.house && (
+              <span className="w-full text-[12px] font-semibold uppercase tracking-wide text-[#64748B] dark:text-[#94a3b8]">
+                {g.house}
+              </span>
+            )}
+            {g.schemes.map((s) => {
           const isSelected = s.id === selectedSchemeId;
           return (
             <button
@@ -66,7 +76,9 @@ export const StarterQuestions: React.FC = () => {
               <span>{s.name.replace(' (Direct - Growth)', '').replace(' (Direct Growth)', '')}</span>
             </button>
           );
-        })}
+            })}
+          </div>
+        ))}
       </div>
 
       {/* 3 Starter Action Cards */}
@@ -130,7 +142,7 @@ export const StarterQuestions: React.FC = () => {
             </div>
             <div className="py-3 text-[13px] space-y-2.5 text-[#475569] dark:text-[#94a3b8]">
               <p>
-                You can ask exact factual questions about any of the {schemes.length ? `${schemes.length} ` : ''}indexed HDFC schemes:
+                You can ask exact factual questions about any of the {schemes.length ? `${schemes.length} ` : ''}indexed {fundHouseNames(schemes)} schemes:
               </p>
               <ul className="list-disc list-inside space-y-1 text-[#0F172A] dark:text-[#dde4df] pl-1 font-medium">
                 <li>Total Expense Ratio (TER - Direct Growth)</li>

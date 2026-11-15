@@ -10,12 +10,44 @@ official_allowed_domains:
 - camsonline.com
 - kfintech.com
 - npci.org.in
+- mahindramanulife.com
+fund_houses:
+- id: hdfc
+  name: HDFC Mutual Fund
+  short_name: HDFC
+  publisher: HDFC Asset Management Company Limited
+  website: https://www.hdfcfund.com
+  aliases:
+  - hdfc
+  - hdfc mutual fund
+  - hdfc mf
+  - hdfc amc
+  - hdfc asset management company
+  - hdfc asset management
+  ignore_phrases: []
+- id: mahindra
+  name: Mahindra Manulife Mutual Fund
+  short_name: Mahindra Manulife
+  publisher: Mahindra Manulife Investment Management Private Limited
+  website: https://www.mahindramanulife.com
+  aliases:
+  - mahindra manulife
+  - mahindra manulife mutual fund
+  - mahindra mutual fund
+  - mahindra mf
+  - mahindra amc
+  - mahindra asset management
+  - manulife
+  - mahindra
+  ignore_phrases:
+  - kotak mahindra
 schemes:
 - id: hdfc_midcap_dg
   name: HDFC Mid-Cap Opportunities Fund
   official_name: HDFC Mid-Cap Opportunities Fund (Direct - Growth)
   also_called:
   - HDFC Mid Cap Fund
+  amc: hdfc
   category: 'Equity: Mid Cap'
   plan: Direct
   option: Growth
@@ -23,6 +55,7 @@ schemes:
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-mid-cap-opportunities-fund
   amfi_scheme_code: '118989'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=118989
+  isin: INF179K01XQ0
   sebi_category: Mid Cap Fund (Min 65% in Mid Cap companies)
   aliases:
   - hdfc mid-cap opportunities fund
@@ -64,6 +97,7 @@ schemes:
 - id: hdfc_smallcap_dg
   name: HDFC Small Cap Fund
   official_name: HDFC Small Cap Fund (Direct - Growth)
+  amc: hdfc
   category: 'Equity: Small Cap'
   plan: Direct
   option: Growth
@@ -71,6 +105,7 @@ schemes:
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-small-cap-fund
   amfi_scheme_code: '130503'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=130503
+  isin: INF179KA1RW5
   sebi_category: Small Cap Fund (Min 65% in Small Cap companies)
   aliases:
   - hdfc small cap fund
@@ -109,6 +144,7 @@ schemes:
   official_name: HDFC Top 100 Fund (Direct - Growth)
   also_called:
   - HDFC Large Cap Fund
+  amc: hdfc
   category: 'Equity: Large Cap'
   plan: Direct
   option: Growth
@@ -116,6 +152,7 @@ schemes:
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-top-100-fund
   amfi_scheme_code: '119018'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=119018
+  isin: INF179K01YV8
   sebi_category: Large Cap Fund (Min 80% in Large Cap companies)
   aliases:
   - hdfc large cap fund
@@ -152,6 +189,7 @@ schemes:
   official_name: HDFC Silver ETF FoF (Direct - Growth)
   also_called:
   - HDFC Silver ETF FoF
+  amc: hdfc
   category: 'Commodities: Silver FoF'
   plan: Direct
   option: Growth
@@ -159,6 +197,7 @@ schemes:
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-silver-etf-fund-fund
   amfi_scheme_code: '150737'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=150737
+  isin: INF179KC1DU7
   sebi_category: Precious Metals FoF (Min 95% in Silver ETF)
   aliases:
   - hdfc silver etf fund of fund
@@ -193,6 +232,7 @@ schemes:
 - id: hdfc_multicap_dg
   name: HDFC Multi Cap Fund
   official_name: HDFC Multi Cap Fund (Direct - Growth)
+  amc: hdfc
   category: 'Equity: Multi Cap'
   plan: Direct
   option: Growth
@@ -200,6 +240,7 @@ schemes:
   amc_portal_url: https://www.hdfcfund.com/our-products/hdfc-multi-cap-fund
   amfi_scheme_code: '149368'
   amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149368
+  isin: INF179KC1BS5
   sebi_category: Multi Cap Fund (Min 25% Large, 25% Mid, 25% Small Cap)
   aliases:
   - hdfc multi cap fund
@@ -231,6 +272,333 @@ schemes:
     type: AMFI Master
     publisher: AMFI India
     url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=149368
+- id: mahindra_aggressive_hybrid_dg
+  name: Mahindra Manulife Aggressive Hybrid Fund
+  official_name: Mahindra Manulife Aggressive Hybrid Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Hybrid: Aggressive Hybrid'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-aggressive-hybrid-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '147446'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=147446
+  isin: INF174V01788
+  aliases:
+  - mahindra manulife aggressive hybrid fund
+  - mahindra manulife aggressive hybrid
+  - mahindra aggressive hybrid fund
+  - mahindra aggressive hybrid
+  - manulife aggressive hybrid fund
+  - manulife aggressive hybrid
+- id: mahindra_arbitrage_dg
+  name: Mahindra Manulife Arbitrage Fund
+  official_name: Mahindra Manulife Arbitrage Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Hybrid: Arbitrage'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-arbitrage-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '148468'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=148468
+  isin: INF174V01AA0
+  aliases:
+  - mahindra manulife arbitrage fund
+  - mahindra manulife arbitrage
+  - mahindra arbitrage fund
+  - mahindra arbitrage
+  - manulife arbitrage fund
+  - manulife arbitrage
+- id: mahindra_consumption_dg
+  name: Mahindra Manulife Consumption Fund
+  official_name: Mahindra Manulife Consumption Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: Thematic'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-consumption-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '145356'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=145356
+  isin: INF174V01663
+  aliases:
+  - mahindra manulife consumption fund
+  - mahindra manulife consumption
+  - mahindra consumption fund
+  - mahindra consumption
+  - manulife consumption fund
+  - manulife consumption
+- id: mahindra_dynamic_term_dg
+  name: Mahindra Manulife Dynamic Term Fund
+  official_name: Mahindra Manulife Dynamic Term Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Debt: Dynamic Term'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-dynamic-term-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '144403'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=144403
+  isin: INF174V01580
+  aliases:
+  - mahindra manulife dynamic term fund
+  - mahindra manulife dynamic term
+  - mahindra dynamic term fund
+  - mahindra dynamic term
+  - manulife dynamic term fund
+  - manulife dynamic term
+- id: mahindra_elss_dg
+  name: Mahindra Manulife ELSS Tax Saver Fund
+  official_name: Mahindra Manulife ELSS Tax Saver Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: ELSS'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-elss-tax-saver-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '139781'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=139781
+  isin: INF174V01093
+  aliases:
+  - mahindra manulife elss tax saver fund
+  - mahindra manulife elss tax saver
+  - mahindra manulife elss fund
+  - mahindra manulife elss
+  - mahindra elss tax saver fund
+  - mahindra elss tax saver
+  - mahindra elss fund
+  - mahindra elss
+  - manulife elss tax saver fund
+  - manulife elss tax saver
+  - manulife elss fund
+  - manulife elss
+- id: mahindra_equity_savings_dg
+  name: Mahindra Manulife Equity Savings Fund
+  official_name: Mahindra Manulife Equity Savings Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Hybrid: Equity Savings'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-equity-savings-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '140444'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=140444
+  isin: INF174V01184
+  aliases:
+  - mahindra manulife equity savings fund
+  - mahindra manulife equity savings
+  - mahindra equity savings fund
+  - mahindra equity savings
+  - manulife equity savings fund
+  - manulife equity savings
+- id: mahindra_focused_dg
+  name: Mahindra Manulife Focused Fund
+  official_name: Mahindra Manulife Focused Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: Focused'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-focused-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '148567'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=148567
+  isin: INF174V01AG7
+  aliases:
+  - mahindra manulife focused fund
+  - mahindra manulife focused
+  - mahindra focused fund
+  - mahindra focused
+  - manulife focused fund
+  - manulife focused
+- id: mahindra_largecap_dg
+  name: Mahindra Manulife Large Cap Fund
+  official_name: Mahindra Manulife Large Cap Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: Large Cap'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-large-cap-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '146549'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=146549
+  isin: INF174V01721
+  aliases:
+  - mahindra manulife large cap fund
+  - mahindra manulife large cap
+  - mahindra manulife largecap
+  - mahindra large cap fund
+  - mahindra large cap
+  - mahindra largecap
+  - manulife large cap fund
+  - manulife large cap
+  - manulife largecap
+  - large cap fund
+  - large cap
+  - largecap
+- id: mahindra_largemid_dg
+  name: Mahindra Manulife Large & Mid Cap Fund
+  official_name: Mahindra Manulife Large & Mid Cap Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: Large & MidCap'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-large-mid-cap-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '147840'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=147840
+  isin: INF174V01945
+  aliases:
+  - mahindra manulife large and mid cap fund
+  - mahindra manulife large & mid cap fund
+  - mahindra manulife large and mid cap
+  - mahindra manulife large & mid cap
+  - mahindra manulife large mid cap fund
+  - mahindra manulife large mid cap
+  - mahindra manulife large and midcap fund
+  - mahindra manulife large and midcap
+  - mahindra large and mid cap fund
+  - mahindra large & mid cap fund
+  - mahindra large and mid cap
+  - mahindra large & mid cap
+  - mahindra large mid cap fund
+  - mahindra large mid cap
+  - mahindra large and midcap fund
+  - mahindra large and midcap
+  - manulife large and mid cap fund
+  - manulife large & mid cap fund
+  - manulife large and mid cap
+  - manulife large & mid cap
+  - manulife large mid cap fund
+  - manulife large mid cap
+  - manulife large and midcap fund
+  - manulife large and midcap
+- id: mahindra_liquid_dg
+  name: Mahindra Manulife Liquid Fund
+  official_name: Mahindra Manulife Liquid Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Debt: Liquid'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-liquid-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '139538'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=139538
+  isin: INF174V01044
+  aliases:
+  - mahindra manulife liquid fund
+  - mahindra manulife liquid
+  - mahindra liquid fund
+  - mahindra liquid
+  - manulife liquid fund
+  - manulife liquid
+- id: mahindra_midcap_dg
+  name: Mahindra Manulife Mid Cap Fund
+  official_name: Mahindra Manulife Mid Cap Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: Mid Cap'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-mid-cap-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '142110'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=142110
+  isin: INF174V01507
+  aliases:
+  - mahindra manulife mid cap fund
+  - mahindra manulife mid cap
+  - mahindra manulife midcap
+  - mahindra mid cap fund
+  - mahindra mid cap
+  - mahindra midcap
+  - manulife mid cap fund
+  - manulife mid cap
+  - manulife midcap
+  - mid cap fund
+  - mid cap
+  - midcap
+- id: mahindra_multicap_dg
+  name: Mahindra Manulife Multi Cap Fund
+  official_name: Mahindra Manulife Multi Cap Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Equity: Multi Cap'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-multi-cap-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '141226'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=141226
+  isin: INF174V01341
+  aliases:
+  - mahindra manulife multi cap fund
+  - mahindra manulife multi cap
+  - mahindra manulife multicap
+  - mahindra multi cap fund
+  - mahindra multi cap
+  - mahindra multicap
+  - manulife multi cap fund
+  - manulife multi cap
+  - manulife multicap
+  - multi cap fund
+  - multi cap
+  - multicap
+- id: mahindra_overnight_dg
+  name: Mahindra Manulife Overnight Fund
+  official_name: Mahindra Manulife Overnight Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Debt: Overnight'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-overnight-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '147564'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=147564
+  isin: INF174V01838
+  aliases:
+  - mahindra manulife overnight fund
+  - mahindra manulife overnight
+  - mahindra overnight fund
+  - mahindra overnight
+  - manulife overnight fund
+  - manulife overnight
+- id: mahindra_ultra_short_dg
+  name: Mahindra Manulife Ultra Short Term Fund
+  official_name: Mahindra Manulife Ultra Short Term Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Debt: Ultra Short Term'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-ultra-short-term-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '147731'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=147731
+  isin: INF174V01887
+  aliases:
+  - mahindra manulife ultra short term fund
+  - mahindra manulife ultra short term
+  - mahindra ultra short term fund
+  - mahindra ultra short term
+  - manulife ultra short term fund
+  - manulife ultra short term
+- id: mahindra_ultra_short_short_dg
+  name: Mahindra Manulife Ultra Short to Short Term Fund
+  official_name: Mahindra Manulife Ultra Short to Short Term Fund (Direct - Growth)
+  amc: mahindra
+  category: 'Debt: Ultra Short to Short Term'
+  plan: Direct
+  option: Growth
+  groww_url: https://groww.in/mutual-funds/mahindra-manulife-ultra-short-to-short-term-fund-direct-growth
+  amc_portal_url: https://www.mahindramanulife.com
+  amfi_scheme_code: '140613'
+  amfi_url: https://www.amfiindia.com/research-information/other-data/scheme-details?schemecode=140613
+  isin: INF174V01267
+  aliases:
+  - mahindra manulife ultra short to short term fund
+  - mahindra manulife ultra short to short term
+  - mahindra ultra short to short term fund
+  - mahindra ultra short to short term
+  - manulife ultra short to short term fund
+  - manulife ultra short to short term
 sources:
 - id: grw_midcap
   url: https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth
@@ -261,6 +629,96 @@ sources:
   type: scheme_page
   publisher: groww
   scheme_id: hdfc_multicap_dg
+  priority: 1
+- id: grw_mahindra_aggressive_hybrid
+  url: https://groww.in/mutual-funds/mahindra-manulife-aggressive-hybrid-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_aggressive_hybrid_dg
+  priority: 1
+- id: grw_mahindra_arbitrage
+  url: https://groww.in/mutual-funds/mahindra-manulife-arbitrage-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_arbitrage_dg
+  priority: 1
+- id: grw_mahindra_consumption
+  url: https://groww.in/mutual-funds/mahindra-manulife-consumption-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_consumption_dg
+  priority: 1
+- id: grw_mahindra_dynamic_term
+  url: https://groww.in/mutual-funds/mahindra-manulife-dynamic-term-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_dynamic_term_dg
+  priority: 1
+- id: grw_mahindra_elss
+  url: https://groww.in/mutual-funds/mahindra-manulife-elss-tax-saver-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_elss_dg
+  priority: 1
+- id: grw_mahindra_equity_savings
+  url: https://groww.in/mutual-funds/mahindra-manulife-equity-savings-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_equity_savings_dg
+  priority: 1
+- id: grw_mahindra_focused
+  url: https://groww.in/mutual-funds/mahindra-manulife-focused-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_focused_dg
+  priority: 1
+- id: grw_mahindra_largecap
+  url: https://groww.in/mutual-funds/mahindra-manulife-large-cap-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_largecap_dg
+  priority: 1
+- id: grw_mahindra_largemid
+  url: https://groww.in/mutual-funds/mahindra-manulife-large-mid-cap-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_largemid_dg
+  priority: 1
+- id: grw_mahindra_liquid
+  url: https://groww.in/mutual-funds/mahindra-manulife-liquid-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_liquid_dg
+  priority: 1
+- id: grw_mahindra_midcap
+  url: https://groww.in/mutual-funds/mahindra-manulife-mid-cap-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_midcap_dg
+  priority: 1
+- id: grw_mahindra_multicap
+  url: https://groww.in/mutual-funds/mahindra-manulife-multi-cap-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_multicap_dg
+  priority: 1
+- id: grw_mahindra_overnight
+  url: https://groww.in/mutual-funds/mahindra-manulife-overnight-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_overnight_dg
+  priority: 1
+- id: grw_mahindra_ultra_short
+  url: https://groww.in/mutual-funds/mahindra-manulife-ultra-short-term-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_ultra_short_dg
+  priority: 1
+- id: grw_mahindra_ultra_short_short
+  url: https://groww.in/mutual-funds/mahindra-manulife-ultra-short-to-short-term-fund-direct-growth
+  type: scheme_page
+  publisher: groww
+  scheme_id: mahindra_ultra_short_short_dg
   priority: 1
 official_sources:
 - id: amc_midcap_factsheet
@@ -293,6 +751,111 @@ official_sources:
   publisher: hdfc_amc
   scheme_id: hdfc_multicap_dg
   title: HDFC Multi Cap Fund Factsheet & SID/KIM
+- id: amc_mahindra_aggressive_hybrid
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_aggressive_hybrid_dg
+  title: Mahindra Manulife Aggressive Hybrid Fund scheme documents (Mahindra Manulife
+    Mutual Fund website)
+- id: amc_mahindra_arbitrage
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_arbitrage_dg
+  title: Mahindra Manulife Arbitrage Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_consumption
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_consumption_dg
+  title: Mahindra Manulife Consumption Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_dynamic_term
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_dynamic_term_dg
+  title: Mahindra Manulife Dynamic Term Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_elss
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_elss_dg
+  title: Mahindra Manulife ELSS Tax Saver Fund scheme documents (Mahindra Manulife
+    Mutual Fund website)
+- id: amc_mahindra_equity_savings
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_equity_savings_dg
+  title: Mahindra Manulife Equity Savings Fund scheme documents (Mahindra Manulife
+    Mutual Fund website)
+- id: amc_mahindra_focused
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_focused_dg
+  title: Mahindra Manulife Focused Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_largecap
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_largecap_dg
+  title: Mahindra Manulife Large Cap Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_largemid
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_largemid_dg
+  title: Mahindra Manulife Large & Mid Cap Fund scheme documents (Mahindra Manulife
+    Mutual Fund website)
+- id: amc_mahindra_liquid
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_liquid_dg
+  title: Mahindra Manulife Liquid Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_midcap
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_midcap_dg
+  title: Mahindra Manulife Mid Cap Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_multicap
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_multicap_dg
+  title: Mahindra Manulife Multi Cap Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_overnight
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_overnight_dg
+  title: Mahindra Manulife Overnight Fund scheme documents (Mahindra Manulife Mutual
+    Fund website)
+- id: amc_mahindra_ultra_short
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_ultra_short_dg
+  title: Mahindra Manulife Ultra Short Term Fund scheme documents (Mahindra Manulife
+    Mutual Fund website)
+- id: amc_mahindra_ultra_short_short
+  url: https://www.mahindramanulife.com
+  type: amc_portal
+  publisher: mahindra_amc
+  scheme_id: mahindra_ultra_short_short_dg
+  title: Mahindra Manulife Ultra Short to Short Term Fund scheme documents (Mahindra
+    Manulife Mutual Fund website)
 - id: amfi_scheme_catalog
   url: https://www.amfiindia.com/research-information/other-data/scheme-details
   type: amfi_portal

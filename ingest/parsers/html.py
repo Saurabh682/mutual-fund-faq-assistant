@@ -1,7 +1,10 @@
 import re
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
-from ingest.manifest import load_schemes
+from ingest.manifest import fund_house_of, load_schemes
+
+# Stored when the Groww page has no value, so a missing fact is visible instead of a made-up one
+NOT_LISTED = "Not listed on the Groww page"
 
 def normalize_date_to_iso(date_str: str) -> str:
     """Converts varying date strings (e.g. '23-Oct-2026', '05-Nov-2026') into strict ISO YYYY-MM-DD format."""
@@ -43,7 +46,45 @@ def extract_active_fund_managers(soup: BeautifulSoup, scheme_id: str = "", defau
     if default_name and "Prashant Jain" not in default_name:
         return default_name
 
-    return "HDFC Asset Management Company"
+    return NOT_LISTED
+
+# Longest label first so "High Risk" never shadows "Very High Risk" or "Moderately High Risk"
+RISK_PATTERN = re.compile(r"\b(Very High|Moderately High|Moderately Low|Moderate|High|Low)\s+Risk\b", re.I)
+
+
+def _risk_label(next_data: dict, soup: BeautifulSoup) -> str:
+    """The risk label the Groww page shows beside the scheme name, or "" if it cannot be found.
+
+    Primary source is the scheme's own row of return_stats. nfo_risk is the label at launch and goes stale.
+    There is deliberately no default: a wrong label is worse than a missing one.
+    """
+    stats = next_data.get("return_stats")
+    label = stats[0].get("risk") if isinstance(stats, list) and stats and isinstance(stats[0], dict) else None
+    if label:
+        return f"{str(label).strip()} Risk"
+
+    found = None
+    for el in soup.find_all(class_=re.compile(r"(?:pill|badge|riskometer)", re.I)):
+        txt = el.get_text(separator=" ", strip=True)
+        m = RISK_PATTERN.search(txt)
+        if m:
+            found = m.group(0).title()
+            if len(txt) <= 30:
+                break
+    if found:
+        return found
+
+    # Leaf text only (<= 35 chars), so a whole navigation menu cannot match
+    for tag in soup.find_all(["span", "div", "p"]):
+        if tag.find_all(["span", "div", "p"]):
+            continue
+        txt = tag.get_text(separator=" ", strip=True)
+        if len(txt) <= 35:
+            m = RISK_PATTERN.search(txt)
+            if m:
+                return m.group(0).title()
+    return ""
+
 
 def parse_groww_scheme(raw_data: dict) -> dict:
     next_data = raw_data.get("next_data", {})
@@ -60,12 +101,15 @@ def parse_groww_scheme(raw_data: dict) -> dict:
     category = next_data.get("category", "Equity")
     sub_category = next_data.get("sub_category", "")
 
+    def rupees(value) -> str:
+        return f"₹{value}" if value not in (None, "") else NOT_LISTED
+
     # Expense ratio
     ter_raw = next_data.get("expense_ratio")
-    ter = f"{ter_raw}%" if ter_raw is not None else ""
+    ter = f"{ter_raw}%" if ter_raw not in (None, "") else NOT_LISTED
 
     # Exit load
-    exit_load = next_data.get("exit_load", "")
+    exit_load = next_data.get("exit_load") or NOT_LISTED
 
     # Investment minimums
     min_sip = next_data.get("min_sip_investment")
@@ -73,59 +117,29 @@ def parse_groww_scheme(raw_data: dict) -> dict:
     min_additional = next_data.get("mini_additional_investment")
 
     # Benchmark
-    benchmark = next_data.get("benchmark_name") or next_data.get("benchmark", "")
+    benchmark = (next_data.get("benchmark_name") or next_data.get("benchmark") or NOT_LISTED).strip()
 
     # Lock-in
     lock_in_data = next_data.get("lock_in")
     lock_in = "None"
     if lock_in_data and isinstance(lock_in_data, dict):
-        years = lock_in_data.get("years")
-        if years:
-            lock_in = f"{years} Years"
-
-    # Riskometer - Longest label wins; prioritize pill/badge elements with whitespace separation
-    riskometer = "Very High Risk"
-    # Order patterns longest-label first so "High Risk" never shadows "Very High Risk" or "Moderately High Risk"
-    RISK_PATTERN = re.compile(
-        r"\b(Very High|Moderately High|Moderately Low|Moderate|High|Low)\s+Risk\b",
-        re.I,
-    )
-
-    # 1. First check dedicated pill / badge elements
-    found_risk = None
-    for el in soup.find_all(class_=re.compile(r"(?:pill|badge|riskometer)", re.I)):
-        txt = el.get_text(separator=" ", strip=True)
-        m = RISK_PATTERN.search(txt)
-        if m:
-            found_risk = m.group(0).title()
-            # If the element text is exclusively the risk label, stop immediately
-            if len(txt) <= 30:
+        for unit, label in (("years", "Years"), ("months", "Months"), ("days", "Days")):
+            if lock_in_data.get(unit):
+                lock_in = f"{lock_in_data[unit]} {label}"
                 break
 
-    # 2. Fallback to leaf text elements (<= 35 chars) to prevent matching full navbar menus
-    if not found_risk:
-        for tag in soup.find_all(["span", "div", "p"]):
-            if tag.find_all(["span", "div", "p"]):
-                continue  # skip non-leaf containers
-            txt = tag.get_text(separator=" ", strip=True)
-            if len(txt) <= 35:
-                m = RISK_PATTERN.search(txt)
-                if m:
-                    found_risk = m.group(0).title()
-                    break
-
-    if found_risk:
-        riskometer = found_risk
+    riskometer = _risk_label(next_data, soup) or NOT_LISTED
 
     # NAV & AUM
-    nav = str(next_data.get("nav", ""))
+    nav_raw = next_data.get("nav")
     nav_date = next_data.get("nav_date", fetched_at)
     iso_date = normalize_date_to_iso(nav_date or fetched_at)
-    aum = str(next_data.get("aum", ""))
+    aum_raw = next_data.get("aum")
 
     # Fund Manager & House (Extracted from active DOM cards, filtering out stale managers like Prashant Jain)
-    fund_manager = extract_active_fund_managers(soup, scheme_id, next_data.get("fund_manager", "HDFC Asset Management Company"))
-    fund_house = next_data.get("fund_house", "HDFC Mutual Fund")
+    house = fund_house_of(scheme_id)
+    fund_manager = extract_active_fund_managers(soup, scheme_id, next_data.get("fund_manager", ""))
+    fund_house = next_data.get("fund_house") or house.get("name", "")
     isin = next_data.get("isin", "")
     stamp_duty = next_data.get("stamp_duty", "0.005% (from July 1st, 2020)")
 
@@ -139,8 +153,9 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         mgr_exp = primary_mgr.get("experience", "")
 
     rta_info = next_data.get("rta_details", {})
-    rta_name = rta_info.get("rta_name", "CAMS") if isinstance(rta_info, dict) else "CAMS"
-    rta_email = rta_info.get("email", "enq_h@camsonline.com") if isinstance(rta_info, dict) else ""
+    rta_name = rta_info.get("rta_name", "") if isinstance(rta_info, dict) else ""
+    rta_email = rta_info.get("email", "") if isinstance(rta_info, dict) else ""
+    rta_text = f"Registrar and Transfer Agent (RTA): {rta_name} ({rta_email}). " if rta_name else ""
 
     # Tax impact
     tax_impact = ""
@@ -179,11 +194,11 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         },
         {
             "section": "Investment Minimums & SIP Limits",
-            "content": f"Minimum SIP Investment for {scheme_name}: ₹{min_sip} per installment. Minimum initial investment / lumpsum: ₹{min_lumpsum}. Minimum additional purchase: ₹{min_additional}."
+            "content": f"Minimum SIP Investment for {scheme_name}: {rupees(min_sip)}{' per installment' if min_sip not in (None, '') else ''}. Minimum initial investment / lumpsum: {rupees(min_lumpsum)}. Minimum additional purchase: {rupees(min_additional)}."
         },
         {
             "section": "Lock-in Period & Taxation",
-            "content": f"Lock-in Period for {scheme_name}: {lock_in}. Tax Implications: {tax_impact if tax_impact else 'Short Term Capital Gains (STCG) taxed at 20% if redeemed within 1 year; Long Term Capital Gains (LTCG) exceeding ₹1.25 Lakh taxed at 12.5%.'}"
+            "content": f"Lock-in Period for {scheme_name}: {lock_in}." + (f" Tax Implications: {tax_impact}" if tax_impact else "")
         },
         {
             "section": "Riskometer & Benchmark Index",
@@ -191,7 +206,7 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         },
         {
             "section": "Fund Management & Operations",
-            "content": f"Fund Manager: {fund_manager}. {mgr_edu} {mgr_exp[:200] if mgr_exp else ''} Registrar and Transfer Agent (RTA): {rta_name} ({rta_email}). ISIN: {isin}. Stamp Duty: {stamp_duty}."
+            "content": f"Fund Manager: {fund_manager}. {mgr_edu} {mgr_exp[:200] if mgr_exp else ''} {rta_text}ISIN: {isin}. Stamp Duty: {stamp_duty}."
         }
     ]
 
@@ -212,14 +227,14 @@ def parse_groww_scheme(raw_data: dict) -> dict:
         "canonical_facts": {
             "ter_direct": ter,
             "exit_load": exit_load,
-            "min_sip": f"₹{min_sip}",
-            "min_lumpsum": f"₹{min_lumpsum}",
-            "min_additional": f"₹{min_additional}",
+            "min_sip": rupees(min_sip),
+            "min_lumpsum": rupees(min_lumpsum),
+            "min_additional": rupees(min_additional),
             "lock_in": lock_in,
             "riskometer": riskometer,
             "benchmark": benchmark,
-            "nav": f"₹{nav}" if nav else "",
-            "aum": f"₹{aum} Cr" if aum else "",
+            "nav": rupees(nav_raw),
+            "aum": f"₹{aum_raw} Cr" if aum_raw not in (None, "") else NOT_LISTED,
             "fund_manager": fund_manager
         },
         "sections": sections

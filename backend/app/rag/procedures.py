@@ -92,12 +92,12 @@ PROCEDURE_ITEMS: List[Dict[str, Any]] = [
         "navigation": "Scheme Page → Start SIP → Select Amount & Date → Pay",
         "narrative": (
             "To start an SIP on Groww, search for your chosen mutual fund scheme and click 'Start SIP'. "
-            "Enter your monthly investment amount (minimum ₹100 for supported HDFC schemes), choose your monthly deduction date, and authenticate your payment."
+            "Enter your monthly investment amount (at least the scheme's minimum SIP amount), choose your monthly deduction date, and authenticate your payment."
         ),
         "table_rows": [
             ("Procedure", "Start Systematic Investment Plan (SIP)"),
             ("Platform", "Groww Web & Mobile App"),
-            ("Minimum Amount", "₹100 (for all 5 supported HDFC schemes)"),
+            ("Minimum Amount", "Set by each scheme (see the scheme's minimum SIP)"),
             ("Payment Modes", "UPI Auto-Pay, Net Banking Mandate, One-Time Mandate (OTM)"),
         ],
         "source_url": "https://groww.in/help/mutual-funds/sip",
@@ -224,7 +224,7 @@ PROCEDURE_ITEMS: List[Dict[str, Any]] = [
         ),
         "table_rows": [
             ("Event", "SIP Auto-Debit Failed (Insufficient Funds)"),
-            ("AMC / Platform Penalty", "₹0 (Zero penalty charged by Groww or HDFC AMC)"),
+            ("AMC / Platform Penalty", "₹0 (Zero penalty charged by Groww or the AMC)"),
             ("Bank Bounce Fee", "Applicable as per your personal bank's ECS/NACH policy"),
             ("Mandate Status", "Active (auto-paused only after 3 consecutive failed cycles)"),
         ],
@@ -356,12 +356,12 @@ PROCEDURE_ITEMS: List[Dict[str, Any]] = [
         "narrative": (
             "Equity Linked Savings Schemes (ELSS) carry a mandatory statutory lock-in period of 3 years from the date of allotment under Section 80C. "
             "Investments up to ₹1.5 lakh qualify for tax deduction under Section 80C strictly under the Old Tax Regime (not available under the New Tax Regime). "
-            "Our 5 supported HDFC schemes are open-ended equity and commodity funds with zero lock-in."
+            "Among our supported schemes, only the Mahindra Manulife ELSS Tax Saver Fund has this lock-in; the other supported schemes have none."
         ),
         "table_rows": [
             ("Category", "Equity Linked Savings Scheme (ELSS)"),
             ("Statutory Lock-in", "3 Years (36 Months from unit allotment date)"),
-            ("Supported Schemes Lock-in", "None (All 5 supported HDFC schemes have 0 lock-in)"),
+            ("Supported Schemes Lock-in", "Only Mahindra Manulife ELSS Tax Saver Fund (3 years); none for the other supported schemes"),
         ],
         "source_url": "https://groww.in/blog/3-steps-follow-elss-lock-period-ends",
         "citation_url": "https://groww.in/blog/3-steps-follow-elss-lock-period-ends",
@@ -429,7 +429,7 @@ PROCEDURE_ITEMS: List[Dict[str, Any]] = [
         "table_rows": [
             ("Regulatory Standard", "SEBI / AMFI Daily NAV Disclosure Timing"),
             ("Daily Disclosure Deadline", "11:00 PM IST"),
-            ("Official Portals", "AMFI (amfiindia.com) and AMC website (hdfcfund.com)"),
+            ("Official Portals", "AMFI (amfiindia.com) and the AMC's website (for example hdfcfund.com or mahindramanulife.com)"),
         ],
         "source_url": "https://www.amfiindia.com/uploads/Reviewoftimelimitfordisclosureof_NAV_f5ebc65062.pdf",
         "citation_url": "https://www.amfiindia.com/uploads/Reviewoftimelimitfordisclosureof_NAV_f5ebc65062.pdf",

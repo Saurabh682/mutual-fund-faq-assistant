@@ -208,7 +208,7 @@ FACTUAL_KEYWORDS = [
 ]
 
 MUTUAL_FUND_CONTEXT_KEYWORDS = [
-    "fund", "scheme", "hdfc", "sip", "nav", "aum", "ter", "load",
+    "fund", "scheme", "hdfc", "mahindra", "manulife", "sip", "nav", "aum", "ter", "load",
     "investment", "invest", "portfolio", "amfi", "sebi", "units"
 ]
 
@@ -464,7 +464,7 @@ def split_clauses(query: str) -> List[str]:
 RESIDUAL_FILLER_WORDS = frozenset(
     """a an the of for in on is are was what whats what's who whom which does do did tell me show
     give please about its it this that fund funds scheme schemes plan direct growth regular option
-    hdfc mf mutual today current currently value amount percentage percent limit period level
+    hdfc mahindra manulife mf mutual today current currently value amount percentage percent limit period level
     category labeled labelled any has have how much many managers manager handling managing""".split()
 )
 RESIDUAL_MIN_WORDS = 3

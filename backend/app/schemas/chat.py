@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
+from app.core.schemes import FUND_HOUSE_NAMES
+
 
 class MessageDTO(BaseModel):
     id: str = Field(..., description="Unique message ID")
@@ -20,6 +22,9 @@ class MessageDTO(BaseModel):
     last_updated: Optional[str] = Field(None, description="Document freshness timestamp (YYYY-MM-DD)")
     rendered: Optional[str] = Field(None, description="Complete rendered message with citation and footer")
     suggested_followups: List[str] = Field(default_factory=list, description="Grounded follow-up query suggestions")
+    options: Optional[List[Dict[str, str]]] = Field(
+        None, description="Clarification choices: one {id, label, prompt} per scheme the question may mean"
+    )
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     latency_ms: Optional[float] = Field(None, description="Processing latency in milliseconds")
 
@@ -54,7 +59,7 @@ class ChatRequest(BaseModel):
 
 
 class MetaResponse(BaseModel):
-    amc: str = "HDFC Mutual Fund"
+    amc: str = FUND_HOUSE_NAMES
     schemes: List[Dict[str, Any]]
     disclaimer: str = "Facts-only. No investment advice."
     starter_questions: List[str]

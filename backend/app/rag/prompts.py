@@ -9,14 +9,14 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from app.core.schemes import SCHEME_COUNT, SCHEME_REGISTRY
+from app.core.schemes import SCHEME_COUNT, SCHEME_REGISTRY, SCOPE_NAME
 
 _SCHEME_LINES = "\n".join(
     f"   - {m['name']}" + (f" (also called {' / '.join(m['also_called'])})" if m["also_called"] else "")
     for m in SCHEME_REGISTRY.values()
 )
 
-SYSTEM_SYNTHESIS_PROMPT = f"""You are a facts-only Mutual Fund FAQ assistant for HDFC Mutual Fund schemes.
+SYSTEM_SYNTHESIS_PROMPT = f"""You are a facts-only Mutual Fund FAQ assistant for {SCOPE_NAME} Mutual Fund schemes.
 RULES:
 1. Use ONLY the CONTEXT below. If the answer is not present in CONTEXT, output exactly: NOT_FOUND.
 2. The {SCHEME_COUNT} schemes and their synonymous names are:

@@ -1,6 +1,6 @@
 """Mutual Fund FAQ Assistant - Hugging Face Space Demo.
 
-Groww-styled Facts-Only Q&A Assistant bounded strictly to the HDFC Mutual Fund schemes in data/corpus_manifest.yaml.
+Groww-styled Facts-Only Q&A Assistant bounded strictly to the fund houses' schemes in data/corpus_manifest.yaml.
 Adheres strictly to the SEBI 5-Point Response Contract and Option C Stat Card output format.
 """
 
@@ -52,7 +52,7 @@ from app.api.guardrails import router as guardrails_router
 from app.api.rag import router as rag_router
 from app.api.threads import router as threads_router
 from app.core.config import settings
-from app.core.schemes import SCHEME_COUNT, scheme_label, scheme_options
+from app.core.schemes import FUND_HOUSE_NAMES, SCHEME_COUNT, SCOPE_NAME, scheme_label, scheme_options
 from app.api.rag import ask_query
 from app.guardrails.pii import PII_SECURITY_WARNING, scan_pii
 from app.guardrails.refusal import CANONICAL_LINKS, get_default_corpus_date
@@ -262,7 +262,7 @@ def respond(
 
 
 def get_fact_explorer_data() -> str:
-    """Builds a formatted markdown table of all verified HDFC schemes."""
+    """Builds a formatted markdown table of all verified schemes."""
     md = (
         "| Scheme Name | Category | NAV | AUM (Fund Size) | Expense Ratio | Exit Load |\n"
         "| :--- | :--- | :--- | :--- | :--- | :--- |\n"
@@ -298,7 +298,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
                 </h1>
                 <p style="color: #9CA3AF; margin: 0; font-size: 14px; line-height: 1.5;">
                     Deterministic, verifiable mutual fund facts powered by hybrid retrieval across 
-                    {SCHEME_COUNT} official HDFC Mutual Fund schemes. Built on the principle: 
+                    {SCHEME_COUNT} official {SCOPE_NAME} Mutual Fund schemes. Built on the principle: 
                     <strong style="color: #00D09C;">Accuracy over Intelligence</strong>.
                 </p>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;">
@@ -354,6 +354,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
                 ["What is the expense ratio of HDFC Small Cap Fund?", "Auto-detect from Question"],
                 ["Who manages the HDFC Top 100 Fund?", "Auto-detect from Question"],
                 ["What is the exit load of HDFC Silver ETF FoF?", "Auto-detect from Question"],
+                ["What is the exit load of Mahindra Manulife Liquid Fund?", "Auto-detect from Question"],
                 ["Should I invest ₹1,00,000 in HDFC Multi Cap Fund today?", "Auto-detect from Question"],
                 ["My PAN is ABCDE1234F, tell me my balance.", "Auto-detect from Question"],
             ],
@@ -369,7 +370,7 @@ with gr.Blocks(theme=gr.themes.Citrus(), css=CUSTOM_CSS, title="Mutual Fund FAQ 
             """
             <div style="margin-top: 24px; padding: 14px; border: 1px solid #232D3F; border-radius: 8px; background: rgba(30, 37, 46, 0.4); text-align: center; font-size: 12px; color: #6B7280;">
                 🛡️ <strong>SEBI Regulatory Notice</strong>: Mutual fund investments are subject to market risks. Read all scheme related documents carefully.
-                This assistant provides factual metrics strictly from official regulatory sources (HDFC AMC, AMFI, SEBI) and never offers investment advice.
+                This assistant provides factual metrics strictly from official regulatory sources (the AMCs, AMFI, SEBI) and never offers investment advice.
             </div>
             """
         )
@@ -422,7 +423,7 @@ def custom_create_app(*args, **kwargs):
             "environment": settings.ENVIRONMENT,
             "llm_provider": "groq",
             "llm_model": settings.GROQ_MODEL,
-            "amc": "HDFC Mutual Fund",
+            "amc": FUND_HOUSE_NAMES,
             "schemes_count": SCHEME_COUNT,
         }
 
@@ -430,11 +431,12 @@ def custom_create_app(*args, **kwargs):
     def get_metadata():
         return {
             "disclaimer": "Facts-only. No investment advice.",
-            "amc": "HDFC Mutual Fund",
+            "amc": FUND_HOUSE_NAMES,
             "starter_questions": [
                 "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
                 "What is the minimum SIP amount for HDFC Small Cap Fund?",
                 "What is the lock-in period for ELSS mutual funds?",
+                "What is the riskometer of Mahindra Manulife Arbitrage Fund?",
             ],
             "schemes": scheme_options(),
         }

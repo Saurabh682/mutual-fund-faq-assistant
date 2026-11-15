@@ -17,7 +17,7 @@ Adheres strictly to the Response Contract:
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
-from app.core.schemes import SCHEME_COUNT
+from app.core.schemes import SCHEME_COUNT, SCOPE_NAME
 
 from app.guardrails.validator import (
     CANONICAL_LINKS,
@@ -47,17 +47,17 @@ REFUSAL_TEMPLATES: Dict[str, str] = {
         "Please consult a qualified tax professional or refer to tax guidelines."
     ),
     "OUT_OF_SCOPE": (
-        "I can only assist with factual information regarding selected HDFC Mutual Fund schemes "
+        f"I can only assist with factual information regarding selected {SCOPE_NAME} Mutual Fund schemes "
         "and standard investment procedures. "
         "Please ask a question related to these mutual fund schemes."
     ),
     "SMALLTALK": (
-        "Hello! I am the Mutual Fund FAQ Assistant for HDFC Mutual Fund schemes. "
+        f"Hello! I am the Mutual Fund FAQ Assistant for {SCOPE_NAME} Mutual Fund schemes. "
         "You can ask me factual questions regarding expense ratios, exit loads, minimum SIPs, "
         f"benchmarks, and riskometers for our {SCHEME_COUNT} supported schemes."
     ),
     "HELP": (
-        f"I can answer factual questions about {SCHEME_COUNT} HDFC Mutual Fund schemes per the Groww scheme page and SEBI/AMFI regulatory guidelines. "
+        f"I can answer factual questions about {SCHEME_COUNT} {SCOPE_NAME} Mutual Fund schemes per the Groww scheme page and SEBI/AMFI regulatory guidelines. "
         "You can query expense ratios (TER), exit loads, minimum SIP amounts, fund managers, benchmarks, riskometers, and ELSS lock-in rules. "
         "In accordance with SEBI regulations, investment advice, fund recommendations, and future return predictions are strictly prohibited."
     ),
@@ -148,10 +148,10 @@ HELP_TABLE = (
     "\n\n| Topic | Supported Categories & Example Questions |\n"
     "| :--- | :--- |\n"
     "| **Exit Load & Lock-in** | *\"What is the exit load for HDFC Mid-Cap Opportunities Fund?\"* |\n"
-    "| **SIP & Limits** | *\"What is the minimum SIP amount for HDFC Small Cap Fund?\"* |\n"
+    "| **SIP & Limits** | *\"What is the minimum SIP amount for Mahindra Manulife Mid Cap Fund?\"* |\n"
     "| **Expense Ratio (TER)** | *\"What is the TER for HDFC Top 100 Fund (Direct - Growth)?\"* |\n"
     "| **Fund Management & NAV** | *\"Who manages HDFC Silver ETF FoF?\"* |\n"
-    "| **Benchmark & Riskometer** | *\"What is the benchmark for HDFC Multi Cap Fund?\"* |\n"
+    "| **Benchmark & Riskometer** | *\"What is the benchmark for Mahindra Manulife Multi Cap Fund?\"* |\n"
     "| **ELSS Lock-in & Regulations** | *\"What is the lock-in period for ELSS mutual funds?\"* |"
 )
 

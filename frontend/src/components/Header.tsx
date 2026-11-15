@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '../lib/format';
 import { useChatStore } from '../store/useChatStore';
+import { groupByFundHouse } from '../lib/schemes';
 
 export const Header: React.FC = () => {
   const {
@@ -75,7 +76,9 @@ export const Header: React.FC = () => {
               className="min-w-0 flex-1 bg-transparent text-[13px] sm:text-[14px] font-semibold text-[#0F172A] dark:text-[#dde4df] focus:outline-none cursor-pointer truncate max-w-[180px] sm:max-w-[280px] md:max-w-[340px] pr-2 appearance-none"
             >
               {schemes.length === 0 && <option value="">Loading schemes…</option>}
-              {schemes.map((s) => (
+              {groupByFundHouse(schemes).map((g) => (
+                <optgroup key={g.house} label={g.house || 'Schemes'}>
+                  {g.schemes.map((s) => (
                 <option
                   key={s.id}
                   value={s.id}
@@ -83,6 +86,8 @@ export const Header: React.FC = () => {
                 >
                   {s.name}
                 </option>
+              ))}
+                </optgroup>
               ))}
             </select>
             <ChevronDown className="w-4 h-4 text-[#64748B] dark:text-[#94a3b8] shrink-0 pointer-events-none" />

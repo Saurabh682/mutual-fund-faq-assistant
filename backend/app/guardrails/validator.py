@@ -15,7 +15,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple
-from app.core.schemes import SCHEME_COUNT
+from app.core.schemes import SCHEME_COUNT, SCOPE_NAME
 import yaml
 
 # Canonical regulatory and educational citation URLs
@@ -243,7 +243,7 @@ def safe_contract_fallback(
     else:
         body = (
             "I don't have that information. I can answer questions about TER, exit load, "
-            f"minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} HDFC schemes."
+            f"minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} {SCOPE_NAME} schemes."
         )
 
     url = primary_url or CANONICAL_LINKS["ADVISORY"]
@@ -286,7 +286,7 @@ def validate_response(
     if not clean_draft or clean_draft.upper() == "NOT_FOUND":
         not_found_body = (
             "I don't have that information. I can answer questions about TER, exit load, "
-            f"minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} HDFC schemes."
+            f"minimum SIP, NAV, AUM, benchmark, riskometer, lock-in and fund manager for {SCHEME_COUNT} {SCOPE_NAME} schemes."
         )
         url = CANONICAL_LINKS["ADVISORY"]
         rendered = f"{not_found_body}\n\nSource: {url}\nLast updated from sources: {effective_date}"

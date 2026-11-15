@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import { formatDate, groupIndian, plainExitLoad } from '../lib/format';
 import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
+import { groupByFundHouse } from '../lib/schemes';
 
 function parseRiskLevel(riskStr?: string): { level: number; label: string } {
   if (!riskStr) return { level: 6, label: 'Very High' };
@@ -105,7 +106,9 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
               onChange={(e) => setSelectedSchemeId(e.target.value)}
               className="w-full bg-[#F8FAFC] dark:bg-[#16201b] border border-[#E2E8F0] dark:border-[#1f2824] hover:bg-[#F1F5F9] dark:hover:bg-[#242c28] text-[#0F172A] dark:text-[#dde4df] text-[13px] sm:text-[14px] font-medium px-3.5 py-2.5 rounded-xl appearance-none cursor-pointer focus:outline-none transition-colors truncate pr-8"
             >
-              {schemes.map((s) => (
+              {groupByFundHouse(schemes).map((g) => (
+                <optgroup key={g.house} label={g.house || 'Schemes'}>
+                  {g.schemes.map((s) => (
                 <option
                   key={s.id}
                   value={s.id}
@@ -113,6 +116,8 @@ export const FactSheetContent: React.FC<FactSheetContentProps> = ({
                 >
                   {s.name}
                 </option>
+              ))}
+                </optgroup>
               ))}
             </select>
             <ChevronDown className="w-4 h-4 text-[#64748B] dark:text-[#94a3b8] pointer-events-none absolute right-3 top-3.5" />

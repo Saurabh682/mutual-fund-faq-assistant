@@ -2,6 +2,7 @@ import React from 'react';
 import { Info, X } from 'lucide-react';
 import { useDialogA11y } from '../lib/useDialogA11y';
 import { useChatStore } from '../store/useChatStore';
+import { fundHouseNames } from '../lib/schemes';
 
 export const AboutModal: React.FC = () => {
   const { isAboutModalOpen, setAboutModalOpen, meta } = useChatStore();
@@ -10,6 +11,7 @@ export const AboutModal: React.FC = () => {
   if (!isAboutModalOpen) return null;
 
   const schemeCount = meta?.schemes.length;
+  const houses = fundHouseNames(meta?.schemes || []);
 
   return (
     <div
@@ -55,7 +57,7 @@ export const AboutModal: React.FC = () => {
               Coverage Scope
             </span>
             <span className="text-[14px] text-[#0F172A] dark:text-[#dde4df]">
-              Covers {schemeCount ? `${schemeCount} ` : 'the '}HDFC Direct-Growth schemes as indexed in the snapshot catalog.
+              Covers {schemeCount ? `${schemeCount} ` : 'the '}{houses ? `${houses} ` : ''}Direct-Growth schemes as indexed in the snapshot catalog.
             </span>
           </div>
         </div>
