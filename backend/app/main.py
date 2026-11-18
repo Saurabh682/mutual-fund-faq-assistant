@@ -137,7 +137,6 @@ def get_metadata():
             "What is the exit load for HDFC Mid-Cap Opportunities Fund?",
             "What is the minimum SIP amount for HDFC Small Cap Fund?",
             "What is the lock-in period for ELSS mutual funds?",
-            "What is the riskometer of Mahindra Manulife Arbitrage Fund?",
         ],
         "schemes": scheme_options()
     }

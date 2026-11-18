@@ -83,7 +83,7 @@ export const StarterQuestions: React.FC = () => {
 
       {/* 3 Starter Action Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
-        {starterQuestions.slice(0, 4).map((q, idx) => (
+        {starterQuestions.slice(0, 3).map((q, idx) => (
           <button
             key={idx}
             onClick={() => handleQuestionClick(q)}
@@ -95,7 +95,7 @@ export const StarterQuestions: React.FC = () => {
               &ldquo;{q}&rdquo;
             </span>
             <div className="flex items-center justify-between text-[13px] pt-1 text-[#64748B] dark:text-[#94a3b8]">
-              <span>{CATEGORY_TAGS[idx] || 'Risk Level'}</span>
+              <span>{CATEGORY_TAGS[idx]}</span>
               <ArrowRight className="w-4 h-4 text-[#0D9488] dark:text-[#6ee7b7] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </button>
