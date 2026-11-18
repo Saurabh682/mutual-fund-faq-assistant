@@ -2,6 +2,7 @@
 
 Provides verified, SEBI-compliant procedural answers for:
 - Downloading Capital Gains / Tax statements on Groww
+- Getting a mutual fund account statement (CAS) from CAMS, KFintech or MF Central
 - Redeeming mutual fund units on Groww
 - Starting a Systematic Investment Plan (SIP) on Groww
 - Completing Mutual Fund KYC verification
@@ -50,6 +51,33 @@ PROCEDURE_ITEMS: List[Dict[str, Any]] = [
         "source_url": "https://groww.in/blog/how-to-get-capital-gains-statement-for-mutual-fund-investments",
         "citation_url": "https://groww.in/blog/how-to-get-capital-gains-statement-for-mutual-fund-investments",
         "verified_on": "2026-11-05",
+    },
+    {
+        "id": "account_statement",
+        "supported": True,
+        "status": "supported",
+        "patterns": [
+            re.compile(r"\b(?:download|get|obtain|request|generate|find|where)\b.{0,40}\b(?:account\s+statements?|transaction\s+statements?|consolidated\s+(?:account\s+)?statements?|statements?\s+of\s+account|e-?cas|cas)\b", re.I),
+            re.compile(r"\b(?:account|transaction|consolidated)\s+statements?\b.{0,30}\b(?:download|get|request|process|how)\b", re.I),
+            re.compile(r"\bdownload\s+(?:my\s+|the\s+)?(?:mutual\s+fund\s+)?statements?\b", re.I),
+        ],
+        "procedure_title": "Get a Mutual Fund Account Statement (CAS)",
+        "platform": "CAMS, KFintech or MF Central",
+        "navigation": "Request an e-CAS on the CAMS or KFintech site, or sign in to MF Central and choose a Summary or Detailed CAS",
+        "narrative": (
+            "To get your mutual fund account statement, request an e-CAS (Consolidated Account Statement) from the CAMS or KFintech website, "
+            "and it is emailed to the address registered with your mutual funds. "
+            "You can also sign up on the MF Central portal, choose a Summary or Detailed CAS and a period, then generate and download it."
+        ),
+        "table_rows": [
+            ("Procedure", "Get a Consolidated Account Statement (CAS)"),
+            ("Option 1", "Request an e-CAS on the CAMS or KFintech site; it is emailed to your registered address"),
+            ("Option 2", "Sign up on MF Central, choose Summary or Detailed CAS and a period, then download"),
+            ("Before you start", "Your email address must be registered with your mutual funds"),
+        ],
+        "source_url": "https://www.amfiindia.com/online-center/download-cas",
+        "citation_url": "https://www.amfiindia.com/online-center/download-cas",
+        "verified_on": "2026-11-18",
     },
     {
         "id": "redeem_mutual_fund",

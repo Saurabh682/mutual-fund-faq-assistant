@@ -152,3 +152,22 @@ def test_capital_gains_statement_procedure():
     assert proc["citation_url"].startswith("http")
     assert proc["last_updated"] == "2026-11-05"
     assert proc["sentence_count"] <= 3
+
+
+@pytest.mark.parametrize("q", [
+    "How can I download my account statement?",
+    "How do I get my mutual fund transaction statement?",
+    "Where can I request a consolidated account statement (CAS)?",
+    "Process to download statements",
+])
+def test_account_statement_procedure(q):
+    proc = lookup_procedure(q)
+    assert proc is not None and proc["procedure_id"] == "account_statement"
+    assert "cas" in proc["text"].lower()
+    assert proc["citation_url"] == "https://www.amfiindia.com/online-center/download-cas"
+    assert proc["rendered"].count("http") == 1
+    assert proc["sentence_count"] <= 3
+
+
+def test_capital_gains_questions_still_get_the_capital_gains_procedure():
+    assert lookup_procedure("How do I download my capital gains statement?")["procedure_id"] == "capital_gains_statement"
