@@ -55,3 +55,19 @@ def test_risk_extremes_answer_as_the_riskometer_level_listed(q, level):
     rows = [l for l in r["text"].splitlines() if l.startswith("| ") and "Scheme" not in l and "---" not in l]
     assert rows and all(l.endswith(f"| {level} |") for l in rows)
     assert "safest" not in r["text"].lower() and "best" not in r["text"].lower()
+
+
+@pytest.mark.parametrize("q", ["which is medium risk", "which fund has medium risk?", "Which schemes are moderate risk"])
+def test_medium_means_the_moderate_riskometer_level(q):
+    r = answer_cross_fund(q)
+    rows = [l for l in r["text"].splitlines() if l.startswith("| ") and "Scheme" not in l and "---" not in l]
+    assert r["type"] == "fact_store" and len(rows) == 3 and all(l.endswith("| Moderate Risk |") for l in rows)
+
+
+def test_highest_risk_works_without_the_word_fund():
+    r = answer_cross_fund("which has highest risk")
+    assert r["type"] == "fact_store" and "highest riskometer level" in r["text"]
+
+
+def test_a_named_scheme_is_never_treated_as_cross_fund():
+    assert answer_cross_fund("which risk level does HDFC Small Cap Fund have") is None

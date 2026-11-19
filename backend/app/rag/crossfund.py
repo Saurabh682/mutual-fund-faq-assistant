@@ -47,7 +47,7 @@ _JUDGEMENT = re.compile(
 )
 # "least risky among all": a lookup of the extreme riskometer level on the page, worded as data, never as "safest"
 _EXTREME = re.compile(r"\b(?:least|lowest|most|highest)\s+risk\w*|\briskiest\b")
-_ALL = re.compile(r"\b(?:among|all|every|any)\b")
+_ALL = re.compile(r"\b(?:among|all|every|any|which)\b")
 _LEVELS = ["low", "low to moderate", "moderate", "moderately high", "high", "very high"]
 _RISK_LEVEL = re.compile(r"\b(very high|moderately high|low to moderate|moderate|low|high)\b(?: risk)?")
 
@@ -70,11 +70,12 @@ def _followups(field: str) -> list[str]:
 
 def answer_cross_fund(query: str) -> Optional[Dict[str, Any]]:
     """A ready message payload (type, text, citation_url, last_updated, rendered, followups) or None if this is not a cross-fund question."""
-    q = query.lower()
+    q = re.sub(r"\bmedium\b", "moderate", query.lower())
     extreme = _EXTREME.search(q)
-    if not (_SCOPE.search(q) or (extreme and _ALL.search(q))):
+    level = _RISK_LEVEL.search(q) if "risk" in q and not extreme else None
+    if not (_SCOPE.search(q) or ((extreme or level) and _ALL.search(q))):
         return None
-    field = "riskometer" if extreme else next((f for f, pat in _FIELDS.items() if re.search(pat, q)), None)
+    field = "riskometer" if extreme or level else next((f for f, pat in _FIELDS.items() if re.search(pat, q)), None)
     if field is None:
         return None
     # A scheme named in the question makes it a single-fund question ("all the charges for HDFC Small Cap Fund")
@@ -99,7 +100,6 @@ def answer_cross_fund(query: str) -> Optional[Dict[str, Any]]:
         if field in facts:
             rows.append((scheme_label(info), _show(field, facts[field]["value"]), facts[field]["as_of"]))
 
-    level = _RISK_LEVEL.search(q) if field == "riskometer" and not extreme else None
     if level:
         want = level.group(1)
         rows = [r for r in rows if r[1].lower().removesuffix(" risk") == want]
