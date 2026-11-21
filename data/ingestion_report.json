@@ -1,7 +1,7 @@
 {
   "status": "success",
-  "timestamp": "2026-11-20T13:25:18.921773+00:00",
-  "elapsed_seconds": 89.19,
+  "timestamp": "2026-11-21T12:56:10.704672+00:00",
+  "elapsed_seconds": 90.15,
   "total_sources": 20,
   "total_chunks": 343,
   "official_documents_count": 20,
@@ -11,10 +11,10 @@
       "scheme_id": "hdfc_midcap_dg",
       "scheme_name": "HDFC Mid Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/hdfc-mid-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
-        "ter_direct": "0.74%",
+        "ter_direct": "0.73%",
         "exit_load": "Exit load of 1% if redeemed within 1 year.",
         "min_sip": "₹100",
         "min_lumpsum": "₹100",
@@ -22,7 +22,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY Midcap 150 Total Return Index",
-        "nav": "₹230.39",
+        "nav": "₹232.517",
         "aum": "₹100687.07 Cr",
         "fund_manager": "Chirag Setalvad"
       }
@@ -31,7 +31,7 @@
       "scheme_id": "hdfc_smallcap_dg",
       "scheme_name": "HDFC Small Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.79%",
@@ -42,7 +42,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "BSE 250 SmallCap Total Return Index",
-        "nav": "₹155.764",
+        "nav": "₹156.228",
         "aum": "₹38960.36 Cr",
         "fund_manager": "Chirag Setalvad"
       }
@@ -51,7 +51,7 @@
       "scheme_id": "hdfc_largecap_dg",
       "scheme_name": "HDFC Large Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.99%",
@@ -62,7 +62,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY 100 Total Return Index",
-        "nav": "₹1282.964",
+        "nav": "₹1298.571",
         "aum": "₹37466.3 Cr",
         "fund_manager": "Rahul Baijal"
       }
@@ -71,7 +71,7 @@
       "scheme_id": "hdfc_silver_fof_dg",
       "scheme_name": "HDFC Silver ETF FoF Direct Growth",
       "url": "https://groww.in/mutual-funds/hdfc-silver-etf-fof-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.22%",
@@ -82,7 +82,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "Domestic Price of Silver",
-        "nav": "₹26.3514",
+        "nav": "₹25.0807",
         "aum": "₹3787.89 Cr",
         "fund_manager": "Arun Agarwal, Nirman Morakhia"
       }
@@ -91,7 +91,7 @@
       "scheme_id": "hdfc_multicap_dg",
       "scheme_name": "HDFC Multi Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/hdfc-multi-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.95%",
@@ -102,7 +102,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "Nifty 500 Multicap 50:25:25 Total Return Index",
-        "nav": "₹20.088",
+        "nav": "₹20.275",
         "aum": "₹19080.08 Cr",
         "fund_manager": "Amar Kalkundrikar"
       }
@@ -111,7 +111,7 @@
       "scheme_id": "mahindra_aggressive_hybrid_dg",
       "scheme_name": "Mahindra Manulife Aggressive Hybrid Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-aggressive-hybrid-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.84%",
@@ -122,7 +122,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "CRISIL Hybrid 35+65 Aggressive Index",
-        "nav": "₹30.6538",
+        "nav": "₹30.8788",
         "aum": "₹2838.51 Cr",
         "fund_manager": "Rahul Pal, Amit Garg, Kirti Dalvi, Vishal Jajoo"
       }
@@ -131,7 +131,7 @@
       "scheme_id": "mahindra_arbitrage_dg",
       "scheme_name": "Mahindra Manulife Arbitrage Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-arbitrage-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "1.15%",
@@ -142,7 +142,7 @@
         "lock_in": "None",
         "riskometer": "Low Risk",
         "benchmark": "NIFTY 50 Arbitrage Total Return Index",
-        "nav": "₹13.9321",
+        "nav": "₹13.954",
         "aum": "₹137.85 Cr",
         "fund_manager": "Navin Matta, Rahul Pal, Mitul Doshi"
       }
@@ -151,7 +151,7 @@
       "scheme_id": "mahindra_consumption_dg",
       "scheme_name": "Mahindra Manulife Consumption Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-consumption-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "1.13%",
@@ -162,7 +162,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY India Consumption Total Return Index",
-        "nav": "₹25.7665",
+        "nav": "₹25.8233",
         "aum": "₹441.01 Cr",
         "fund_manager": "Navin Matta, Hemang Kapasi"
       }
@@ -171,7 +171,7 @@
       "scheme_id": "mahindra_dynamic_term_dg",
       "scheme_name": "Mahindra Manulife Dynamic Term Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-dynamic-term-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.41%",
@@ -182,7 +182,7 @@
         "lock_in": "None",
         "riskometer": "High Risk",
         "benchmark": "CRISIL Dynamic Bond A-III Index",
-        "nav": "₹16.4245",
+        "nav": "₹16.4681",
         "aum": "₹44.43 Cr",
         "fund_manager": "Kush Sonigara, Rahul Pal"
       }
@@ -191,7 +191,7 @@
       "scheme_id": "mahindra_elss_dg",
       "scheme_name": "Mahindra Manulife ELSS Tax Saver Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-elss-tax-saver-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "1.05%",
@@ -202,7 +202,7 @@
         "lock_in": "3 Years",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY 500 Total Return Index",
-        "nav": "₹33.9041",
+        "nav": "₹34.2373",
         "aum": "₹821.83 Cr",
         "fund_manager": "Neelesh Dhamnaskar, Hemang Kapasi"
       }
@@ -211,7 +211,7 @@
       "scheme_id": "mahindra_equity_savings_dg",
       "scheme_name": "Mahindra Manulife Equity Savings Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-equity-savings-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "1.3%",
@@ -222,7 +222,7 @@
         "lock_in": "None",
         "riskometer": "High Risk",
         "benchmark": "NIFTY Equity Savings Total Return Index",
-        "nav": "₹26.2313",
+        "nav": "₹26.3372",
         "aum": "₹515.07 Cr",
         "fund_manager": "Kush Sonigara, Renjith Sivaram Radhakrishnan, Rahul Pal"
       }
@@ -231,7 +231,7 @@
       "scheme_id": "mahindra_focused_dg",
       "scheme_name": "Mahindra Manulife Focused Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-focused-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.9%",
@@ -242,7 +242,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY 500 Total Return Index",
-        "nav": "₹30.1454",
+        "nav": "₹30.4691",
         "aum": "₹1896.14 Cr",
         "fund_manager": "Krishna Sanghavi, Kirti Dalvi"
       }
@@ -251,7 +251,7 @@
       "scheme_id": "mahindra_largecap_dg",
       "scheme_name": "Mahindra Manulife Large Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-large-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "1.09%",
@@ -262,7 +262,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY 100 Total Return Index",
-        "nav": "₹26.6038",
+        "nav": "₹26.8741",
         "aum": "₹657.23 Cr",
         "fund_manager": "Kirti Dalvi, Hemang Kapasi"
       }
@@ -271,7 +271,7 @@
       "scheme_id": "mahindra_largemid_dg",
       "scheme_name": "Mahindra Manulife Large & Mid Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-large-mid-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.83%",
@@ -282,7 +282,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY Large Midcap 250 Total Return Index",
-        "nav": "₹32.4325",
+        "nav": "₹32.6594",
         "aum": "₹2732.58 Cr",
         "fund_manager": "Kirti Dalvi, Neelesh Dhamnaskar"
       }
@@ -291,7 +291,7 @@
       "scheme_id": "mahindra_liquid_dg",
       "scheme_name": "Mahindra Manulife Liquid Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-liquid-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-21",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.15%",
@@ -302,7 +302,7 @@
         "lock_in": "None",
         "riskometer": "Moderate Risk",
         "benchmark": "CRISIL Liquid Debt A-I Index",
-        "nav": "₹1871.9984",
+        "nav": "₹1872.5766",
         "aum": "₹1336.83 Cr",
         "fund_manager": "Rahul Pal, Amit Garg"
       }
@@ -311,7 +311,7 @@
       "scheme_id": "mahindra_midcap_dg",
       "scheme_name": "Mahindra Manulife Mid Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-mid-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.78%",
@@ -322,7 +322,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "NIFTY Midcap 150 Total Return Index",
-        "nav": "₹40.4802",
+        "nav": "₹40.7415",
         "aum": "₹4892.19 Cr",
         "fund_manager": "Kirti Dalvi, Neelesh Dhamnaskar, Krishna Sanghavi"
       }
@@ -331,7 +331,7 @@
       "scheme_id": "mahindra_multicap_dg",
       "scheme_name": "Mahindra Manulife Multi Cap Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-multi-cap-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.95%",
@@ -342,7 +342,7 @@
         "lock_in": "None",
         "riskometer": "Very High Risk",
         "benchmark": "Nifty 500 Multicap 50:25:25 Total Return Index",
-        "nav": "₹47.0322",
+        "nav": "₹47.153",
         "aum": "₹7340.02 Cr",
         "fund_manager": "Vishal Jajoo, Neelesh Dhamnaskar"
       }
@@ -351,7 +351,7 @@
       "scheme_id": "mahindra_overnight_dg",
       "scheme_name": "Mahindra Manulife Overnight Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-overnight-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-21",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.1%",
@@ -362,7 +362,7 @@
         "lock_in": "None",
         "riskometer": "Low Risk",
         "benchmark": "CRISIL Liquid Overnight Index",
-        "nav": "₹1440.4548",
+        "nav": "₹1440.8988",
         "aum": "₹95.35 Cr",
         "fund_manager": "Rahul Pal, Amit Garg"
       }
@@ -371,7 +371,7 @@
       "scheme_id": "mahindra_ultra_short_dg",
       "scheme_name": "Mahindra Manulife Ultra Short Term Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-ultra-short-term-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.31%",
@@ -382,7 +382,7 @@
         "lock_in": "None",
         "riskometer": "Moderate Risk",
         "benchmark": "CRISIL Ultra Short Duration Debt A-I Index",
-        "nav": "₹1538.676",
+        "nav": "₹1538.8172",
         "aum": "₹240.65 Cr",
         "fund_manager": "Rahul Pal, Amit Garg"
       }
@@ -391,7 +391,7 @@
       "scheme_id": "mahindra_ultra_short_short_dg",
       "scheme_name": "Mahindra Manulife Ultra Short to Short Term Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-ultra-short-to-short-term-fund-direct-growth",
-      "doc_date": "2026-11-19",
+      "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.34%",
@@ -402,7 +402,7 @@
         "lock_in": "None",
         "riskometer": "Moderate Risk",
         "benchmark": "CRISIL Low Duration Debt A-I Index",
-        "nav": "₹1909.8239",
+        "nav": "₹1910.2345",
         "aum": "₹494.46 Cr",
         "fund_manager": "Amit Garg, Rahul Pal"
       }
