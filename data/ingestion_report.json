@@ -1,7 +1,7 @@
 {
   "status": "success",
-  "timestamp": "2026-11-21T12:56:10.704672+00:00",
-  "elapsed_seconds": 90.15,
+  "timestamp": "2026-11-22T12:48:49.890636+00:00",
+  "elapsed_seconds": 91.73,
   "total_sources": 20,
   "total_chunks": 343,
   "official_documents_count": 20,
@@ -291,7 +291,7 @@
       "scheme_id": "mahindra_liquid_dg",
       "scheme_name": "Mahindra Manulife Liquid Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-liquid-fund-direct-growth",
-      "doc_date": "2026-11-21",
+      "doc_date": "2026-11-22",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.15%",
@@ -302,7 +302,7 @@
         "lock_in": "None",
         "riskometer": "Moderate Risk",
         "benchmark": "CRISIL Liquid Debt A-I Index",
-        "nav": "₹1872.5766",
+        "nav": "₹1872.9084",
         "aum": "₹1336.83 Cr",
         "fund_manager": "Rahul Pal, Amit Garg"
       }
@@ -351,7 +351,7 @@
       "scheme_id": "mahindra_overnight_dg",
       "scheme_name": "Mahindra Manulife Overnight Fund Direct Growth",
       "url": "https://groww.in/mutual-funds/mahindra-manulife-overnight-fund-direct-growth",
-      "doc_date": "2026-11-21",
+      "doc_date": "2026-11-22",
       "chunks_count": 15,
       "canonical_facts": {
         "ter_direct": "0.1%",
@@ -362,7 +362,7 @@
         "lock_in": "None",
         "riskometer": "Low Risk",
         "benchmark": "CRISIL Liquid Overnight Index",
-        "nav": "₹1440.8988",
+        "nav": "₹1441.1218",
         "aum": "₹95.35 Cr",
         "fund_manager": "Rahul Pal, Amit Garg"
       }
