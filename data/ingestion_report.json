@@ -1,7 +1,7 @@
 {
   "status": "success",
-  "timestamp": "2026-11-22T12:48:49.890636+00:00",
-  "elapsed_seconds": 91.73,
+  "timestamp": "2026-11-23T15:09:59.207716+00:00",
+  "elapsed_seconds": 94.67,
   "total_sources": 20,
   "total_chunks": 343,
   "official_documents_count": 20,
@@ -234,7 +234,7 @@
       "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
-        "ter_direct": "0.9%",
+        "ter_direct": "0.89%",
         "exit_load": "Exit load of 1% if redeemed within 3 months.",
         "min_sip": "₹500",
         "min_lumpsum": "₹1000",
@@ -254,7 +254,7 @@
       "doc_date": "2026-11-20",
       "chunks_count": 15,
       "canonical_facts": {
-        "ter_direct": "1.09%",
+        "ter_direct": "1.08%",
         "exit_load": "Exit load of 1% if redeemed within 3 months.",
         "min_sip": "₹500",
         "min_lumpsum": "₹1000",
